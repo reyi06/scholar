@@ -1,0 +1,21 @@
+@import 'tailwindcss';
+
+/* Tailwind v4 reads design tokens straight from CSS.
+   Anything declared in @theme becomes a utility, e.g.
+   --color-brand-500  ->  bg-brand-500 / text-brand-500 / border-brand-500 */
+@theme {
+  --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+
+  --color-brand-50: oklch(0.97 0.02 275);
+  --color-brand-100: oklch(0.94 0.04 275);
+  --color-brand-300: oklch(0.82 0.11 275);
+  --color-brand-500: oklch(0.62 0.2 275);
+  --color-brand-600: oklch(0.55 0.21 275);
+  --color-brand-700: oklch(0.47 0.19 275);
+}
+
+@layer base {
+  body {
+    @apply bg-white text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-200;
+  }
+}
