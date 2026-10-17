@@ -60,22 +60,50 @@ npm run dev     # start the dev server at http://localhost:5173
 
 There is no test runner configured.
 
-## Local data layer
+## Data layer
 
-No backend is connected yet, so the interface is served by a frontend data layer:
+The interface never reads the database directly. `src/lib/api.ts` is the single
+seam; every screen calls it.
 
-- `src/lib/api.ts` is the only module that touches data. It exposes promise-based
-  methods (`scholarshipsApi.list(...)`, `applicationsApi.create(...)` and so on)
-  with a small simulated latency so that loading states behave like the real thing.
-- Records are seeded from `src/data/sampleData.ts` and persisted to the browser's
-  `localStorage` under keys prefixed `pgc:`, so changes survive a refresh.
-  `schema.ts` exports `DB_VERSION`; bump it when the record shape changes and
-  stale payloads are discarded automatically.
-- The administrator **Settings** page can restore the shipped record set.
+Two backends are supported, chosen at startup by `VITE_API_BASE_URL`:
 
-Sign-in is handled locally against the seeded accounts, so role-based navigation
-can be exercised without a server. Replace this with server-side authentication
-and authorisation before deploying — see [Current scope](#current-scope).
+| `VITE_API_BASE_URL` | Behaviour |
+| ------------------- | --------- |
+| *unset*             | Browser storage. Every visitor gets their own copy of the records in `localStorage`; nothing is shared or durable. Useful for previewing the interface. |
+| `/api`              | The local API server and SQLite database described below. |
+
+### Local database (Prisma + SQLite)
+
+A small dependency-free Node API server (`server/index.ts`) owns the SQLite
+file. The browser never receives database credentials, and every authorisation
+rule — who may read an application, who may confirm a grant — is decided on the
+server, per request.
+
+```bash
+cp .env.example .env     # DATABASE_URL, API_PORT, VITE_API_BASE_URL
+npm run db:migrate       # create prisma/dev.db from prisma/schema.prisma
+npm run db:seed          # load the placeholder records
+npm run server           # API on :8787
+npm run dev              # front end on :5173, proxying /api to the server
+```
+
+Useful extras: `npm run db:studio` (browse the data) and `npm run db:reset`
+(drop and re-migrate).
+
+Security properties this gives you that browser storage could not:
+
+- passwords are stored as **scrypt hashes** (`server/passwords.ts`), not plain text
+- sessions are **httpOnly cookies**; the browser holds only an opaque id
+- a student's list of applications is **scoped to that student on the server**
+- role checks run on the server, so they cannot be bypassed with developer tools
+- login returns an identical message for a wrong password and an unknown email,
+  so accounts cannot be enumerated
+
+> **Scope of the API so far.** It covers authentication, scholarships, saved
+> listings and applications. Registrations, grants, announcements,
+> notifications, students, settings and the administrator write operations are
+> not exposed yet, so the front end still runs against browser storage unless
+> `VITE_API_BASE_URL` is set. See [Current scope](#current-scope).
 
 ## Test accounts
 

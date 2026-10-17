@@ -7,9 +7,16 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "node --env-file=.env server/index.ts",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "node --env-file=.env prisma/seed.ts",
+    "db:studio": "prisma studio",
+    "db:reset": "prisma migrate reset --force"
   },
   "dependencies": {
+    "@prisma/adapter-better-sqlite3": "^7.10.1",
+    "@prisma/client": "^7.10.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router": "^8.4.0"
@@ -21,6 +28,7 @@
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "oxlint": "^1.81.0",
+    "prisma": "^7.10.1",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vite": "^8.3.0"

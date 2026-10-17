@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 
+# Local database (SQLite) and Prisma artefacts.
+prisma/dev.db
+prisma/dev.db-journal
+prisma/dev.db-wal
+prisma/dev.db-shm
+prisma/migrations/dev.db*
+
 # Local environment files — never commit secrets.
 .env
 .env.*

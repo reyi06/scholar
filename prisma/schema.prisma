@@ -1,0 +1,269 @@
+// Pampanga GrantConnect — database schema.
+//
+// SQLite for local development. The model shapes mirror `src/types/index.ts`
+// one-for-one so the API layer can return objects the frontend already knows.
+//
+// SQLite has no array or JSON column type, so list- and object-valued fields
+// are stored as JSON in `String` columns and (de)serialised in
+// `server/mappers.ts`. Those fields are marked with `// JSON` below.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  // The URL is supplied by prisma.config.ts (Prisma 7 reads it from there).
+}
+
+/* ------------------------------------------------------------------ */
+/* Accounts                                                            */
+/* ------------------------------------------------------------------ */
+
+model User {
+  id String @id
+
+  email        String @unique
+  /// scrypt hash, never the plain password. See server/passwords.ts.
+  passwordHash String
+  role         String // student | admin
+  firstName    String
+  lastName     String
+  createdAt    DateTime @default(now())
+
+  profile       StudentProfile?
+  sessions      Session[]
+  applications  Application[]
+  registrations SemesterRegistration[]
+  grants        Grant[]
+  notifications Notification[]
+  saved         SavedScholarship[]
+
+  @@index([role])
+}
+
+/// Server-side session. The browser only ever holds the opaque id in an
+/// httpOnly cookie; nothing about the user is readable from the client.
+model Session {
+  id        String   @id
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model StudentProfile {
+  userId String @id
+
+  studentNumber   String  @default("")
+  phone           String  @default("")
+  municipality    String  @default("")
+  barangay        String  @default("")
+  address         String  @default("")
+  birthDate       String  @default("")
+  educationLevel  String  @default("college")
+  school          String  @default("")
+  course          String  @default("")
+  yearLevel       String  @default("")
+  gwa             Float?
+  householdIncome Float?
+  guardianName    String  @default("")
+  guardianContact String  @default("")
+  updatedAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/* ------------------------------------------------------------------ */
+/* Scholarships                                                        */
+/* ------------------------------------------------------------------ */
+
+model Scholarship {
+  id String @id
+
+  name              String
+  provider          String
+  type              String // provincial | municipal | national | educational | private
+  municipality      String
+  educationLevels   String // JSON array
+  description       String
+  benefits          String // JSON array
+  eligibility       String // JSON array
+  requirements      String // JSON array
+  deadline          String // ISO date (yyyy-mm-dd)
+  applicationMode   String // internal | external
+  externalUrl       String?
+  contact           String // JSON object
+  instructions      String // JSON array
+  status            String // open | closed | draft
+  featured          Boolean  @default(false)
+  tags              String   @default("[]") // JSON array
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  applications Application[]
+  grants       Grant[]
+  saved        SavedScholarship[]
+
+  @@index([status])
+  @@index([type])
+  @@index([municipality])
+}
+
+/* ------------------------------------------------------------------ */
+/* Applications                                                        */
+/* ------------------------------------------------------------------ */
+
+model Application {
+  id String @id
+
+  referenceNo   String @unique
+  scholarshipId String
+  studentId     String
+  status        String // draft | submitted | under-review | needs-info | approved | rejected
+  submittedAt   DateTime
+  updatedAt     DateTime
+  motivation    String   @default("")
+  responses     String   @default("[]") // JSON array
+  documentNames String   @default("[]") // JSON array
+  reviewNotes   String?
+  reviewedBy    String?
+
+  scholarship Scholarship @relation(fields: [scholarshipId], references: [id])
+  student     User        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  timeline    ApplicationTimelineEntry[]
+  grant       Grant?
+
+  @@index([studentId])
+  @@index([scholarshipId])
+  @@index([status])
+}
+
+model ApplicationTimelineEntry {
+  id String @id
+
+  applicationId String
+  status        String
+  at            DateTime
+  note          String?
+  actor         String?
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+}
+
+/* ------------------------------------------------------------------ */
+/* Semester registration (existing grantees only)                      */
+/* ------------------------------------------------------------------ */
+
+model SemesterRegistration {
+  id String @id
+
+  referenceNo    String   @unique
+  studentId      String
+  academicYear   String
+  semester       String
+  school         String
+  course         String
+  yearLevel      String
+  unitsEnrolled  Int
+  gwa            Float?
+  status         String // pending | verified | rejected
+  submittedAt    DateTime
+  updatedAt      DateTime
+  remarks        String?
+  verifiedBy     String?
+
+  student User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  grants  Grant[]
+
+  @@index([studentId])
+  @@index([status])
+}
+
+/* ------------------------------------------------------------------ */
+/* Confirmed grants                                                    */
+/* ------------------------------------------------------------------ */
+
+model Grant {
+  id String @id
+
+  referenceNo    String   @unique
+  studentId      String
+  scholarshipId  String
+  /// One grant per application, enforced by the unique constraint.
+  applicationId  String?  @unique
+  registrationId String?
+  academicYear   String
+  semester       String
+  amount         Float
+  status         String // active | completed | suspended
+  releasedAt     DateTime
+  confirmedBy    String
+  remarks        String?
+
+  student      User                  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  scholarship  Scholarship           @relation(fields: [scholarshipId], references: [id])
+  application  Application?          @relation(fields: [applicationId], references: [id])
+  registration SemesterRegistration? @relation(fields: [registrationId], references: [id])
+
+  @@index([studentId])
+  @@index([status])
+}
+
+/* ------------------------------------------------------------------ */
+/* Announcements, notifications, bookmarks, settings                   */
+/* ------------------------------------------------------------------ */
+
+model Announcement {
+  id String @id
+
+  title       String
+  body        String
+  audience    String // all | students | admins
+  pinned      Boolean  @default(false)
+  publishedAt DateTime
+  author      String
+}
+
+model Notification {
+  id String @id
+
+  /// Null means the notification is broadcast to every signed-in user.
+  userId    String?
+  title     String
+  body      String
+  createdAt DateTime
+  read      Boolean  @default(false)
+  link      String?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model SavedScholarship {
+  studentId     String
+  scholarshipId String
+  savedAt       DateTime @default(now())
+
+  student     User        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  scholarship Scholarship @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
+
+  @@id([studentId, scholarshipId])
+}
+
+/// Single-row table holding platform-wide configuration.
+model PlatformSettings {
+  id                 String   @id @default("singleton")
+  currentAcademicYear String
+  currentSemester     String
+  applicationsOpen    Boolean  @default(true)
+  maintenanceMessage  String   @default("")
+  contactEmail        String
+  updatedAt           DateTime @updatedAt
+}

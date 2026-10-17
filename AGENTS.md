@@ -338,6 +338,35 @@ Do not present the current implementation as secure.
 
 Newest first. Record the command and its observed result.
 
+### 2026-10-17 — SQLite database and API server (verified end to end)
+
+- **Schema and migration:** `prisma/schema.prisma` with 13 models mirroring
+  `src/types/index.ts`. `npm run db:migrate` created `prisma/dev.db`; the
+  migration applied cleanly.
+- **Seed:** `npm run db:seed` loaded 5 users, 15 scholarships, 10 applications,
+  20 timeline entries, 4 registrations, 5 grants, 6 announcements,
+  7 notifications and 6 bookmarks, with passwords stored as scrypt hashes.
+- **Server:** `npm run server` starts a dependency-free Node API. Verified over
+  real HTTP:
+  - `GET /api/health` → 200
+  - login with a wrong password → 401 with a generic message, **byte-identical**
+    to the response for an unknown email address (no account enumeration)
+  - student login → 200, `Set-Cookie: pgc_session=…; HttpOnly`
+  - `GET /api/auth/session` with the cookie → 200 with the user
+  - `GET /api/applications` as a student → 6 rows, **1 distinct student** (scoped
+    on the server, not in the browser)
+  - student calling the admin-only `GET /api/scholarships/options` → **403**
+  - student reading **another student's** application → **403**; their own → 200.
+    This check was previously bypassable with developer tools.
+  - `POST /api/saved/sch_003/toggle` → persisted and reflected in the list
+  - logout → 200, and the session endpoint then returns `null`
+- **Type checking the server paid off immediately.** Node strips TypeScript
+  without checking it, so `tsconfig.server.json` was added and referenced from
+  `tsconfig.json`. The first run caught an unused import and a missing required
+  `createdAt` on two `Notification` creates that would have thrown at runtime.
+- `npm run lint` clean; `npm run build` clean (app bundle unchanged at
+  290.59 kB, since the server is not part of the bundle).
+
 ### 2026-10-17 — premium/minimal redesign (all passing)
 
 - **Build/lint:** `npm run lint` clean; `tsc -b` + Vite build clean, no
@@ -452,6 +481,38 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-17 — SQLite database, API server and deployment config
+
+- **Prisma + SQLite.** `prisma/schema.prisma` (13 models). Note the toolchain
+  detail: the `prisma` CLI's `latest` dist-tag currently points at an `8.0.0-rc`
+  while `@prisma/client`'s points at `7.10.1`, so both are pinned to `7.10.1`.
+  Prisma 7 reads the datasource URL from `prisma.config.ts` rather than the
+  schema and no longer auto-loads `.env`, and it requires a driver adapter —
+  `@prisma/adapter-better-sqlite3`.
+- **Seed** (`prisma/seed.ts`) driven from the existing `src/data/sampleData.ts`,
+  so the placeholder content has one source of truth. Passwords are hashed with
+  scrypt from `node:crypto` rather than stored in plain text.
+- **API server** (`server/index.ts`): dependency-free Node `http` with a small
+  router, session cookies, and server-side authorisation helpers
+  (`requireUser`, `requireRole`, `requireOwnerOrAdmin`). Covers authentication,
+  scholarships, saved listings and applications.
+- **Supporting modules:** `server/passwords.ts` (scrypt verify with a
+  length-checked `timingSafeEqual`), `server/ids.ts` (collision-free reference
+  numbers read from the database), `server/mappers.ts` (JSON columns ↔ domain
+  types).
+- **Dev proxy** (`vite.config.ts`): `/api` proxies to the server so requests are
+  same-origin and the session cookie works without cross-origin cookie rules.
+- **`tsconfig.server.json`**, referenced from `tsconfig.json`, so the server is
+  type-checked. Node strips types without checking them, so without this the
+  server would run with silent type errors.
+- **Scripts:** `server`, `db:migrate`, `db:seed`, `db:studio`, `db:reset`.
+- **`.env.example`** added; `.env` and the SQLite file are git-ignored.
+- **Deployment config:** `public/_redirects` and `vercel.json` add the SPA
+  fallback, without which a refresh on a deep link returns a 404.
+  `public/sitemap.xml` added and `robots.txt` gained its `Sitemap:` directive.
+  `public/favicon.svg` replaced the purple Vite starter icon with a maroon and
+  gold mark matching the header logo.
 
 ### 2026-10-17 — redesign to a modern, minimal interface (maroon and gold)
 
