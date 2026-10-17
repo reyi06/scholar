@@ -2,14 +2,13 @@ import { useState, type FormEvent } from 'react'
 import {
   Alert,
   Button,
-  Card,
-  CardBody,
   ConfirmDialog,
   DataTable,
   DefinitionList,
   Dialog,
   EmptyState,
   ErrorState,
+  Icon,
   Input,
   LoadingState,
   PageHeader,
@@ -59,8 +58,9 @@ const EDIT_SCHEMA: Partial<Record<keyof EditValues, Validator[]>> = {
  * Administrator student register.
  *
  * Everything here is private: it is only reachable behind the administrator
- * route guard. Account edits are validated, and deletion carries a warning
- * because it cascades to the student's applications, registrations, grants and
+ * route guard. The register stays a scannable table; the full record opens in a
+ * dialog. Account edits are validated, and deletion carries a warning because it
+ * cascades to the student's applications, registrations, grants and
  * notifications.
  */
 export function AdminStudentsPage() {
@@ -199,13 +199,13 @@ export function AdminStudentsPage() {
     {
       key: 'applications',
       header: 'Applications',
-      align: 'center',
+      align: 'right',
       accessor: (row) => formatNumber(row.applicationCount),
     },
     {
       key: 'grants',
       header: 'Grants',
-      align: 'center',
+      align: 'right',
       accessor: (row) => formatNumber(row.grantCount),
     },
     {
@@ -213,20 +213,26 @@ export function AdminStudentsPage() {
       header: 'Actions',
       align: 'right',
       render: (row) => (
-        <div className="flex flex-wrap items-center justify-end gap-1.5">
+        <div className="flex items-center justify-end gap-1">
           <Button variant="outline" size="sm" onClick={() => setViewingId(row.user.id)}>
             View
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => openEdit(row)}>
-            Edit
           </Button>
           <Button
             variant="ghost"
             size="sm"
+            aria-label={`Edit ${fullName(row.user.firstName, row.user.lastName)}`}
+            onClick={() => openEdit(row)}
+          >
+            <Icon name="edit" className="size-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label={`Delete ${fullName(row.user.firstName, row.user.lastName)}`}
             className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
             onClick={() => setDeleteTarget(row)}
           >
-            Delete
+            <Icon name="trash" className="size-4" />
           </Button>
         </div>
       ),
@@ -265,36 +271,11 @@ export function AdminStudentsPage() {
     : []
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PageHeader
         title="Students"
         description="Registered student accounts. This area contains private information and is never shown on public routes."
       />
-
-      <Card>
-        <CardBody className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <SearchInput
-            id="student-search"
-            label="Search"
-            placeholder="Name, email, school or student number"
-            value={query}
-            onChange={(value) => {
-              setQuery(value)
-              setPage(1)
-            }}
-          />
-          <Select
-            id="student-municipality"
-            label="Municipality"
-            options={MUNICIPALITY_OPTIONS}
-            value={municipality}
-            onChange={(event) => {
-              setMunicipality(event.target.value)
-              setPage(1)
-            }}
-          />
-        </CardBody>
-      </Card>
 
       {deleteAction.error ? (
         <Alert tone="danger" title="The student could not be removed">
@@ -302,48 +283,82 @@ export function AdminStudentsPage() {
         </Alert>
       ) : null}
 
-      <Card>
-        <CardBody className="space-y-4">
-          {loading ? (
-            <LoadingState label="Loading students…" />
-          ) : error ? (
-            <ErrorState message={error} onRetry={reload} />
-          ) : data ? (
-            <>
-              <DataTable
-                columns={columns}
-                rows={data.items}
-                getRowId={(row) => row.user.id}
-                caption="Registered students"
-                empty={
-                  <EmptyState
-                    title={hasFilters ? 'No students match your filters' : 'No students yet'}
-                    description={
-                      hasFilters
-                        ? 'Try a different search term or clear the filters to see every student.'
-                        : 'Students appear here once they create an account.'
-                    }
-                    action={
-                      hasFilters ? (
-                        <Button variant="outline" onClick={clearFilters}>
-                          Clear filters
-                        </Button>
-                      ) : undefined
-                    }
-                  />
+      <div className="space-y-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="min-w-0 flex-1">
+            <SearchInput
+              id="student-search"
+              label="Search students"
+              hideLabel
+              placeholder="Search name, email, school or student number"
+              value={query}
+              onChange={(value) => {
+                setQuery(value)
+                setPage(1)
+              }}
+            />
+          </div>
+          <div className="sm:w-48">
+            <Select
+              id="student-municipality"
+              aria-label="Municipality"
+              options={MUNICIPALITY_OPTIONS}
+              value={municipality}
+              onChange={(event) => {
+                setMunicipality(event.target.value)
+                setPage(1)
+              }}
+            />
+          </div>
+          {hasFilters ? (
+            <Button variant="ghost" onClick={clearFilters} className="shrink-0">
+              Reset
+            </Button>
+          ) : null}
+        </div>
+
+        {loading ? (
+          <LoadingState label="Loading students…" />
+        ) : error ? (
+          <ErrorState message={error} onRetry={reload} />
+        ) : data ? (
+          <>
+            {data.items.length === 0 ? (
+              <EmptyState
+                title={hasFilters ? 'No students match your filters' : 'No students yet'}
+                description={
+                  hasFilters
+                    ? 'Try a different search term or reset the filters to see every student.'
+                    : 'Students appear here once they create an account.'
+                }
+                action={
+                  hasFilters ? (
+                    <Button variant="outline" onClick={clearFilters}>
+                      Reset filters
+                    </Button>
+                  ) : undefined
                 }
               />
-              <Pagination
-                page={data.page}
-                totalPages={data.totalPages}
-                total={data.total}
-                pageSize={data.pageSize}
-                onPageChange={setPage}
-              />
-            </>
-          ) : null}
-        </CardBody>
-      </Card>
+            ) : (
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <DataTable
+                  columns={columns}
+                  rows={data.items}
+                  getRowId={(row) => row.user.id}
+                  caption="Registered students"
+                />
+              </div>
+            )}
+            <Pagination
+              page={data.page}
+              totalPages={data.totalPages}
+              total={data.total}
+              pageSize={data.pageSize}
+              onPageChange={setPage}
+            />
+          </>
+        ) : null}
+      </div>
 
       <Dialog
         open={viewingId !== null}

@@ -2,11 +2,7 @@ import { useState } from 'react'
 import { StatusBadge } from '../../components/StatusBadge.tsx'
 import {
   Alert,
-  Badge,
   Button,
-  Card,
-  CardBody,
-  CardHeader,
   ConfirmDialog,
   DataTable,
   Dialog,
@@ -19,7 +15,6 @@ import {
   Pagination,
   SearchInput,
   Select,
-  StatCard,
   Textarea,
   type Column,
   type SelectOption,
@@ -105,6 +100,13 @@ interface ConfirmFormErrors {
   semester?: string
 }
 
+/**
+ * Confirmed grant records.
+ *
+ * The awaiting-confirmation band is the point of this screen: confirming an
+ * approved application here — and only here — is what turns it into a grant
+ * record. Everything below it is the register of confirmed grants.
+ */
 export function AdminGrantsPage() {
   useDocumentTitle('Grant records')
   const toast = useToast()
@@ -139,6 +141,17 @@ export function AdminGrantsPage() {
       fullName(record.user.firstName, record.user.lastName),
     ]),
   )
+
+  const hasFilters =
+    debouncedQuery.trim() !== '' || status !== 'all' || academicYear !== 'all' || semester !== 'all'
+
+  function clearFilters(): void {
+    setQuery('')
+    setStatus('all')
+    setAcademicYear('all')
+    setSemester('all')
+    setPage(1)
+  }
 
   /* ---------------- Confirm an approved application ---------------- */
 
@@ -393,12 +406,18 @@ export function AdminGrantsPage() {
       header: 'Actions',
       align: 'right',
       render: (row) => (
-        <div className="flex justify-end gap-2">
+        <div className="flex items-center justify-end gap-1">
           <Button variant="outline" size="sm" onClick={() => openEdit(row)}>
             Edit
           </Button>
-          <Button variant="danger" size="sm" onClick={() => setDeletingGrant(row)}>
-            Delete
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label={`Delete ${row.referenceNo}`}
+            className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
+            onClick={() => setDeletingGrant(row)}
+          >
+            <Icon name="trash" className="size-4" />
           </Button>
         </div>
       ),
@@ -408,170 +427,163 @@ export function AdminGrantsPage() {
   const awaitingList = awaiting.data ?? []
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PageHeader
         title="Grant records"
         description="Confirm approved applications into grant records and manage every released grant."
       />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <StatCard
-          label="Total amount released"
-          value={formatCurrency(totalReleased.data)}
-          tone="brand"
-          hint="Sum of every confirmed grant record, regardless of the filters below."
-        />
-        <StatCard
-          label="Awaiting grant confirmation"
-          value={awaiting.data === null ? '—' : awaiting.data.length}
-          tone="warning"
-          hint="Approved applications that do not have a confirmed grant record yet."
-        />
-      </div>
+      <section className="rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+            Awaiting grant confirmation
+            {awaiting.data !== null ? (
+              <span className="ml-1.5 font-normal text-slate-500 dark:text-slate-400">
+                ({awaitingList.length})
+              </span>
+            ) : null}
+          </h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Confirmed here — and only here — an approved application becomes a grant record.
+          </p>
+        </div>
 
-      <Card>
-        <CardHeader
-          title={
-            <span className="flex items-center gap-2">
-              Pending applications awaiting confirmation
-              <Badge tone={awaitingList.length > 0 ? 'warning' : 'neutral'}>{awaitingList.length}</Badge>
-            </span>
-          }
-          description="Confirmed here — and only here — an approved application becomes a grant record."
-        />
         {awaiting.error ? (
-          <CardBody>
+          <div className="p-5">
             <ErrorState message={awaiting.error} onRetry={awaiting.reload} />
-          </CardBody>
+          </div>
         ) : awaiting.loading && awaiting.data === null ? (
-          <CardBody>
+          <div className="p-5">
             <LoadingState label="Loading pending applications…" />
-          </CardBody>
+          </div>
         ) : awaitingList.length === 0 ? (
-          <CardBody>
-            <EmptyState
-              icon={<Icon name="check" className="size-8" />}
-              title="Nothing awaiting confirmation"
-              description="Every approved application already has a confirmed grant record. New approvals will appear here."
-            />
-          </CardBody>
+          <p className="px-5 py-4 text-sm text-slate-500 dark:text-slate-400">
+            No approved applications are waiting. Every approval already has a confirmed grant record.
+          </p>
         ) : (
-          <CardBody className="p-0">
-            <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-              {awaitingList.map((application) => (
-                <li
-                  key={application.id}
-                  className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-900 dark:text-white">
-                      {studentNames.get(application.studentId) ?? 'Unknown student'}
-                    </p>
-                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-                      {scholarshipNames.get(application.scholarshipId) ?? 'Removed listing'} ·{' '}
-                      {application.referenceNo} · submitted {formatDate(application.submittedAt)}
-                    </p>
-                  </div>
-                  <Button size="sm" onClick={() => openConfirm(application)}>
-                    Confirm grant
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </CardBody>
+          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+            {awaitingList.map((application) => (
+              <li
+                key={application.id}
+                className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">
+                    {studentNames.get(application.studentId) ?? 'Unknown student'}
+                  </p>
+                  <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
+                    {scholarshipNames.get(application.scholarshipId) ?? 'Removed listing'} ·{' '}
+                    {application.referenceNo} · submitted {formatDate(application.submittedAt)}
+                  </p>
+                </div>
+                <Button size="sm" onClick={() => openConfirm(application)}>
+                  Confirm grant
+                </Button>
+              </li>
+            ))}
+          </ul>
         )}
-      </Card>
+      </section>
 
-      <Card>
-        <CardBody className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <SearchInput
-            id="grants-search"
-            label="Search grants"
-            placeholder="Reference no., student or scholarship"
-            value={query}
-            onChange={(value) => {
-              setQuery(value)
-              setPage(1)
-            }}
-          />
-          <Select
-            id="grants-status"
-            label="Status"
-            options={STATUS_OPTIONS}
-            value={status}
-            onChange={(event) => {
-              setStatus(event.target.value as GrantStatus | 'all')
-              setPage(1)
-            }}
-          />
-          <Select
-            id="grants-year"
-            label="Academic year"
-            options={ACADEMIC_YEAR_OPTIONS}
-            value={academicYear}
-            onChange={(event) => {
-              setAcademicYear(event.target.value)
-              setPage(1)
-            }}
-          />
-          <Select
-            id="grants-semester"
-            label="Semester"
-            options={SEMESTER_OPTIONS}
-            value={semester}
-            onChange={(event) => {
-              setSemester(event.target.value)
-              setPage(1)
-            }}
-          />
-        </CardBody>
-      </Card>
+      <p className="text-sm text-slate-600 dark:text-slate-300">
+        Total released across all confirmed grants:{' '}
+        <span className="font-semibold text-slate-900 tabular-nums dark:text-white">
+          {totalReleased.data === null ? '—' : formatCurrency(totalReleased.data)}
+        </span>
+      </p>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">All grant records</h2>
-        <Button leadingIcon={<Icon name="plus" className="size-4" />} onClick={openCreate}>
-          Add grant record
-        </Button>
-      </div>
+      <div className="space-y-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="min-w-0 flex-1">
+            <SearchInput
+              id="grants-search"
+              label="Search grants"
+              hideLabel
+              placeholder="Search reference no., student or scholarship"
+              value={query}
+              onChange={(value) => {
+                setQuery(value)
+                setPage(1)
+              }}
+            />
+          </div>
+          <div className="sm:w-36">
+            <Select
+              id="grants-status"
+              aria-label="Status"
+              options={STATUS_OPTIONS}
+              value={status}
+              onChange={(event) => {
+                setStatus(event.target.value as GrantStatus | 'all')
+                setPage(1)
+              }}
+            />
+          </div>
+          <div className="sm:w-44">
+            <Select
+              id="grants-year"
+              aria-label="Academic year"
+              options={ACADEMIC_YEAR_OPTIONS}
+              value={academicYear}
+              onChange={(event) => {
+                setAcademicYear(event.target.value)
+                setPage(1)
+              }}
+            />
+          </div>
+          <div className="sm:w-40">
+            <Select
+              id="grants-semester"
+              aria-label="Semester"
+              options={SEMESTER_OPTIONS}
+              value={semester}
+              onChange={(event) => {
+                setSemester(event.target.value)
+                setPage(1)
+              }}
+            />
+          </div>
+          {hasFilters ? (
+            <Button variant="ghost" onClick={clearFilters} className="shrink-0">
+              Reset
+            </Button>
+          ) : null}
+          <Button
+            variant="outline"
+            leadingIcon={<Icon name="plus" className="size-4" />}
+            onClick={openCreate}
+            className="shrink-0"
+          >
+            Add grant record
+          </Button>
+        </div>
 
-      {list.error ? <ErrorState message={list.error} onRetry={list.reload} /> : null}
-
-      {!list.error && list.loading && !list.data ? (
-        <LoadingState label="Loading grant records…" />
-      ) : null}
-
-      {!list.error && list.data ? (
-        <Card>
-          <DataTable
-            columns={columns}
-            rows={list.data.items}
-            getRowId={(row) => row.id}
-            loading={list.loading}
-            caption="Grant records"
-            empty={
+        {list.error ? (
+          <ErrorState message={list.error} onRetry={list.reload} />
+        ) : list.loading && !list.data ? (
+          <LoadingState label="Loading grant records…" />
+        ) : list.data ? (
+          <>
+            {list.data.items.length === 0 ? (
               <EmptyState
-                icon={<Icon name="award" className="size-8" />}
                 title="No grant records match these filters"
-                description="Try clearing the filters, or confirm an approved application from the pending panel above."
+                description="Try resetting the filters, or confirm an approved application from the panel above."
                 action={
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setQuery('')
-                      setStatus('all')
-                      setAcademicYear('all')
-                      setSemester('all')
-                      setPage(1)
-                    }}
-                  >
-                    Clear filters
+                  <Button variant="outline" size="sm" onClick={clearFilters}>
+                    Reset filters
                   </Button>
                 }
               />
-            }
-          />
-          <div className="px-4 pb-4">
+            ) : (
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <DataTable
+                  columns={columns}
+                  rows={list.data.items}
+                  getRowId={(row) => row.id}
+                  caption="Grant records"
+                />
+              </div>
+            )}
             <Pagination
               page={list.data.page}
               totalPages={list.data.totalPages}
@@ -579,9 +591,9 @@ export function AdminGrantsPage() {
               pageSize={list.data.pageSize}
               onPageChange={setPage}
             />
-          </div>
-        </Card>
-      ) : null}
+          </>
+        ) : null}
+      </div>
 
       {/* ---------------- Confirm grant dialog ---------------- */}
       <Dialog
@@ -609,17 +621,13 @@ export function AdminGrantsPage() {
 
           <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <dt className="text-xs font-medium tracking-wide text-slate-500 uppercase dark:text-slate-400">
-                Student
-              </dt>
+              <dt className="text-xs font-medium text-slate-500 dark:text-slate-400">Student</dt>
               <dd className="mt-1 text-sm text-slate-800 dark:text-slate-200">
                 {confirmApp ? studentNames.get(confirmApp.studentId) ?? 'Unknown student' : '—'}
               </dd>
             </div>
             <div>
-              <dt className="text-xs font-medium tracking-wide text-slate-500 uppercase dark:text-slate-400">
-                Scholarship
-              </dt>
+              <dt className="text-xs font-medium text-slate-500 dark:text-slate-400">Scholarship</dt>
               <dd className="mt-1 text-sm text-slate-800 dark:text-slate-200">
                 {confirmApp ? scholarshipNames.get(confirmApp.scholarshipId) ?? 'Removed listing' : '—'}
               </dd>

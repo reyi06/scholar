@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from 'react'
-import { Link, useParams } from 'react-router'
+import { useState } from 'react'
+import { useParams } from 'react-router'
 import { DeadlineBadge } from '../../components/DeadlineBadge.tsx'
 import { StatusBadge } from '../../components/StatusBadge.tsx'
 import {
@@ -8,7 +8,6 @@ import {
   Button,
   Card,
   CardBody,
-  CardHeader,
   Checkbox,
   DefinitionList,
   Dialog,
@@ -18,6 +17,7 @@ import {
   LinkButton,
   LoadingState,
   PageHeader,
+  Section,
   Textarea,
 } from '../../components/ui'
 import { applicationsApi, scholarshipsApi } from '../../lib/api.ts'
@@ -34,29 +34,20 @@ interface ApplicationFormValues {
   motivation: string
 }
 
-/** Renders a list of plain strings as a bulleted list, or a muted fallback. */
+/** Renders a list of plain strings, or a muted fallback when empty. */
 function BulletList({ items, emptyLabel }: { items: string[]; emptyLabel: string }) {
   if (items.length === 0) {
     return <p className="text-sm text-slate-500 dark:text-slate-400">{emptyLabel}</p>
   }
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-2.5">
       {items.map((item, index) => (
-        <li key={`${index}-${item}`} className="flex gap-2.5 text-sm text-slate-700 dark:text-slate-300">
-          <Icon name="check" className="mt-0.5 size-4 shrink-0 text-brand-600 dark:text-brand-400" />
+        <li key={`${index}-${item}`} className="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+          <span aria-hidden="true" className="mt-1.5 size-1.5 shrink-0 rounded-full bg-slate-300 dark:bg-slate-600" />
           <span>{item}</span>
         </li>
       ))}
     </ul>
-  )
-}
-
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <Card>
-      <CardHeader title={title} />
-      <CardBody>{children}</CardBody>
-    </Card>
   )
 }
 
@@ -86,24 +77,22 @@ export function ScholarshipDetailPage() {
     [user?.id, id, isStudent],
   )
 
-  const { run: submitApplication, loading: submitting } = useAsyncAction(
-    async (asDraft: boolean) => {
-      if (!user) throw new Error('You need to be signed in to apply.')
-      return applicationsApi.create(
-        user.id,
-        {
-          scholarshipId: id,
-          motivation: values.motivation.trim(),
-          documentNames: selectedDocs,
-          responses: [
-            { label: 'Documents ready for submission', value: asDraft ? 'Not yet' : 'Yes' },
-            { label: 'Information confirmed accurate', value: confirmed ? 'Yes' : 'No' },
-          ],
-        },
-        asDraft,
-      )
-    },
-  )
+  const { run: submitApplication, loading: submitting } = useAsyncAction(async (asDraft: boolean) => {
+    if (!user) throw new Error('You need to be signed in to apply.')
+    return applicationsApi.create(
+      user.id,
+      {
+        scholarshipId: id,
+        motivation: values.motivation.trim(),
+        documentNames: selectedDocs,
+        responses: [
+          { label: 'Documents ready for submission', value: asDraft ? 'Not yet' : 'Yes' },
+          { label: 'Information confirmed accurate', value: confirmed ? 'Yes' : 'No' },
+        ],
+      },
+      asDraft,
+    )
+  })
 
   useDocumentTitle(scholarship?.name ?? 'Scholarship')
 
@@ -131,21 +120,21 @@ export function ScholarshipDetailPage() {
       asDraft ? 'Draft saved' : 'Application submitted',
       asDraft
         ? 'You can complete and submit it from My applications.'
-        : `Reference number ${result.referenceNo}. Review usually happens in the order received.`,
+        : `Reference number ${result.referenceNo}.`,
     )
   }
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <LoadingState label="Loading scholarship details…" />
+      <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8">
+        <LoadingState label="Loading scholarship…" />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8">
         <ErrorState message={error} onRetry={reload} />
       </div>
     )
@@ -153,12 +142,11 @@ export function ScholarshipDetailPage() {
 
   if (!scholarship) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8">
         <EmptyState
-          icon={<Icon name="search" className="size-8" />}
           title="Scholarship not found"
           description="This listing may have been removed, or the link may be incorrect."
-          action={<LinkButton to="/scholarships">Back to the directory</LinkButton>}
+          action={<LinkButton to="/scholarships">Back to scholarships</LinkButton>}
         />
       </div>
     )
@@ -169,53 +157,40 @@ export function ScholarshipDetailPage() {
   const saved = savedIds.includes(scholarship.id)
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
       <PageHeader
         title={scholarship.name}
         breadcrumbs={[
-          { label: 'Home', to: '/' },
           { label: 'Scholarships', to: '/scholarships' },
           { label: truncate(scholarship.name, 40) },
         ]}
-        description={
-          <span className="flex flex-wrap items-center gap-1.5">
-            <Badge tone="brand">{SCHOLARSHIP_TYPE_LABELS[scholarship.type]}</Badge>
-            <StatusBadge kind="scholarship" status={scholarship.status} size="md" />
-            <DeadlineBadge deadline={scholarship.deadline} open={isOpen} />
-            <Badge tone="neutral">{scholarship.municipality}</Badge>
-          </span>
-        }
-        actions={
-          <>
-            <Button
-              variant={saved ? 'secondary' : 'outline'}
-              onClick={() => toggle(scholarship)}
-              aria-pressed={saved}
-              leadingIcon={<Icon name="star" className="size-4" />}
-            >
-              {saved ? 'Saved' : 'Save'}
-            </Button>
-            <LinkButton to="/scholarships" variant="ghost">
-              Back to directory
-            </LinkButton>
-          </>
-        }
+        description={scholarship.provider}
       />
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
-        {/* --------------------------- Main content --------------------------- */}
-        <div className="space-y-6">
-          <Section title="About this scholarship">
-            <p className="text-sm whitespace-pre-line text-slate-700 dark:text-slate-300">
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <Badge tone="brand">{SCHOLARSHIP_TYPE_LABELS[scholarship.type]}</Badge>
+        <Badge tone="neutral">{scholarship.municipality}</Badge>
+        <StatusBadge kind="scholarship" status={scholarship.status} />
+        <DeadlineBadge deadline={scholarship.deadline} open={isOpen} />
+      </div>
+
+      <div className="mt-10 grid gap-12 lg:grid-cols-[1fr_19rem]">
+        {/* ------------------------------- Content ------------------------------- */}
+        <div className="order-2 space-y-10 lg:order-1">
+          <Section divider={false} title="Summary">
+            <p className="text-sm leading-relaxed whitespace-pre-line text-slate-600 dark:text-slate-300">
               {scholarship.description}
             </p>
           </Section>
 
           <Section title="Benefits">
-            <BulletList items={scholarship.benefits} emptyLabel="No benefits have been published for this listing." />
+            <BulletList
+              items={scholarship.benefits}
+              emptyLabel="No benefits have been published for this listing."
+            />
           </Section>
 
-          <Section title="Who can apply (eligibility)">
+          <Section title="Eligibility">
             <BulletList
               items={scholarship.eligibility}
               emptyLabel="Eligibility criteria have not been published for this listing."
@@ -230,86 +205,55 @@ export function ScholarshipDetailPage() {
           </Section>
 
           <Section title="How to apply">
-            {isExternal ? (
-              <div className="space-y-4">
-                <Alert tone="info" title="This provider handles its own applications">
-                  Applications for this scholarship are processed on the provider's website. This
-                  platform lists the opportunity only — it does not receive your submission and cannot
-                  track its progress.
-                </Alert>
-                <BulletList
-                  items={scholarship.instructions}
-                  emptyLabel="Refer to the provider's website for application instructions."
-                />
-                {scholarship.externalUrl ? (
-                  <a
-                    href={scholarship.externalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700"
-                  >
-                    <Icon name="external" className="size-4" />
-                    Apply on the provider's website
-                  </a>
-                ) : null}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <Alert tone="info" title="Apply through this platform">
-                  Submit your application here and follow its progress from your student dashboard.
-                  Approving an application does not by itself release a grant — a grant record has to be
-                  confirmed by an administrator.
-                </Alert>
-                <BulletList
-                  items={scholarship.instructions}
-                  emptyLabel="No step-by-step instructions have been published for this listing."
-                />
-              </div>
-            )}
+            <div className="space-y-5">
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                {isExternal
+                  ? 'This provider processes applications on their own website. This platform lists the opportunity only and cannot track that submission.'
+                  : 'Submit your application here and follow its progress from your dashboard.'}
+              </p>
+              <BulletList
+                items={scholarship.instructions}
+                emptyLabel="Refer to the provider for application instructions."
+              />
 
-            {/* An external link must still be shown if the provider supplied one. */}
-            {!isExternal && scholarship.externalUrl ? (
-              <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
-                <p className="text-sm text-slate-600 dark:text-slate-300">
-                  The provider also publishes information at:
-                </p>
+              {/* An external link is shown whenever the provider supplied one. */}
+              {scholarship.externalUrl ? (
                 <a
                   href={scholarship.externalUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium break-all text-brand-700 underline underline-offset-2 dark:text-brand-300"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-300"
                 >
-                  <Icon name="external" className="size-4 shrink-0" />
-                  {scholarship.externalUrl}
+                  <Icon name="external" className="size-4" />
+                  {isExternal ? 'Open the provider website' : 'Provider website'}
                 </a>
-              </div>
-            ) : null}
+              ) : null}
+            </div>
           </Section>
         </div>
 
-        {/* ----------------------------- Sidebar ----------------------------- */}
-        <div className="space-y-6 lg:sticky lg:top-24">
+        {/* ------------------------------- Sidebar ------------------------------- */}
+        <aside className="order-1 space-y-8 lg:order-2 lg:sticky lg:top-24">
           <Card>
-            <CardHeader title="Application" />
-            <CardBody className="space-y-4">
+            <CardBody className="space-y-5">
               {isExternal ? (
                 <>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    Applications are handled externally by the provider.
+                    Applications are handled by the provider.
                   </p>
                   {scholarship.externalUrl ? (
                     <a
                       href={scholarship.externalUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-800"
                     >
                       <Icon name="external" className="size-4" />
-                      Open provider website
+                      Apply on provider website
                     </a>
                   ) : (
-                    <p className="text-sm text-amber-700 dark:text-amber-300">
-                      No provider link has been supplied for this listing yet.
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      No provider link has been supplied yet.
                     </p>
                   )}
                 </>
@@ -317,16 +261,14 @@ export function ScholarshipDetailPage() {
                 <p className="text-sm text-slate-500 dark:text-slate-400">Checking your applications…</p>
               ) : existingApplication ? (
                 <>
-                  <div className="flex flex-col gap-2">
-                    <p className="text-sm text-slate-600 dark:text-slate-300">
-                      You already have an application for this scholarship.
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <StatusBadge kind="application" status={existingApplication.status} size="md" />
-                      <span className="text-xs text-slate-500 dark:text-slate-400">
-                        {existingApplication.referenceNo}
-                      </span>
-                    </div>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    You already have an application for this scholarship.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <StatusBadge kind="application" status={existingApplication.status} size="md" />
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      {existingApplication.referenceNo}
+                    </span>
                   </div>
                   <LinkButton to={`/student/applications/${existingApplication.id}`} fullWidth>
                     View your application
@@ -335,24 +277,21 @@ export function ScholarshipDetailPage() {
               ) : !user ? (
                 <>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    Sign in to your student account to apply and track your progress.
+                    Sign in to apply and track your progress.
                   </p>
                   <LinkButton to="/login" fullWidth>
                     Sign in to apply
                   </LinkButton>
-                  <LinkButton to="/register" variant="outline" fullWidth>
-                    Create an account
-                  </LinkButton>
                 </>
               ) : !isStudent ? (
                 <Alert tone="warning" title="Student accounts only">
-                  Administrator accounts cannot submit scholarship applications.
+                  Administrator accounts cannot submit applications.
                 </Alert>
               ) : (
                 <>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
                     {isOpen
-                      ? 'Prepare your statement and start your application. You can save a draft and finish it later.'
+                      ? 'Prepare a short statement and start your application. You can save a draft.'
                       : 'This listing is not currently accepting applications.'}
                   </p>
                   <Button
@@ -368,78 +307,54 @@ export function ScholarshipDetailPage() {
                   </Button>
                 </>
               )}
+
+              <div className="border-t border-slate-200 pt-4 dark:border-slate-800">
+                <Button
+                  variant="outline"
+                  fullWidth
+                  onClick={() => toggle(scholarship)}
+                  aria-pressed={saved}
+                >
+                  {saved ? 'Saved' : 'Save for later'}
+                </Button>
+              </div>
             </CardBody>
           </Card>
 
-          <Card>
-            <CardHeader title="At a glance" />
-            <CardBody>
-              <DefinitionList
-                columns={1}
-                items={[
-                  { label: 'Provider', value: scholarship.provider },
-                  { label: 'Deadline', value: formatDate(scholarship.deadline) },
-                  { label: 'Coverage area', value: scholarship.municipality },
-                  {
-                    label: 'Education level',
-                    value: scholarship.educationLevels
-                      .map((level) => EDUCATION_LEVEL_LABELS[level])
-                      .join(', '),
-                  },
-                  {
-                    label: 'Application method',
-                    value: isExternal ? 'External provider website' : 'Through this platform',
-                  },
-                  {
-                    label: 'Last updated',
-                    value: formatDate(scholarship.updatedAt),
-                  },
-                ]}
-              />
-              {scholarship.tags.length > 0 ? (
-                <div className="mt-4 flex flex-wrap gap-1.5 border-t border-slate-200 pt-4 dark:border-slate-800">
-                  {scholarship.tags.map((tag) => (
-                    <Badge key={tag} tone="neutral">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              ) : null}
-            </CardBody>
-          </Card>
+          <Section title="At a glance" divider={false}>
+            <DefinitionList
+              columns={1}
+              items={[
+                { label: 'Deadline', value: formatDate(scholarship.deadline) },
+                { label: 'Provider', value: scholarship.provider },
+                { label: 'Coverage', value: scholarship.municipality },
+                {
+                  label: 'Education level',
+                  value: scholarship.educationLevels.map((value) => EDUCATION_LEVEL_LABELS[value]).join(', '),
+                },
+                {
+                  label: 'Application method',
+                  value: isExternal ? 'Provider website' : 'Through this platform',
+                },
+              ]}
+            />
+          </Section>
 
-          <Card>
-            <CardHeader title="Contact details" description="Provided by the scholarship provider." />
-            <CardBody className="space-y-3 text-sm">
-              {scholarship.contact.person ? (
-                <p className="text-slate-700 dark:text-slate-300">
-                  <span className="block text-xs text-slate-500 dark:text-slate-400">Contact person</span>
-                  {scholarship.contact.person}
-                </p>
-              ) : null}
+          <Section title="Contact">
+            <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
+              {scholarship.contact.person ? <p>{scholarship.contact.person}</p> : null}
               {scholarship.contact.email ? (
-                <p className="text-slate-700 dark:text-slate-300">
-                  <span className="block text-xs text-slate-500 dark:text-slate-400">Email</span>
+                <p>
                   <a
                     href={`mailto:${scholarship.contact.email}`}
-                    className="break-all text-brand-700 underline underline-offset-2 dark:text-brand-300"
+                    className="break-all text-brand-800 underline-offset-4 hover:underline dark:text-brand-300"
                   >
                     {scholarship.contact.email}
                   </a>
                 </p>
               ) : null}
-              {scholarship.contact.phone ? (
-                <p className="text-slate-700 dark:text-slate-300">
-                  <span className="block text-xs text-slate-500 dark:text-slate-400">Telephone</span>
-                  {scholarship.contact.phone}
-                </p>
-              ) : null}
-              {scholarship.contact.address ? (
-                <p className="text-slate-700 dark:text-slate-300">
-                  <span className="block text-xs text-slate-500 dark:text-slate-400">Address</span>
-                  {scholarship.contact.address}
-                </p>
-              ) : null}
+              {scholarship.contact.phone ? <p>{scholarship.contact.phone}</p> : null}
+              {scholarship.contact.address ? <p className="text-slate-500">{scholarship.contact.address}</p> : null}
               {!scholarship.contact.person &&
               !scholarship.contact.email &&
               !scholarship.contact.phone &&
@@ -448,24 +363,9 @@ export function ScholarshipDetailPage() {
                   No contact details have been published for this listing.
                 </p>
               ) : null}
-              <p className="border-t border-slate-200 pt-3 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
-                Always verify contact details with the official provider before sending personal
-                information.
-              </p>
-            </CardBody>
-          </Card>
-
-          <Card>
-            <CardBody>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Looking for something else?{' '}
-                <Link to="/scholarships" className="font-medium text-brand-700 dark:text-brand-300">
-                  Browse all scholarships
-                </Link>
-              </p>
-            </CardBody>
-          </Card>
-        </div>
+            </div>
+          </Section>
+        </aside>
       </div>
 
       {/* --------------------------- Application dialog --------------------------- */}
@@ -477,11 +377,11 @@ export function ScholarshipDetailPage() {
         size="lg"
         footer={
           <>
-            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={submitting}>
+            <Button variant="ghost" onClick={() => setDialogOpen(false)} disabled={submitting}>
               Cancel
             </Button>
-            <Button variant="ghost" onClick={() => handleSubmit(true)} loading={submitting}>
-              Save as draft
+            <Button variant="outline" onClick={() => handleSubmit(true)} loading={submitting}>
+              Save draft
             </Button>
             <Button onClick={() => handleSubmit(false)} loading={submitting}>
               Submit application
@@ -489,12 +389,7 @@ export function ScholarshipDetailPage() {
           </>
         }
       >
-        <div className="space-y-5">
-          <Alert tone="info">
-            Document upload is not available in this system. Tick the requirements you already have
-            ready — you will be told separately how to submit the physical copies.
-          </Alert>
-
+        <div className="space-y-6">
           <Textarea
             id="application-motivation"
             label="Why are you applying?"
@@ -510,7 +405,10 @@ export function ScholarshipDetailPage() {
             <legend className="text-sm font-medium text-slate-700 dark:text-slate-200">
               Requirements you have ready
             </legend>
-            <div className="mt-2 space-y-2">
+            <p className="mt-1 mb-3 text-xs text-slate-500 dark:text-slate-400">
+              Tick the ones you already have. You will be told separately how to submit the copies.
+            </p>
+            <div className="space-y-2.5">
               {scholarship.requirements.length === 0 ? (
                 <p className="text-sm text-slate-500 dark:text-slate-400">
                   No specific requirements are listed for this scholarship.

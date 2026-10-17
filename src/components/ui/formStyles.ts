@@ -8,10 +8,12 @@
 /** Base control styling shared by input, select and textarea. */
 export function controlClasses(invalid: boolean, extra = ''): string {
   return [
-    'block w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 shadow-sm transition',
-    'placeholder:text-slate-400 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500',
+    'block w-full rounded-md border bg-white px-3 py-2 text-sm text-slate-900 transition-colors',
+    'placeholder:text-slate-400 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500',
     'dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:disabled:bg-slate-800',
-    invalid ? 'border-rose-400 dark:border-rose-500' : 'border-slate-300 dark:border-slate-700',
+    invalid
+      ? 'border-rose-300 dark:border-rose-700'
+      : 'border-slate-300 hover:border-slate-400 dark:border-slate-700 dark:hover:border-slate-600',
     extra,
   ]
     .filter(Boolean)

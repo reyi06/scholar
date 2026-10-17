@@ -28,8 +28,7 @@ export interface DialogProps {
  *  - Escape closes, clicking the backdrop closes
  *  - focus moves into the dialog on open and returns to the trigger on close
  *  - background scrolling is locked while open
- *
- * NOTE: this traps focus by cycling Tab within the dialog.
+ *  - Tab cycles within the dialog
  */
 export function Dialog({
   open,
@@ -82,7 +81,6 @@ export function Dialog({
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
 
-    // Move focus into the dialog so keyboard users land inside it.
     const firstField = panelRef.current?.querySelector<HTMLElement>(
       'input:not([type="hidden"]), select, textarea, button',
     )
@@ -98,9 +96,7 @@ export function Dialog({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-slate-900/50 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-      {/* Backdrop click target. Kept as a sibling so it never swallows clicks
-          intended for the dialog content. */}
+    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-slate-900/40 p-0 sm:items-center sm:p-4">
       <button
         type="button"
         aria-label="Close dialog"
@@ -114,11 +110,11 @@ export function Dialog({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
-        className={`relative z-10 w-full ${SIZES[size]} max-h-[92vh] overflow-y-auto rounded-t-2xl border border-slate-200 bg-white shadow-xl sm:rounded-2xl dark:border-slate-800 dark:bg-slate-900`}
+        className={`relative z-10 w-full ${SIZES[size]} shadow-float max-h-[92vh] overflow-y-auto rounded-t-xl border border-slate-200 bg-white sm:rounded-lg dark:border-slate-800 dark:bg-slate-900`}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-4 dark:border-slate-800">
+        <div className="flex items-start justify-between gap-6 border-b border-slate-200 px-5 py-4 dark:border-slate-800">
           <div className="min-w-0">
-            <h2 id={titleId} className="text-base font-semibold text-slate-900 dark:text-white">
+            <h2 id={titleId} className="text-sm font-semibold text-slate-900 dark:text-white">
               {title}
             </h2>
             {description ? (
@@ -131,16 +127,16 @@ export function Dialog({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            className="-m-1 shrink-0 rounded p-1 text-slate-500 transition-colors hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"
           >
             ✕
           </button>
         </div>
 
-        {children ? <div className="p-4">{children}</div> : null}
+        {children ? <div className="px-5 py-5">{children}</div> : null}
 
         {footer ? (
-          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 p-4 dark:border-slate-800">
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 px-5 py-4 dark:border-slate-800">
             {footer}
           </div>
         ) : null}

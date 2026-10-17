@@ -1,20 +1,19 @@
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { useParams } from 'react-router'
 import { StatusBadge } from '../../components/StatusBadge.tsx'
 import {
   Alert,
   Button,
-  Card,
-  CardBody,
-  CardHeader,
   ConfirmDialog,
   DefinitionList,
   Dialog,
   EmptyState,
   ErrorState,
+  Icon,
   LinkButton,
   LoadingState,
   PageHeader,
+  Section,
   Textarea,
 } from '../../components/ui'
 import { useAuth } from '../../context/authContext.ts'
@@ -28,6 +27,13 @@ import { formatDate, formatDateTime } from '../../lib/format.ts'
 const NOT_FOUND_DESCRIPTION =
   'This application does not exist, or it does not belong to your account.'
 
+/**
+ * One application, in full.
+ *
+ * Organised as titled sections rather than a stack of cards: summary, the
+ * student's own words, the document checklist they listed, and the status
+ * history. Editing a draft and withdrawing both stay available but quiet.
+ */
 export function ApplicationDetailPage() {
   useDocumentTitle('Application details')
   const { id } = useParams<{ id: string }>()
@@ -61,6 +67,9 @@ export function ApplicationDetailPage() {
   const withdrawAction = useAsyncAction(() => applicationsApi.withdraw(id ?? '', userId))
 
   const application = state.data?.application ?? null
+  const scholarship = state.data?.scholarship ?? null
+  const canEdit = application?.status === 'draft'
+  const canWithdraw = application?.status === 'draft' || application?.status === 'submitted'
 
   if (!user) {
     return (
@@ -102,42 +111,43 @@ export function ApplicationDetailPage() {
     }
   }
 
-  const scholarship = state.data?.scholarship ?? null
-
-  let body: ReactNode
-  if (state.loading) {
-    body = <LoadingState label="Loading this application…" />
-  } else if (state.error) {
-    body = <ErrorState message={state.error} onRetry={state.reload} />
-  } else if (!application) {
-    body = (
-      <EmptyState
-        title="Application not found"
-        description={NOT_FOUND_DESCRIPTION}
-        action={
-          <LinkButton to="/student/applications" variant="outline">
-            Back to my applications
-          </LinkButton>
+  return (
+    <div className="space-y-10">
+      <PageHeader
+        title={scholarship ? scholarship.name : 'Application details'}
+        description={
+          application
+            ? `Reference ${application.referenceNo}${scholarship ? ` · ${scholarship.provider}` : ''}`
+            : 'Review the details, documents and status history for this application.'
+        }
+        breadcrumbs={[
+          { label: 'My applications', to: '/student/applications' },
+          { label: application ? application.referenceNo : 'Details' },
+        ]}
+        actions={
+          application ? (
+            <StatusBadge kind="application" status={application.status} size="md" />
+          ) : undefined
         }
       />
-    )
-  } else {
-    const canEdit = application.status === 'draft'
-    const canWithdraw = application.status === 'draft' || application.status === 'submitted'
 
-    body = (
-      <div className="space-y-6">
-        <Card>
-          <CardHeader
-            title="Application summary"
-            description={
-              scholarship
-                ? `${scholarship.name} · ${scholarship.provider}`
-                : 'Scholarship listing unavailable'
-            }
-            actions={<StatusBadge kind="application" status={application.status} size="md" />}
-          />
-          <CardBody>
+      {state.loading ? (
+        <LoadingState label="Loading this application…" />
+      ) : state.error ? (
+        <ErrorState message={state.error} onRetry={state.reload} />
+      ) : !application ? (
+        <EmptyState
+          title="Application not found"
+          description={NOT_FOUND_DESCRIPTION}
+          action={
+            <LinkButton to="/student/applications" variant="outline">
+              Back to my applications
+            </LinkButton>
+          }
+        />
+      ) : (
+        <div className="space-y-10">
+          <Section divider={false} title="Summary">
             <DefinitionList
               items={[
                 { label: 'Reference number', value: application.referenceNo },
@@ -148,12 +158,20 @@ export function ApplicationDetailPage() {
                 { label: 'Provider', value: scholarship?.provider ?? '—', wide: true },
               ]}
             />
-          </CardBody>
-        </Card>
 
-        <Card>
-          <CardHeader
-            title="Motivation"
+            {application.reviewNotes ? (
+              <Alert tone="info" title="Reviewer notes" className="mt-5">
+                {application.reviewNotes}
+                {application.reviewedBy ? (
+                  <p className="mt-1 text-xs opacity-80">Reviewed by {application.reviewedBy}</p>
+                ) : null}
+              </Alert>
+            ) : null}
+          </Section>
+
+          <Section
+            title="Your statement"
+            description="What you wrote when you applied, and any responses recorded with it."
             actions={
               canEdit ? (
                 <Button
@@ -166,62 +184,47 @@ export function ApplicationDetailPage() {
                 >
                   Edit
                 </Button>
-              ) : null
+              ) : undefined
             }
-          />
-          <CardBody>
+          >
             <p className="text-sm whitespace-pre-line text-slate-700 dark:text-slate-200">
               {application.motivation}
             </p>
-          </CardBody>
-        </Card>
 
-        <Card>
-          <CardHeader title="Your responses" description="Answers recorded with this application." />
-          <CardBody>
-            {application.responses.length === 0 ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                No additional responses were recorded.
-              </p>
-            ) : (
+            {application.responses.length > 0 ? (
               <DefinitionList
                 columns={1}
+                className="mt-6"
                 items={application.responses.map((response) => ({
                   label: response.label,
                   value: response.value,
                 }))}
               />
-            )}
-          </CardBody>
-        </Card>
+            ) : null}
+          </Section>
 
-        <Card>
-          <CardHeader title="Documents" description="File names you listed for this application." />
-          <CardBody className="space-y-3">
+          <Section
+            title="Document checklist"
+            description="The documents you listed for this application."
+          >
             {application.documentNames.length === 0 ? (
               <p className="text-sm text-slate-500 dark:text-slate-400">No documents were listed.</p>
             ) : (
-              <ul className="list-inside list-disc space-y-1 text-sm text-slate-700 dark:text-slate-200">
+              <ul className="divide-y divide-slate-100 dark:divide-slate-800">
                 {application.documentNames.map((name) => (
-                  <li key={name}>{name}</li>
+                  <li
+                    key={name}
+                    className="flex items-center gap-2 py-2.5 text-sm text-slate-700 dark:text-slate-200"
+                  >
+                    <Icon name="check" className="size-4 shrink-0 text-slate-400" />
+                    {name}
+                  </li>
                 ))}
               </ul>
             )}
-          </CardBody>
-        </Card>
+          </Section>
 
-        {application.reviewNotes ? (
-          <Alert tone="info" title="Reviewer notes">
-            {application.reviewNotes}
-            {application.reviewedBy ? (
-              <p className="mt-1 text-xs opacity-80">Reviewed by {application.reviewedBy}</p>
-            ) : null}
-          </Alert>
-        ) : null}
-
-        <Card>
-          <CardHeader title="Timeline" description="Every status change recorded for this application." />
-          <CardBody>
+          <Section title="Timeline" description="Every status change recorded for this application.">
             {application.timeline.length === 0 ? (
               <p className="text-sm text-slate-500 dark:text-slate-400">
                 No activity has been recorded yet.
@@ -247,42 +250,20 @@ export function ApplicationDetailPage() {
                 ))}
               </ol>
             )}
-          </CardBody>
-        </Card>
+          </Section>
 
-        {canWithdraw ? (
-          <Card>
-            <CardHeader
-              title="Withdraw application"
-              description="Close this application if you no longer want to continue with it."
-            />
-            <CardBody>
-              <Button variant="danger" onClick={() => setConfirmingWithdraw(true)}>
+          {canWithdraw ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-8 dark:border-slate-800">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Withdrawing closes this application and cannot be undone.
+              </p>
+              <Button variant="ghost" onClick={() => setConfirmingWithdraw(true)}>
                 Withdraw application
               </Button>
-            </CardBody>
-          </Card>
-        ) : null}
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title={application ? `Application ${application.referenceNo}` : 'Application details'}
-        description="Review the details, documents and status history for this application."
-        breadcrumbs={[
-          { label: 'My applications', to: '/student/applications' },
-          { label: application ? application.referenceNo : 'Details' },
-        ]}
-        actions={
-          <LinkButton to="/student/applications" variant="outline">
-            Back to my applications
-          </LinkButton>
-        }
-      />
-      {body}
+            </div>
+          ) : null}
+        </div>
+      )}
 
       <Dialog
         open={editing}

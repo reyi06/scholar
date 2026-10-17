@@ -3,9 +3,6 @@ import { useNavigate, useParams } from 'react-router'
 import {
   Alert,
   Button,
-  Card,
-  CardBody,
-  CardHeader,
   Checkbox,
   EmptyState,
   ErrorState,
@@ -13,6 +10,7 @@ import {
   LinkButton,
   LoadingState,
   PageHeader,
+  Section,
   Select,
   type SelectOption,
   Textarea,
@@ -156,7 +154,8 @@ function toTags(value: string): string[] {
  * Create or edit a scholarship listing.
  *
  * The same page serves both modes: when the route carries an `:id` the existing
- * listing is loaded and edited, otherwise a blank form is shown. Validation runs
+ * listing is loaded and edited, otherwise a blank form is shown. The long form
+ * is grouped into titled sections rather than a stack of boxes. Validation runs
  * on submit and every failure is surfaced inline on the field it belongs to.
  */
 export function AdminScholarshipFormPage() {
@@ -321,7 +320,7 @@ export function AdminScholarshipFormPage() {
 
   if (isEdit && scholarshipState.loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-10">
         <PageHeader title={title} breadcrumbs={breadcrumbs} />
         <LoadingState label="Loading scholarship…" />
       </div>
@@ -330,7 +329,7 @@ export function AdminScholarshipFormPage() {
 
   if (isEdit && scholarshipState.error) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-10">
         <PageHeader title={title} breadcrumbs={breadcrumbs} />
         <ErrorState message={scholarshipState.error} onRetry={scholarshipState.reload} />
       </div>
@@ -339,7 +338,7 @@ export function AdminScholarshipFormPage() {
 
   if (isEdit && !scholarshipState.data) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-10">
         <PageHeader title={title} breadcrumbs={breadcrumbs} />
         <EmptyState
           title="That scholarship listing was not found"
@@ -351,7 +350,7 @@ export function AdminScholarshipFormPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PageHeader
         title={title}
         description="Provide clear, accurate details. Students rely on this information when deciding whether to apply."
@@ -364,10 +363,13 @@ export function AdminScholarshipFormPage() {
         </Alert>
       ) : null}
 
-      <form className="space-y-6" onSubmit={handleSubmit} noValidate>
-        <Card>
-          <CardHeader title="Listing details" />
-          <CardBody className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <form className="space-y-10" onSubmit={handleSubmit} noValidate>
+        <Section
+          divider={false}
+          title="Basics"
+          description="How the listing is named, who provides it and where it applies."
+        >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input
               id="scholarship-name"
               label="Scholarship name"
@@ -403,24 +405,40 @@ export function AdminScholarshipFormPage() {
               error={errors.municipality}
               onChange={(event) => update('municipality', event.target.value)}
             />
-            <Input
-              id="scholarship-deadline"
-              label="Application deadline"
-              type="date"
-              required
-              value={form.deadline}
-              error={errors.deadline}
-              onChange={(event) => update('deadline', event.target.value)}
-            />
-            <Select
-              id="scholarship-status"
-              label="Status"
-              required
-              options={STATUS_OPTIONS}
-              value={form.status}
-              error={errors.status}
-              onChange={(event) => update('status', event.target.value as ScholarshipStatus)}
-            />
+          </div>
+        </Section>
+
+        <Section
+          title="Coverage"
+          description="The education levels this scholarship is open to."
+        >
+          <fieldset>
+            <legend className="text-sm font-medium text-slate-700 dark:text-slate-200">
+              Education levels
+              <span className="ml-1 text-rose-600 dark:text-rose-400" aria-hidden="true">
+                *
+              </span>
+            </legend>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Select every level this scholarship is open to. At least one is required.
+            </p>
+            <div className="mt-3 space-y-2">
+              {EDUCATION_LEVELS.map((option, index) => (
+                <Checkbox
+                  key={option.value}
+                  id={`scholarship-level-${option.value}`}
+                  label={option.label}
+                  checked={form.educationLevels.includes(option.value)}
+                  error={index === 0 ? educationError : undefined}
+                  onChange={() => toggleLevel(option.value)}
+                />
+              ))}
+            </div>
+          </fieldset>
+        </Section>
+
+        <Section title="Details" description="The summary students read first, and how the listing is found.">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Textarea
               id="scholarship-description"
               label="Description"
@@ -440,42 +458,14 @@ export function AdminScholarshipFormPage() {
               className="sm:col-span-2"
               onChange={(event) => update('tags', event.target.value)}
             />
-            <div className="sm:col-span-2">
-              <Checkbox
-                id="scholarship-featured"
-                label="Feature this listing on the home page"
-                checked={form.featured}
-                onChange={(event) => update('featured', event.target.checked)}
-              />
-            </div>
-          </CardBody>
-        </Card>
+          </div>
+        </Section>
 
-        <Card>
-          <CardHeader
-            title="Education levels"
-            description="Select every level this scholarship is open to. At least one is required."
-          />
-          <CardBody className="space-y-2">
-            {EDUCATION_LEVELS.map((option, index) => (
-              <Checkbox
-                key={option.value}
-                id={`scholarship-level-${option.value}`}
-                label={option.label}
-                checked={form.educationLevels.includes(option.value)}
-                error={index === 0 ? educationError : undefined}
-                onChange={() => toggleLevel(option.value)}
-              />
-            ))}
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader
-            title="Benefits, eligibility and requirements"
-            description="Enter one item per line. Each line becomes a separate bullet."
-          />
-          <CardBody className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Section
+          title="Benefits and eligibility"
+          description="Enter one item per line. Each line becomes a separate bullet."
+        >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Textarea
               id="scholarship-benefits"
               label="Benefits"
@@ -492,6 +482,14 @@ export function AdminScholarshipFormPage() {
               hint="One item per line."
               onChange={(event) => update('eligibility', event.target.value)}
             />
+          </div>
+        </Section>
+
+        <Section
+          title="Requirements"
+          description="What an applicant must submit or prepare. One item per line."
+        >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Textarea
               id="scholarship-requirements"
               label="Requirements"
@@ -508,12 +506,23 @@ export function AdminScholarshipFormPage() {
               hint="One item per line."
               onChange={(event) => update('instructions', event.target.value)}
             />
-          </CardBody>
-        </Card>
+          </div>
+        </Section>
 
-        <Card>
-          <CardHeader title="How students apply" />
-          <CardBody className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Section
+          title="Application"
+          description="When applications close, and how they are submitted."
+        >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input
+              id="scholarship-deadline"
+              label="Application deadline"
+              type="date"
+              required
+              value={form.deadline}
+              error={errors.deadline}
+              onChange={(event) => update('deadline', event.target.value)}
+            />
             <Select
               id="scholarship-application-mode"
               label="Application mode"
@@ -533,9 +542,18 @@ export function AdminScholarshipFormPage() {
                 value={form.externalUrl}
                 error={errors.externalUrl}
                 hint="Applications on an external site are not tracked here."
+                className="sm:col-span-2"
                 onChange={(event) => update('externalUrl', event.target.value)}
               />
             ) : null}
+          </div>
+        </Section>
+
+        <Section
+          title="Contact"
+          description="Who a student should reach out to with questions."
+        >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input
               id="scholarship-contact-person"
               label="Contact person"
@@ -564,11 +582,36 @@ export function AdminScholarshipFormPage() {
               value={form.contactAddress}
               onChange={(event) => update('contactAddress', event.target.value)}
             />
-          </CardBody>
-        </Card>
+          </div>
+        </Section>
 
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <LinkButton to="/admin/scholarships" variant="outline">
+        <Section
+          title="Publishing"
+          description="Whether the listing is live, and whether it is highlighted on the home page."
+        >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Select
+              id="scholarship-status"
+              label="Status"
+              required
+              options={STATUS_OPTIONS}
+              value={form.status}
+              error={errors.status}
+              onChange={(event) => update('status', event.target.value as ScholarshipStatus)}
+            />
+          </div>
+          <div className="mt-4">
+            <Checkbox
+              id="scholarship-featured"
+              label="Feature this listing on the home page"
+              checked={form.featured}
+              onChange={(event) => update('featured', event.target.checked)}
+            />
+          </div>
+        </Section>
+
+        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 pt-6 dark:border-slate-800">
+          <LinkButton to="/admin/scholarships" variant="ghost">
             Cancel
           </LinkButton>
           <Button type="submit" loading={submitAction.loading}>

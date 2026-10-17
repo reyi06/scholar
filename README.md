@@ -196,6 +196,27 @@ from. Tokens live in `src/index.css` under Tailwind v4's `@theme` block, so ther
 is no `tailwind.config.js`. Adding `--color-x` there immediately creates
 `bg-x`, `text-x`, `border-x` and so on.
 
+**Visual language.** The interface is quiet by design:
+
+- **One accent — maroon** (`brand-*`). `bg-brand-700` for solid primary
+  buttons, `text-brand-800` for accent text and links. **Gold** (`gold-*`) is
+  reserved for "Featured"/"Pinned" markers and the masthead rule. No other hues.
+- **Near-white canvas, flat surfaces.** `rounded-lg border border-slate-200
+  bg-white` with no resting shadow. The only shadow token is `shadow-float`,
+  used by `Dialog`.
+- **Group with `Section`, not `Card`.** Pages read as titled sections separated
+  by hairlines. `Card` is reserved for forms and genuinely distinct panels.
+- **Metrics are text.** `StatCard` is a label and a value with no card chrome,
+  and takes no `icon`. Group several in a bordered band or with `StatRow`.
+- **One primary action per page;** everything else is `outline` or `ghost`.
+- **Progressive disclosure** via `Accordion`, `Dialog`, `Tabs` and `hideLabel`
+  for compact filter toolbars.
+
+Layout containers: `PublicLayout` does not pad its `<main>`, so public pages
+supply their own `mx-auto max-w-6xl px-5 py-8 sm:px-8`. `DashboardLayout`
+already applies that container to every student and admin page, so those pages
+must **not** repeat it.
+
 **Data access.** Pages never import sample data directly. They call
 `src/lib/api.ts`, which returns promises, and track the result with the
 `useAsync` hook. That gives every screen consistent loading, error and empty

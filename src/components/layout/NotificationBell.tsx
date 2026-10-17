@@ -113,7 +113,7 @@ export function NotificationBell({ notificationsPath }: { notificationsPath?: st
               >
                 <span className="flex items-center gap-2">
                   {notification.read ? null : (
-                    <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-brand-600" />
+                    <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-brand-700" />
                   )}
                   <span className="text-sm font-medium text-slate-900 dark:text-white">
                     {notification.title}
@@ -122,7 +122,7 @@ export function NotificationBell({ notificationsPath }: { notificationsPath?: st
                 <span className="line-clamp-2 text-xs text-slate-500 dark:text-slate-400">
                   {notification.body}
                 </span>
-                <span className="text-xs text-slate-400 dark:text-slate-500">
+                <span className="text-xs text-slate-500 dark:text-slate-400">
                   {formatRelative(notification.createdAt)}
                 </span>
               </button>

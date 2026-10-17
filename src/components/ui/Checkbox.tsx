@@ -16,7 +16,7 @@ export function Checkbox({ id, label, error, hint, className = '', ...rest }: Ch
           type="checkbox"
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
-          className={`mt-0.5 size-4 shrink-0 rounded border-slate-300 text-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:border-slate-600 dark:bg-slate-800 ${className}`}
+          className={`mt-0.5 size-4 shrink-0 rounded border-slate-300 text-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 dark:border-slate-600 dark:bg-slate-800 ${className}`}
           {...rest}
         />
         <label htmlFor={id} className="text-sm text-slate-700 dark:text-slate-200">

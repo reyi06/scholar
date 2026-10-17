@@ -14,13 +14,16 @@ export interface PageHeaderProps {
   className?: string
 }
 
-/** Consistent page heading used by every route. */
+/**
+ * Page title block. Restrained by design: one `h1`, an optional short
+ * description, and room for a single primary action plus secondary ones.
+ */
 export function PageHeader({ title, description, actions, breadcrumbs, className = '' }: PageHeaderProps) {
   return (
-    <header className={`flex flex-col gap-4 ${className}`}>
+    <header className={`flex flex-col gap-3 ${className}`}>
       {breadcrumbs && breadcrumbs.length > 0 ? (
         <nav aria-label="Breadcrumb">
-          <ol className="flex flex-wrap items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+          <ol className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
             {breadcrumbs.map((crumb, index) => {
               const isLast = index === breadcrumbs.length - 1
               return (
@@ -31,11 +34,14 @@ export function PageHeader({ title, description, actions, breadcrumbs, className
                     </span>
                   ) : null}
                   {crumb.to && !isLast ? (
-                    <Link to={crumb.to} className="transition hover:text-brand-700 dark:hover:text-brand-300">
+                    <Link to={crumb.to} className="transition-colors hover:text-brand-700 dark:hover:text-brand-300">
                       {crumb.label}
                     </Link>
                   ) : (
-                    <span aria-current={isLast ? 'page' : undefined} className={isLast ? 'text-slate-700 dark:text-slate-200' : ''}>
+                    <span
+                      aria-current={isLast ? 'page' : undefined}
+                      className={isLast ? 'text-slate-600 dark:text-slate-300' : ''}
+                    >
                       {crumb.label}
                     </span>
                   )}
@@ -46,13 +52,13 @@ export function PageHeader({ title, description, actions, breadcrumbs, className
         </nav>
       ) : null}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+          <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl dark:text-white">
             {title}
           </h1>
           {description ? (
-            <div className="max-w-3xl text-sm text-slate-500 dark:text-slate-400">{description}</div>
+            <div className="max-w-2xl text-sm text-slate-500 dark:text-slate-400">{description}</div>
           ) : null}
         </div>
         {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}

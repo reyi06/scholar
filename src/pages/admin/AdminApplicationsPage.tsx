@@ -3,15 +3,12 @@ import { StatusBadge } from '../../components/StatusBadge.tsx'
 import {
   Alert,
   Button,
-  Card,
-  CardBody,
   ConfirmDialog,
   DataTable,
   DefinitionList,
   Dialog,
   EmptyState,
   ErrorState,
-  Icon,
   LinkButton,
   LoadingState,
   PageHeader,
@@ -113,6 +110,15 @@ export function AdminApplicationsPage() {
     ...(scholarships.data ?? []).map((option) => ({ value: option.id, label: option.name })),
   ]
 
+  const hasFilters = debouncedQuery.trim() !== '' || status !== 'all' || scholarshipId !== 'all'
+
+  function clearFilters(): void {
+    setQuery('')
+    setStatus('all')
+    setScholarshipId('all')
+    setPage(1)
+  }
+
   const columns: Column<Application>[] = [
     {
       key: 'referenceNo',
@@ -187,89 +193,89 @@ export function AdminApplicationsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PageHeader
         title="Applications"
         description="Review and decide on scholarship applications submitted through Pampanga GrantConnect."
       />
 
-      <Alert tone="info" title="Only applications submitted through this system appear here">
-        Applications handled on a provider's own website are not tracked in this system. For those
-        listings we only link to the provider, so their progress never shows up in this list.
+      <Alert tone="info">
+        Only applications submitted through this system appear here — applications handled on a
+        provider's own website are not tracked.
       </Alert>
 
-      <Card>
-        <CardBody className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <SearchInput
-            id="applications-search"
-            label="Search applications"
-            placeholder="Reference no., student or scholarship"
-            value={query}
-            onChange={(value) => {
-              setQuery(value)
-              setPage(1)
-            }}
-          />
-          <Select
-            id="applications-status"
-            label="Status"
-            options={STATUS_OPTIONS}
-            value={status}
-            onChange={(event) => {
-              setStatus(event.target.value as ApplicationStatus | 'all')
-              setPage(1)
-            }}
-          />
-          <Select
-            id="applications-scholarship"
-            label="Scholarship"
-            options={scholarshipOptions}
-            value={scholarshipId}
-            onChange={(event) => {
-              setScholarshipId(event.target.value)
-              setPage(1)
-            }}
-          />
-        </CardBody>
-      </Card>
+      <div className="space-y-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="min-w-0 flex-1">
+            <SearchInput
+              id="applications-search"
+              label="Search applications"
+              hideLabel
+              placeholder="Search reference no., student or scholarship"
+              value={query}
+              onChange={(value) => {
+                setQuery(value)
+                setPage(1)
+              }}
+            />
+          </div>
+          <div className="sm:w-40">
+            <Select
+              id="applications-status"
+              aria-label="Status"
+              options={STATUS_OPTIONS}
+              value={status}
+              onChange={(event) => {
+                setStatus(event.target.value as ApplicationStatus | 'all')
+                setPage(1)
+              }}
+            />
+          </div>
+          <div className="sm:w-52">
+            <Select
+              id="applications-scholarship"
+              aria-label="Scholarship"
+              options={scholarshipOptions}
+              value={scholarshipId}
+              onChange={(event) => {
+                setScholarshipId(event.target.value)
+                setPage(1)
+              }}
+            />
+          </div>
+          {hasFilters ? (
+            <Button variant="ghost" onClick={clearFilters} className="shrink-0">
+              Reset
+            </Button>
+          ) : null}
+        </div>
 
-      {list.error ? <ErrorState message={list.error} onRetry={list.reload} /> : null}
-
-      {!list.error && list.loading && !list.data ? (
-        <LoadingState label="Loading applications…" />
-      ) : null}
-
-      {!list.error && list.data ? (
-        <Card>
-          <DataTable
-            columns={columns}
-            rows={list.data.items}
-            getRowId={(row) => row.id}
-            loading={list.loading}
-            caption="Scholarship applications"
-            empty={
+        {list.error ? (
+          <ErrorState message={list.error} onRetry={list.reload} />
+        ) : list.loading && !list.data ? (
+          <LoadingState label="Loading applications…" />
+        ) : list.data ? (
+          <>
+            {list.data.items.length === 0 ? (
               <EmptyState
-                icon={<Icon name="inbox" className="size-8" />}
                 title="No applications match these filters"
                 description="Try clearing the search box or choosing a different status or scholarship."
                 action={
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setQuery('')
-                      setStatus('all')
-                      setScholarshipId('all')
-                      setPage(1)
-                    }}
-                  >
-                    Clear filters
+                  <Button variant="outline" size="sm" onClick={clearFilters}>
+                    Reset filters
                   </Button>
                 }
               />
-            }
-          />
-          <div className="px-4 pb-4">
+            ) : (
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <DataTable
+                  columns={columns}
+                  rows={list.data.items}
+                  getRowId={(row) => row.id}
+                  caption="Scholarship applications"
+                />
+              </div>
+            )}
             <Pagination
               page={list.data.page}
               totalPages={list.data.totalPages}
@@ -277,9 +283,9 @@ export function AdminApplicationsPage() {
               pageSize={list.data.pageSize}
               onPageChange={setPage}
             />
-          </div>
-        </Card>
-      ) : null}
+          </>
+        ) : null}
+      </div>
 
       <Dialog
         open={reviewId !== null}
@@ -326,30 +332,28 @@ export function AdminApplicationsPage() {
                   title="Approving does not create a grant record"
                   actions={
                     <LinkButton to="/admin/grants" size="sm" variant="outline">
-                      Go to Grant Records
+                      Go to grant records
                     </LinkButton>
                   }
                 >
                   This application is approved, but no confirmed grant exists for it yet. A grant
-                  record must be confirmed separately on the Grant Records page before any funds are
-                  recorded.
+                  record must be confirmed separately before any funds are recorded.
                 </Alert>
               ) : (
                 <Alert tone="success" title="Grant record already confirmed">
-                  A grant record has already been confirmed for this application on the Grant Records
-                  page.
+                  A grant record has already been confirmed for this application.
                 </Alert>
               )
             ) : (
               <Alert tone="warning" title="Approving does not create a grant record">
                 Marking an application as approved only records the review decision. A grant record
-                must be confirmed separately on the Grant Records page before any funds are released.
+                must be confirmed separately before any funds are released.
               </Alert>
             )}
 
             <section>
               <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Motivation</h3>
-              <p className="mt-2 text-sm whitespace-pre-line text-slate-700 dark:text-slate-200">
+              <p className="mt-2 text-sm whitespace-pre-line text-slate-600 dark:text-slate-300">
                 {review.data.motivation || 'No motivation statement was provided.'}
               </p>
             </section>
@@ -379,7 +383,7 @@ export function AdminApplicationsPage() {
                   No document names were listed with this application.
                 </p>
               ) : (
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700 dark:text-slate-200">
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600 dark:text-slate-300">
                   {review.data.documentNames.map((name) => (
                     <li key={name}>{name}</li>
                   ))}
@@ -398,7 +402,7 @@ export function AdminApplicationsPage() {
                   {review.data.timeline.map((entry, index) => (
                     <li
                       key={`${entry.status}-${entry.at}-${index}`}
-                      className="flex flex-col gap-1 border-l-2 border-slate-200 pl-3 dark:border-slate-700"
+                      className="flex flex-col gap-1 border-l-2 border-slate-200 pl-3 dark:border-slate-800"
                     >
                       <div className="flex flex-wrap items-center gap-2">
                         <StatusBadge kind="application" status={entry.status} />
@@ -412,7 +416,7 @@ export function AdminApplicationsPage() {
                         ) : null}
                       </div>
                       {entry.note ? (
-                        <p className="text-sm text-slate-700 dark:text-slate-200">{entry.note}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-300">{entry.note}</p>
                       ) : null}
                     </li>
                   ))}
@@ -420,7 +424,7 @@ export function AdminApplicationsPage() {
               )}
             </section>
 
-            <section className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
+            <section className="rounded-lg border border-slate-200 p-4 dark:border-slate-800">
               <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Record a decision</h3>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 Each decision needs a short note. The note is stored on the timeline and a

@@ -12,6 +12,8 @@ export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement
   label?: string
   error?: string
   hint?: string
+  /** Keep the label for assistive tech but hide it visually. */
+  hideLabel?: boolean
   options: SelectOption[]
   /** Optional label for the empty/default option. */
   placeholder?: string
@@ -22,6 +24,7 @@ export function Select({
   label,
   error,
   hint,
+  hideLabel,
   options,
   placeholder,
   className = '',
@@ -49,7 +52,7 @@ export function Select({
   if (!label && !error && !hint) return control
 
   return (
-    <Field htmlFor={id} label={label} error={error} hint={hint} required={required}>
+    <Field htmlFor={id} label={label} error={error} hint={hint} required={required} hideLabel={hideLabel}>
       {control}
     </Field>
   )

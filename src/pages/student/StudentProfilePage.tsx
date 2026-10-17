@@ -1,10 +1,7 @@
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useState, type FormEvent } from 'react'
 import {
   Alert,
   Button,
-  Card,
-  CardBody,
-  CardHeader,
   DefinitionList,
   EmptyState,
   ErrorState,
@@ -12,6 +9,7 @@ import {
   LinkButton,
   LoadingState,
   PageHeader,
+  Section,
   Select,
 } from '../../components/ui'
 import { useAuth } from '../../context/authContext.ts'
@@ -125,12 +123,21 @@ function toFormValues(profile: StudentProfile): ProfileFormValues {
   }
 }
 
+/**
+ * Student profile.
+ *
+ * Read-only by default: the saved details are a summary, and editing is an
+ * explicit mode so the page does not present a wall of empty inputs. The
+ * account name is a separate, smaller concern and has its own edit action.
+ */
 export function StudentProfilePage() {
   useDocumentTitle('My profile')
   const { user, refresh } = useAuth()
   const toast = useToast()
   const userId = user?.id ?? ''
 
+  const [editingProfile, setEditingProfile] = useState(false)
+  const [editingAccount, setEditingAccount] = useState(false)
   const [form, setForm] = useState<ProfileFormValues>(EMPTY_PROFILE)
   const [errors, setErrors] = useState<FormErrors<ProfileFormValues>>({})
   // The session is available synchronously, so the account fields can be
@@ -166,8 +173,30 @@ export function StudentProfilePage() {
     )
   }
 
+  const currentProfile = profile.data
+
   function setField<K extends keyof ProfileFormValues>(key: K, value: string) {
     setForm((current) => ({ ...current, [key]: value }))
+  }
+
+  function startProfileEdit() {
+    if (currentProfile) setForm(toFormValues(currentProfile))
+    setErrors({})
+    saveProfile.setError(null)
+    setEditingProfile(true)
+  }
+
+  function cancelProfileEdit() {
+    if (currentProfile) setForm(toFormValues(currentProfile))
+    setErrors({})
+    setEditingProfile(false)
+  }
+
+  function startAccountEdit() {
+    setAccount({ firstName: user?.firstName ?? '', lastName: user?.lastName ?? '' })
+    setAccountErrors({})
+    saveAccount.setError(null)
+    setEditingAccount(true)
   }
 
   async function handleProfileSubmit(event: FormEvent<HTMLFormElement>) {
@@ -193,6 +222,7 @@ export function StudentProfilePage() {
       guardianContact: form.guardianContact.trim(),
     })
     if (result) {
+      setEditingProfile(false)
       toast.success('Profile updated', 'Your profile details have been saved.')
       profile.reload()
     }
@@ -210,256 +240,303 @@ export function StudentProfilePage() {
     })
     if (result) {
       refresh()
+      setEditingAccount(false)
       toast.success('Account name updated', 'Your account now shows the new name.')
     }
   }
 
-  const currentProfile = profile.data
-
-  let body: ReactNode
-  if (profile.loading) {
-    body = <LoadingState label="Loading your profile…" />
-  } else if (profile.error) {
-    body = <ErrorState message={profile.error} onRetry={profile.reload} />
-  } else {
-    body = (
-      <div className="space-y-6">
-        {currentProfile === null ? (
-          <EmptyState
-            title="No student profile yet"
-            description="You have not saved a student profile yet. Create one with the form below so your details can be recorded and checked for eligibility."
-          />
-        ) : null}
-
-        <Card>
-          <CardHeader
-            title="Account"
-            description="The name attached to your sign-in. Changing it does not affect your saved records."
-          />
-          <CardBody>
-            <form onSubmit={(event) => void handleAccountSubmit(event)} noValidate className="space-y-4">
-              {saveAccount.error ? <Alert tone="danger">{saveAccount.error}</Alert> : null}
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Input
-                  id="account-firstName"
-                  label="First name"
-                  value={account.firstName}
-                  error={accountErrors.firstName}
-                  required
-                  onChange={(event) => setAccount((current) => ({ ...current, firstName: event.target.value }))}
-                />
-                <Input
-                  id="account-lastName"
-                  label="Last name"
-                  value={account.lastName}
-                  error={accountErrors.lastName}
-                  required
-                  onChange={(event) => setAccount((current) => ({ ...current, lastName: event.target.value }))}
-                />
-                <Input
-                  id="account-email"
-                  label="Email"
-                  value={user.email}
-                  readOnly
-                  hint="Contact support to change the email on your account."
-                />
-              </div>
-              <Button type="submit" loading={saveAccount.loading}>
-                Save account name
-              </Button>
-            </form>
-          </CardBody>
-        </Card>
-
-        {currentProfile ? (
-          <Card>
-            <CardHeader title="Profile summary" description="A quick read of what is currently on file." />
-            <CardBody>
-              <DefinitionList
-                items={[
-                  { label: 'Student number', value: currentProfile.studentNumber || '—' },
-                  { label: 'Phone', value: currentProfile.phone || '—' },
-                  { label: 'Municipality or city', value: currentProfile.municipality || '—' },
-                  { label: 'Barangay', value: currentProfile.barangay || '—' },
-                  {
-                    label: 'Education level',
-                    value: EDUCATION_LEVEL_LABELS[currentProfile.educationLevel],
-                  },
-                  { label: 'School', value: currentProfile.school || '—' },
-                  { label: 'Course or strand', value: currentProfile.course || '—' },
-                  { label: 'Year level', value: currentProfile.yearLevel || '—' },
-                  {
-                    label: 'GWA',
-                    value: currentProfile.gwa === null ? '—' : currentProfile.gwa.toFixed(2),
-                  },
-                  { label: 'Household income', value: formatCurrency(currentProfile.householdIncome) },
-                  { label: 'Guardian', value: currentProfile.guardianName || '—' },
-                  { label: 'Guardian contact', value: currentProfile.guardianContact || '—' },
-                  { label: 'Last updated', value: formatDate(currentProfile.updatedAt), wide: true },
-                ]}
-              />
-            </CardBody>
-          </Card>
-        ) : null}
-
-        <Card>
-          <CardHeader
-            title="Student details"
-            description="Used to record your details and check eligibility for scholarships and grants."
-          />
-          <CardBody>
-            <form onSubmit={(event) => void handleProfileSubmit(event)} noValidate className="space-y-4">
-              {saveProfile.error ? (
-                <Alert tone="danger" title="We could not save your profile">
-                  {saveProfile.error}
-                </Alert>
-              ) : null}
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Input
-                  id="profile-studentNumber"
-                  label="Student number"
-                  value={form.studentNumber}
-                  error={errors.studentNumber}
-                  required
-                  onChange={(event) => setField('studentNumber', event.target.value)}
-                />
-                <Input
-                  id="profile-phone"
-                  label="Mobile or landline"
-                  value={form.phone}
-                  error={errors.phone}
-                  required
-                  onChange={(event) => setField('phone', event.target.value)}
-                />
-                <Select
-                  id="profile-municipality"
-                  label="Municipality or city"
-                  placeholder="Select a municipality"
-                  options={MUNICIPALITY_OPTIONS}
-                  value={form.municipality}
-                  error={errors.municipality}
-                  required
-                  onChange={(event) => setField('municipality', event.target.value)}
-                />
-                <Input
-                  id="profile-barangay"
-                  label="Barangay"
-                  value={form.barangay}
-                  error={errors.barangay}
-                  required
-                  onChange={(event) => setField('barangay', event.target.value)}
-                />
-                <Input
-                  id="profile-address"
-                  label="Address"
-                  value={form.address}
-                  error={errors.address}
-                  required
-                  className="sm:col-span-2"
-                  onChange={(event) => setField('address', event.target.value)}
-                />
-                <Input
-                  id="profile-birthDate"
-                  label="Birth date"
-                  type="date"
-                  value={form.birthDate}
-                  error={errors.birthDate}
-                  required
-                  onChange={(event) => setField('birthDate', event.target.value)}
-                />
-                <Select
-                  id="profile-educationLevel"
-                  label="Education level"
-                  placeholder="Select an education level"
-                  options={EDUCATION_LEVEL_OPTIONS}
-                  value={form.educationLevel}
-                  error={errors.educationLevel}
-                  required
-                  onChange={(event) => setField('educationLevel', event.target.value)}
-                />
-                <Input
-                  id="profile-school"
-                  label="School"
-                  value={form.school}
-                  error={errors.school}
-                  required
-                  onChange={(event) => setField('school', event.target.value)}
-                />
-                <Input
-                  id="profile-course"
-                  label="Course or strand"
-                  value={form.course}
-                  error={errors.course}
-                  required
-                  onChange={(event) => setField('course', event.target.value)}
-                />
-                <Select
-                  id="profile-yearLevel"
-                  label="Year level"
-                  placeholder="Select a year level"
-                  options={YEAR_LEVEL_OPTIONS}
-                  value={form.yearLevel}
-                  error={errors.yearLevel}
-                  required
-                  onChange={(event) => setField('yearLevel', event.target.value)}
-                />
-                <Input
-                  id="profile-gwa"
-                  label="General weighted average"
-                  type="number"
-                  step="0.01"
-                  min="1"
-                  max="5"
-                  value={form.gwa}
-                  error={errors.gwa}
-                  hint="Philippine scale, 1.00 (best) to 5.00."
-                  onChange={(event) => setField('gwa', event.target.value)}
-                />
-                <Input
-                  id="profile-householdIncome"
-                  label="Annual household income (PHP)"
-                  type="number"
-                  step="1000"
-                  min="0"
-                  value={form.householdIncome}
-                  error={errors.householdIncome}
-                  onChange={(event) => setField('householdIncome', event.target.value)}
-                />
-                <Input
-                  id="profile-guardianName"
-                  label="Guardian name"
-                  value={form.guardianName}
-                  error={errors.guardianName}
-                  required
-                  onChange={(event) => setField('guardianName', event.target.value)}
-                />
-                <Input
-                  id="profile-guardianContact"
-                  label="Guardian contact number"
-                  value={form.guardianContact}
-                  error={errors.guardianContact}
-                  onChange={(event) => setField('guardianContact', event.target.value)}
-                />
-              </div>
-
-              <Button type="submit" loading={saveProfile.loading}>
-                Save profile
-              </Button>
-            </form>
-          </CardBody>
-        </Card>
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PageHeader
         title="My profile"
         description={`Keep your student details up to date, ${user.firstName}. Accurate information helps with eligibility checks.`}
+        actions={!editingProfile ? <Button onClick={startProfileEdit}>Edit profile</Button> : undefined}
       />
-      {body}
+
+      {profile.loading ? (
+        <LoadingState label="Loading your profile…" />
+      ) : profile.error ? (
+        <ErrorState message={profile.error} onRetry={profile.reload} />
+      ) : editingProfile ? (
+        <form
+          onSubmit={(event) => void handleProfileSubmit(event)}
+          noValidate
+          className="space-y-10"
+        >
+          {saveProfile.error ? (
+            <Alert tone="danger" title="We could not save your profile">
+              {saveProfile.error}
+            </Alert>
+          ) : null}
+
+          <Section divider={false} title="Personal details">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Input
+                id="profile-studentNumber"
+                label="Student number"
+                value={form.studentNumber}
+                error={errors.studentNumber}
+                required
+                onChange={(event) => setField('studentNumber', event.target.value)}
+              />
+              <Input
+                id="profile-phone"
+                label="Mobile or landline"
+                value={form.phone}
+                error={errors.phone}
+                required
+                onChange={(event) => setField('phone', event.target.value)}
+              />
+              <Input
+                id="profile-birthDate"
+                label="Birth date"
+                type="date"
+                value={form.birthDate}
+                error={errors.birthDate}
+                required
+                onChange={(event) => setField('birthDate', event.target.value)}
+              />
+              <Select
+                id="profile-municipality"
+                label="Municipality or city"
+                placeholder="Select a municipality"
+                options={MUNICIPALITY_OPTIONS}
+                value={form.municipality}
+                error={errors.municipality}
+                required
+                onChange={(event) => setField('municipality', event.target.value)}
+              />
+              <Input
+                id="profile-barangay"
+                label="Barangay"
+                value={form.barangay}
+                error={errors.barangay}
+                required
+                onChange={(event) => setField('barangay', event.target.value)}
+              />
+              <Input
+                id="profile-address"
+                label="Address"
+                value={form.address}
+                error={errors.address}
+                required
+                className="sm:col-span-2"
+                onChange={(event) => setField('address', event.target.value)}
+              />
+            </div>
+          </Section>
+
+          <Section title="Enrolment">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Select
+                id="profile-educationLevel"
+                label="Education level"
+                placeholder="Select an education level"
+                options={EDUCATION_LEVEL_OPTIONS}
+                value={form.educationLevel}
+                error={errors.educationLevel}
+                required
+                onChange={(event) => setField('educationLevel', event.target.value)}
+              />
+              <Input
+                id="profile-school"
+                label="School"
+                value={form.school}
+                error={errors.school}
+                required
+                onChange={(event) => setField('school', event.target.value)}
+              />
+              <Input
+                id="profile-course"
+                label="Course or strand"
+                value={form.course}
+                error={errors.course}
+                required
+                onChange={(event) => setField('course', event.target.value)}
+              />
+              <Select
+                id="profile-yearLevel"
+                label="Year level"
+                placeholder="Select a year level"
+                options={YEAR_LEVEL_OPTIONS}
+                value={form.yearLevel}
+                error={errors.yearLevel}
+                required
+                onChange={(event) => setField('yearLevel', event.target.value)}
+              />
+              <Input
+                id="profile-gwa"
+                label="General weighted average"
+                type="number"
+                step="0.01"
+                min="1"
+                max="5"
+                value={form.gwa}
+                error={errors.gwa}
+                hint="Philippine scale, 1.00 (best) to 5.00."
+                onChange={(event) => setField('gwa', event.target.value)}
+              />
+              <Input
+                id="profile-householdIncome"
+                label="Annual household income (PHP)"
+                type="number"
+                step="1000"
+                min="0"
+                value={form.householdIncome}
+                error={errors.householdIncome}
+                onChange={(event) => setField('householdIncome', event.target.value)}
+              />
+            </div>
+          </Section>
+
+          <Section title="Guardian & contact">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Input
+                id="profile-guardianName"
+                label="Guardian name"
+                value={form.guardianName}
+                error={errors.guardianName}
+                required
+                onChange={(event) => setField('guardianName', event.target.value)}
+              />
+              <Input
+                id="profile-guardianContact"
+                label="Guardian contact number"
+                value={form.guardianContact}
+                error={errors.guardianContact}
+                onChange={(event) => setField('guardianContact', event.target.value)}
+              />
+            </div>
+          </Section>
+
+          <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 pt-6 dark:border-slate-800">
+            <Button type="submit" loading={saveProfile.loading}>
+              Save profile
+            </Button>
+            <Button type="button" variant="outline" onClick={cancelProfileEdit}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      ) : currentProfile ? (
+        <div className="space-y-10">
+          <Section divider={false} title="Personal details">
+            <DefinitionList
+              items={[
+                { label: 'Student number', value: currentProfile.studentNumber || '—' },
+                { label: 'Phone', value: currentProfile.phone || '—' },
+                { label: 'Birth date', value: currentProfile.birthDate || '—' },
+                { label: 'Municipality or city', value: currentProfile.municipality || '—' },
+                { label: 'Barangay', value: currentProfile.barangay || '—' },
+                { label: 'Address', value: currentProfile.address || '—', wide: true },
+                { label: 'Last updated', value: formatDate(currentProfile.updatedAt), wide: true },
+              ]}
+            />
+          </Section>
+
+          <Section title="Enrolment">
+            <DefinitionList
+              items={[
+                {
+                  label: 'Education level',
+                  value: EDUCATION_LEVEL_LABELS[currentProfile.educationLevel],
+                },
+                { label: 'School', value: currentProfile.school || '—' },
+                { label: 'Course or strand', value: currentProfile.course || '—' },
+                { label: 'Year level', value: currentProfile.yearLevel || '—' },
+                {
+                  label: 'GWA',
+                  value: currentProfile.gwa === null ? '—' : currentProfile.gwa.toFixed(2),
+                },
+                { label: 'Household income', value: formatCurrency(currentProfile.householdIncome) },
+              ]}
+            />
+          </Section>
+
+          <Section title="Guardian & contact">
+            <DefinitionList
+              items={[
+                { label: 'Guardian', value: currentProfile.guardianName || '—' },
+                { label: 'Guardian contact', value: currentProfile.guardianContact || '—' },
+              ]}
+            />
+          </Section>
+        </div>
+      ) : (
+        <EmptyState
+          title="No student profile yet"
+          description="Add your details so they can be recorded and checked for eligibility."
+          action={<Button onClick={startProfileEdit}>Add my details</Button>}
+        />
+      )}
+
+      <Section
+        title="Account"
+        description="The name attached to your sign-in. Changing it does not affect your saved records."
+      >
+        {editingAccount ? (
+          <form
+            onSubmit={(event) => void handleAccountSubmit(event)}
+            noValidate
+            className="space-y-4"
+          >
+            {saveAccount.error ? <Alert tone="danger">{saveAccount.error}</Alert> : null}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Input
+                id="account-firstName"
+                label="First name"
+                value={account.firstName}
+                error={accountErrors.firstName}
+                required
+                onChange={(event) =>
+                  setAccount((current) => ({ ...current, firstName: event.target.value }))
+                }
+              />
+              <Input
+                id="account-lastName"
+                label="Last name"
+                value={account.lastName}
+                error={accountErrors.lastName}
+                required
+                onChange={(event) =>
+                  setAccount((current) => ({ ...current, lastName: event.target.value }))
+                }
+              />
+              <Input
+                id="account-email"
+                label="Email"
+                value={user.email}
+                readOnly
+                hint="Contact support to change the email on your account."
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button type="submit" loading={saveAccount.loading}>
+                Save account name
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setEditingAccount(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <div className="space-y-4">
+            <DefinitionList
+              items={[
+                { label: 'Name', value: `${user.firstName} ${user.lastName}` },
+                { label: 'Email', value: user.email },
+              ]}
+            />
+            <Button variant="outline" size="sm" onClick={startAccountEdit}>
+              Edit account
+            </Button>
+          </div>
+        )}
+      </Section>
     </div>
   )
 }

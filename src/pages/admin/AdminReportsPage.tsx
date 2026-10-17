@@ -1,14 +1,13 @@
 import { useState } from 'react'
 import {
   Button,
-  Card,
-  CardHeader,
   DataTable,
   EmptyState,
   ErrorState,
   Icon,
   LoadingState,
   PageHeader,
+  Section,
   Select,
   StatCard,
   type Column,
@@ -30,30 +29,21 @@ function formatMonthLabel(label: string): string {
   return date.toLocaleDateString('en-PH', { month: 'short', year: 'numeric' })
 }
 
-interface BreakdownCardProps {
+interface BreakdownTableProps {
   title: string
   description?: string
   rows: BreakdownRow[]
   /** Base name for the downloaded CSV file. */
   filename: string
   metric?: Metric
-  loading?: boolean
-  emptyTitle: string
 }
 
 /**
- * One breakdown report: a table plus an inline bar for quick visual
- * comparison, with a CSV export of exactly the rows currently shown.
+ * One breakdown report: a table with a thin proportion bar and a CSV export of
+ * exactly the rows shown. Grouped with a `Section` rather than a card, and only
+ * rendered by the page when it actually has rows.
  */
-function BreakdownCard({
-  title,
-  description,
-  rows,
-  filename,
-  metric = 'count',
-  loading = false,
-  emptyTitle,
-}: BreakdownCardProps) {
+function BreakdownTable({ title, description, rows, filename, metric = 'count' }: BreakdownTableProps) {
   const maxValue = rows.reduce(
     (max, row) => Math.max(max, metric === 'amount' ? row.amount : row.count),
     0,
@@ -70,7 +60,7 @@ function BreakdownCard({
         const percent = maxValue > 0 ? Math.round((value / maxValue) * 100) : 0
         return (
           <div
-            className="h-2 w-full max-w-40 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
+            className="h-1.5 w-full max-w-40 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
             role="img"
             aria-label={`${row.label}: ${percent}% of the largest value`}
           >
@@ -100,36 +90,25 @@ function BreakdownCard({
   }
 
   return (
-    <Card>
-      <CardHeader
-        title={title}
-        description={description}
-        actions={
-          <Button
-            variant="outline"
-            size="sm"
-            leadingIcon={<Icon name="download" className="size-4" />}
-            onClick={handleExport}
-            disabled={rows.length === 0}
-          >
-            Download CSV
-          </Button>
-        }
-      />
-      <DataTable
-        columns={columns}
-        rows={rows}
-        getRowId={(row) => row.label}
-        loading={loading}
-        caption={title}
-        empty={
-          <EmptyState
-            title={emptyTitle}
-            description="No records are available for this breakdown yet."
-          />
-        }
-      />
-    </Card>
+    <Section
+      divider={false}
+      title={title}
+      description={description}
+      actions={
+        <Button
+          variant="outline"
+          size="sm"
+          leadingIcon={<Icon name="download" className="size-4" />}
+          onClick={handleExport}
+        >
+          Download CSV
+        </Button>
+      }
+    >
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <DataTable columns={columns} rows={rows} getRowId={(row) => row.label} caption={title} />
+      </div>
+    </Section>
   )
 }
 
@@ -151,8 +130,9 @@ export function AdminReportsPage() {
     return { overview, byStatus, byScholarship, byMonth, registrationsByStatus, byMunicipality }
   }, [])
 
-  const overview = reports.data?.overview ?? null
-  const byMonth = reports.data?.byMonth ?? []
+  const reportData = reports.data ?? null
+  const overview = reportData?.overview ?? null
+  const byMonth = reportData?.byMonth ?? []
 
   const monthOptions: SelectOption[] = [
     { value: 'all', label: 'All months' },
@@ -161,22 +141,65 @@ export function AdminReportsPage() {
 
   const filteredMonths = byMonth.filter((row) => month === 'all' || row.label === month)
 
+  const breakdowns = reportData
+    ? [
+        {
+          title: 'Applications by status',
+          description: 'Where every application currently sits in the review process.',
+          rows: reportData.byStatus,
+          filename: 'applications-by-status',
+          metric: 'count' as Metric,
+        },
+        {
+          title: 'Applications by scholarship',
+          description: 'Which listings receive the most applications.',
+          rows: reportData.byScholarship,
+          filename: 'applications-by-scholarship',
+          metric: 'count' as Metric,
+        },
+        {
+          title: 'Applications by month',
+          description:
+            month === 'all'
+              ? 'Application volume by the month each one was submitted.'
+              : `Showing ${formatMonthLabel(month)} only. The other tables cover all time.`,
+          rows: filteredMonths,
+          filename: 'applications-by-month',
+          metric: 'count' as Metric,
+        },
+        {
+          title: 'Registrations by status',
+          description: 'Verification progress for existing-grantee registrations.',
+          rows: reportData.registrationsByStatus,
+          filename: 'registrations-by-status',
+          metric: 'count' as Metric,
+        },
+        {
+          title: 'Grants by municipality',
+          description: 'Confirmed grant totals and counts per student municipality.',
+          rows: reportData.byMunicipality,
+          filename: 'grants-by-municipality',
+          metric: 'amount' as Metric,
+        },
+      ].filter((breakdown) => breakdown.rows.length > 0)
+    : []
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PageHeader
         title="Reports"
         description="Operational totals and breakdowns across scholarships, applications, registrations and grants."
-        actions={
-          <Select
-            id="reports-month"
-            label="Month"
-            options={monthOptions}
-            value={month}
-            onChange={(event) => setMonth(event.target.value)}
-            className="w-48"
-          />
-        }
       />
+
+      <div className="max-w-xs">
+        <Select
+          id="reports-month"
+          label="Month"
+          options={monthOptions}
+          value={month}
+          onChange={(event) => setMonth(event.target.value)}
+        />
+      </div>
 
       {reports.error ? <ErrorState message={reports.error} onRetry={reports.reload} /> : null}
 
@@ -184,9 +207,12 @@ export function AdminReportsPage() {
         <LoadingState label="Loading reports…" />
       ) : null}
 
-      {!reports.error && reports.data ? (
+      {!reports.error && reportData ? (
         <>
-          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <section
+            aria-label="Overview"
+            className="grid grid-cols-2 gap-x-8 gap-y-6 border-y border-slate-200 py-6 sm:grid-cols-3 lg:grid-cols-6 dark:border-slate-800"
+          >
             <StatCard
               label="Scholarships"
               value={overview ? formatNumber(overview.totalScholarships) : '—'}
@@ -195,13 +221,8 @@ export function AdminReportsPage() {
                   ? `${formatNumber(overview.openScholarships)} open · ${formatNumber(overview.draftScholarships)} draft`
                   : undefined
               }
-              icon={<Icon name="graduation" className="size-5" />}
             />
-            <StatCard
-              label="Students"
-              value={overview ? formatNumber(overview.totalStudents) : '—'}
-              icon={<Icon name="users" className="size-5" />}
-            />
+            <StatCard label="Students" value={overview ? formatNumber(overview.totalStudents) : '—'} />
             <StatCard
               label="Applications"
               value={overview ? formatNumber(overview.totalApplications) : '—'}
@@ -210,8 +231,6 @@ export function AdminReportsPage() {
                   ? `${formatNumber(overview.pendingApplications)} awaiting a decision`
                   : undefined
               }
-              tone="brand"
-              icon={<Icon name="inbox" className="size-5" />}
             />
             <StatCard
               label="Semester registrations"
@@ -221,70 +240,35 @@ export function AdminReportsPage() {
                   ? `${formatNumber(overview.pendingRegistrations)} pending verification`
                   : undefined
               }
-              tone="warning"
-              icon={<Icon name="calendar" className="size-5" />}
             />
             <StatCard
               label="Grant records"
               value={overview ? formatNumber(overview.totalGrants) : '—'}
               hint={overview ? `${formatNumber(overview.activeGrants)} active` : undefined}
-              icon={<Icon name="award" className="size-5" />}
             />
             <StatCard
-              label="Total amount released"
+              label="Released in total"
               value={overview ? formatCurrency(overview.totalAmountReleased) : '—'}
-              tone="success"
-              icon={<Icon name="chart" className="size-5" />}
             />
           </section>
 
-          <section className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-            <BreakdownCard
-              title="Applications by status"
-              description="Where every application currently sits in the review process."
-              rows={reports.data?.byStatus ?? []}
-              filename="applications-by-status"
-              loading={reports.loading}
-              emptyTitle="No applications to break down"
+          {breakdowns.length === 0 ? (
+            <EmptyState
+              title="No breakdowns to show"
+              description="Breakdowns appear here once there are applications, registrations or grants to report on."
             />
-            <BreakdownCard
-              title="Applications by scholarship"
-              description="Which listings receive the most applications."
-              rows={reports.data?.byScholarship ?? []}
-              filename="applications-by-scholarship"
-              loading={reports.loading}
-              emptyTitle="No applications to break down"
-            />
-            <BreakdownCard
-              title="Applications by month"
-              description={
-                month === 'all'
-                  ? 'Application volume by the month each one was submitted.'
-                  : `Showing ${formatMonthLabel(month)} only. Other tables cover all time.`
-              }
-              rows={filteredMonths}
-              filename="applications-by-month"
-              loading={reports.loading}
-              emptyTitle="No applications submitted in the selected month"
-            />
-            <BreakdownCard
-              title="Registrations by status"
-              description="Verification progress for existing-grantee registrations."
-              rows={reports.data?.registrationsByStatus ?? []}
-              filename="registrations-by-status"
-              loading={reports.loading}
-              emptyTitle="No registrations to break down"
-            />
-            <BreakdownCard
-              title="Grants by municipality"
-              description="Confirmed grant totals and counts per student municipality."
-              rows={reports.data?.byMunicipality ?? []}
-              filename="grants-by-municipality"
-              metric="amount"
-              loading={reports.loading}
-              emptyTitle="No grants to break down"
-            />
-          </section>
+          ) : (
+            breakdowns.map((breakdown) => (
+              <BreakdownTable
+                key={breakdown.filename}
+                title={breakdown.title}
+                description={breakdown.description}
+                rows={breakdown.rows}
+                filename={breakdown.filename}
+                metric={breakdown.metric}
+              />
+            ))
+          )}
         </>
       ) : null}
     </div>

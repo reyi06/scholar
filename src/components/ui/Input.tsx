@@ -7,6 +7,8 @@ export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
   label?: string
   error?: string
   hint?: string
+  /** Keep the label for assistive tech but hide it visually. */
+  hideLabel?: boolean
   /** Rendered inside the control on the right, e.g. a unit suffix. */
   suffix?: ReactNode
 }
@@ -16,6 +18,7 @@ export function Input({
   label,
   error,
   hint,
+  hideLabel,
   suffix,
   className = '',
   required,
@@ -42,7 +45,7 @@ export function Input({
   if (!label && !error && !hint) return control
 
   return (
-    <Field htmlFor={id} label={label} error={error} hint={hint} required={required}>
+    <Field htmlFor={id} label={label} error={error} hint={hint} required={required} hideLabel={hideLabel}>
       {control}
     </Field>
   )

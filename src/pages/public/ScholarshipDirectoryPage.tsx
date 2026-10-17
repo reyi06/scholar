@@ -3,11 +3,8 @@ import { useSearchParams } from 'react-router'
 import { ScholarshipCard } from '../../components/ScholarshipCard.tsx'
 import {
   Button,
-  Card,
-  CardBody,
   EmptyState,
   ErrorState,
-  Icon,
   LoadingState,
   PageHeader,
   Pagination,
@@ -15,18 +12,14 @@ import {
   Select,
 } from '../../components/ui'
 import { scholarshipsApi } from '../../lib/api.ts'
-import {
-  EDUCATION_LEVELS,
-  MUNICIPALITIES,
-  SCHOLARSHIP_TYPES,
-} from '../../lib/constants.ts'
+import { EDUCATION_LEVELS, MUNICIPALITIES, SCHOLARSHIP_TYPES } from '../../lib/constants.ts'
 import { useAsync } from '../../hooks/useAsync.ts'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue.ts'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
 import { useSavedScholarships } from '../../hooks/useSavedScholarships.ts'
 import type { EducationLevel, ScholarshipFilters, ScholarshipType } from '../../types/index.ts'
 
-const PAGE_SIZE = 9
+const PAGE_SIZE = 10
 
 const TYPE_OPTIONS = [
   { value: 'all', label: 'All types' },
@@ -45,13 +38,13 @@ const MUNICIPALITY_OPTIONS = [
 
 const DEADLINE_OPTIONS = [
   { value: 'all', label: 'Any deadline' },
-  { value: '7', label: 'Closing within 7 days' },
-  { value: '30', label: 'Closing within 30 days' },
-  { value: '90', label: 'Closing within 90 days' },
+  { value: '7', label: 'Next 7 days' },
+  { value: '30', label: 'Next 30 days' },
+  { value: '90', label: 'Next 90 days' },
 ]
 
 const SORT_OPTIONS = [
-  { value: 'deadline', label: 'Deadline (soonest first)' },
+  { value: 'deadline', label: 'Soonest deadline' },
   { value: 'newest', label: 'Recently added' },
   { value: 'name', label: 'Name (A–Z)' },
 ]
@@ -59,12 +52,12 @@ const SORT_OPTIONS = [
 /**
  * Public scholarship directory.
  *
- * Filter state is seeded from the URL (so the home page search and the
- * category tiles can link straight into a filtered view) and written back to
- * the URL as the user changes it, which makes filtered views shareable.
+ * One search bar and four compact filters in a single toolbar; the results are
+ * the focus. Filter state is seeded from the URL and written back to it, so a
+ * filtered view can be linked to or bookmarked.
  */
 export function ScholarshipDirectoryPage() {
-  useDocumentTitle('Scholarship directory')
+  useDocumentTitle('Scholarships')
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '')
@@ -84,7 +77,6 @@ export function ScholarshipDirectoryPage() {
   const debouncedQuery = useDebouncedValue(query, 300)
   const { savedIds, toggle } = useSavedScholarships()
 
-  // Reflect the current filters in the address bar so the view is shareable.
   useEffect(() => {
     const next = new URLSearchParams()
     if (debouncedQuery.trim()) next.set('q', debouncedQuery.trim())
@@ -97,8 +89,8 @@ export function ScholarshipDirectoryPage() {
     setSearchParams(next, { replace: true })
   }, [debouncedQuery, type, municipality, level, deadline, sort, page, setSearchParams])
 
-  // Any filter change should return the user to the first page of results.
-  // Done in the setters rather than an effect so there is no extra render pass.
+  // Any filter change returns to the first page of results. Done in the
+  // setters rather than an effect so there is no extra render pass.
   const updateFilter = (apply: () => void) => {
     apply()
     setPage(1)
@@ -141,139 +133,135 @@ export function ScholarshipDirectoryPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
       <PageHeader
-        title="Scholarship directory"
-        description="Search and filter scholarship listings from provincial, municipal, national, educational and private providers across Pampanga."
-        breadcrumbs={[{ label: 'Home', to: '/' }, { label: 'Scholarships' }]}
+        title="Scholarships"
+        description="Listings from provincial, municipal, national, educational and private providers across Pampanga."
       />
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[18rem_1fr] lg:items-start">
-        {/* ------------------------------- Filters ------------------------------- */}
-        <Card className="lg:sticky lg:top-24">
-          <CardBody className="space-y-4">
-            <div className="flex items-center justify-between gap-2">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
-                <Icon name="filter" className="size-4" />
-                Filters
-              </h2>
-              {activeFilterCount > 0 ? (
-                <Button variant="ghost" size="sm" onClick={clearFilters}>
-                  Clear ({activeFilterCount})
-                </Button>
-              ) : null}
-            </div>
-
+      {/* ------------------------------- Toolbar ------------------------------- */}
+      <div className="mt-6 border-y border-slate-200 py-4 dark:border-slate-800">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <div className="lg:flex-1">
             <SearchInput
               id="directory-search"
-              label="Search"
-              placeholder="Name, provider or keyword"
+              label="Search scholarships"
+              hideLabel
+              placeholder="Search by name, provider or keyword"
               value={query}
               onChange={(value) => updateFilter(() => setQuery(value))}
             />
+          </div>
 
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:w-auto">
             <Select
               id="directory-type"
               label="Scholarship type"
+              hideLabel
               options={TYPE_OPTIONS}
               value={type}
               onChange={(event) => updateFilter(() => setType(event.target.value as ScholarshipType | 'all'))}
             />
-
             <Select
               id="directory-municipality"
               label="Municipality"
+              hideLabel
               options={MUNICIPALITY_OPTIONS}
               value={municipality}
               onChange={(event) => updateFilter(() => setMunicipality(event.target.value))}
             />
-
             <Select
               id="directory-level"
               label="Education level"
+              hideLabel
               options={LEVEL_OPTIONS}
               value={level}
               onChange={(event) => updateFilter(() => setLevel(event.target.value as EducationLevel | 'all'))}
             />
-
             <Select
               id="directory-deadline"
               label="Deadline"
+              hideLabel
               options={DEADLINE_OPTIONS}
               value={deadline}
               onChange={(event) => updateFilter(() => setDeadline(event.target.value))}
             />
+          </div>
+        </div>
+      </div>
 
-            <Select
-              id="directory-sort"
-              label="Sort by"
-              options={SORT_OPTIONS}
-              value={sort ?? 'deadline'}
-              onChange={(event) => updateFilter(() => setSort(event.target.value as ScholarshipFilters['sort']))}
-            />
-          </CardBody>
-        </Card>
+      {/* ------------------------------- Results ------------------------------- */}
+      <div className="mt-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            {data ? `${data.total} ${data.total === 1 ? 'listing' : 'listings'}` : 'Searching…'}
+            {activeFilterCount > 0 ? ' · filtered' : ''}
+          </p>
 
-        {/* ------------------------------- Results ------------------------------- */}
-        <div>
+          <div className="flex items-center gap-2">
+            {activeFilterCount > 0 ? (
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                Clear filters
+              </Button>
+            ) : null}
+            <div className="w-44">
+              <Select
+                id="directory-sort"
+                label="Sort by"
+                hideLabel
+                options={SORT_OPTIONS}
+                value={sort ?? 'deadline'}
+                onChange={(event) => setSort(event.target.value as ScholarshipFilters['sort'])}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <h2 className="sr-only">Search results</h2>
           {loading ? <LoadingState label="Searching scholarships…" /> : null}
 
           {error ? <ErrorState message={error} onRetry={reload} /> : null}
 
           {!loading && !error ? (
-            <>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm text-slate-600 dark:text-slate-300">
-                  {data?.total ?? 0} {data?.total === 1 ? 'listing' : 'listings'} found
-                </p>
-                {activeFilterCount > 0 ? (
-                  <Button variant="outline" size="sm" onClick={clearFilters}>
-                    Reset filters
-                  </Button>
-                ) : null}
-              </div>
-
-              {results.length === 0 ? (
-                <EmptyState
-                  className="mt-4"
-                  icon={<Icon name="search" className="size-8" />}
-                  title="No scholarships match your search"
-                  description={
-                    activeFilterCount > 0
-                      ? 'Try removing a filter or searching for a different keyword. Deadlines in the past are still listed, so widening the deadline filter can help.'
-                      : 'There are no scholarship listings available at the moment.'
-                  }
-                  action={
-                    activeFilterCount > 0 ? (
-                      <Button variant="outline" onClick={clearFilters}>
-                        Clear all filters
-                      </Button>
-                    ) : undefined
-                  }
-                />
-              ) : (
-                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {results.map((scholarship) => (
-                    <ScholarshipCard
-                      key={scholarship.id}
-                      scholarship={scholarship}
-                      saved={savedIds.includes(scholarship.id)}
-                      onToggleSave={toggle}
-                    />
-                  ))}
-                </div>
-              )}
-
-              <Pagination
-                page={data?.page ?? 1}
-                totalPages={data?.totalPages ?? 1}
-                total={data?.total}
-                pageSize={PAGE_SIZE}
-                onPageChange={setPage}
+            results.length === 0 ? (
+              <EmptyState
+                title="No scholarships match your filters"
+                description={
+                  activeFilterCount > 0
+                    ? 'Try removing a filter or searching for a different keyword.'
+                    : 'There are no listings available at the moment.'
+                }
+                action={
+                  activeFilterCount > 0 ? (
+                    <Button variant="outline" onClick={clearFilters}>
+                      Clear all filters
+                    </Button>
+                  ) : undefined
+                }
               />
-            </>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {results.map((scholarship) => (
+                  <ScholarshipCard
+                    key={scholarship.id}
+                    scholarship={scholarship}
+                    saved={savedIds.includes(scholarship.id)}
+                    onToggleSave={toggle}
+                  />
+                ))}
+              </div>
+            )
           ) : null}
         </div>
+
+        <Pagination
+          page={data?.page ?? 1}
+          totalPages={data?.totalPages ?? 1}
+          total={data?.total}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+        />
       </div>
     </div>
   )

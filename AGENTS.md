@@ -168,10 +168,41 @@ users to their own dashboard.
 Available: `Accordion`, `Alert`, `Badge`, `Button` / `LinkButton`
 (+ `buttonClasses`), `Card`/`CardHeader`/`CardBody`/`CardFooter`, `Checkbox`,
 `ConfirmDialog`, `DefinitionList`, `Dialog`, `EmptyState`, `Field` (+
-`describedBy`), `Icon`, `Input`, `PageHeader`, `Pagination`, `SearchInput`,
-`Select`, `Skeleton`, `Spinner`, `StatCard`, `LoadingState`/`LoadingRows`/
+`describedBy`, `hideLabel`), `Icon`, `Input`, `PageHeader`, `Pagination`,
+`SearchInput`, `Section` (**prefer this over `Card`**), `Select`, `Skeleton`,
+`Spinner`, `StatCard` / `StatRow` / `StatCell`, `LoadingState`/`LoadingRows`/
 `ErrorState`, `Table`/`THead`/`TBody`/`TR`/`TH`/`TD` and the config-driven
 `DataTable`, `Tabs`, `Textarea`, plus `controlClasses`.
+
+### Visual language — follow this
+
+The interface is deliberately quiet. Before adding anything, check it against
+these rules:
+
+- **One accent.** Maroon (`brand-*`) is the only accent: `bg-brand-700` for
+  solid primary buttons, `text-brand-800` for accent text and links. Gold
+  (`gold-*`) is reserved for "Featured"/"Pinned" markers and the masthead rule.
+  Do not introduce another hue.
+- **Group with `Section`, not `Card`.** A page should read as titled sections
+  separated by hairlines. Reserve `Card` for a form or a genuinely distinct
+  panel. Sections are the default; cards are the exception.
+- **Surfaces are flat.** `rounded-lg border border-slate-200 bg-white`, no
+  resting shadow. The only shadow token is `shadow-float`, used by `Dialog`.
+- **Metrics are text, not tiles.** `StatCard` renders label + value with no
+  card chrome and has **no `icon` prop**. Group metrics in a bordered band or
+  with `StatRow`/`StatCell`. Never build a wall of statistic cards.
+- **Icons are not decoration.** Use them only where they carry meaning.
+- **Type scale:** page title via `PageHeader` (`text-xl`/`text-2xl`), section
+  headings `text-sm font-semibold`, body `text-sm text-slate-600`, meta
+  `text-xs text-slate-500`. No oversized headings.
+- **One primary action per page;** the rest are `outline` or `ghost`.
+- **Container:** `mx-auto max-w-6xl px-5 py-8 sm:px-8`.
+- **Progressive disclosure:** `Accordion` for long read-only blocks, `Dialog`
+  for editing, `Tabs` for lists with modes, `hideLabel` for compact toolbars.
+- **Tables are for tabular admin data only**, with search and filters in one
+  compact toolbar row above the table rather than a filter panel.
+- **Whitespace over density:** `space-y-10` between sections, `gap-4`/`gap-6`
+  inside. If a page feels full, remove something.
 
 Only `useToast` comes from outside the barrel
 (`src/context/toastContext.ts`).
@@ -307,6 +338,37 @@ Do not present the current implementation as secure.
 
 Newest first. Record the command and its observed result.
 
+### 2026-10-17 — premium/minimal redesign (all passing)
+
+- **Build/lint:** `npm run lint` clean; `tsc -b` + Vite build clean, no
+  warnings. Initial bundle **290.59 kB (85.65 kB gzip)**, down from 294.64 kB.
+- **Palette verified in the browser:** the primary button computes to
+  `oklch(0.38 0.14 18)` (maroon), the canvas to `oklch(0.988 0.002 80)`
+  (near-white), and the masthead rule to a maroon→gold gradient.
+- **Density reduction, measured:**
+  - Home dropped from ~4,759 to **1,409** characters of rendered text, with two
+    page sections instead of seven.
+  - Student dashboard dropped from a stat-card grid plus three card grids to
+    **814** characters: one "Your next step" action, an application-count band,
+    and a recent-updates list.
+  - Student profile now renders **0 editable inputs** until "Edit profile" is
+    chosen, down from every field being editable at once.
+- **Route sweep:** every student and admin page was loaded with a session
+  seeded for the right role. Student: dashboard, profile, applications (6 rows),
+  grants (2 rows), registration, notifications. Admin: dashboard, grants
+  (5 rows), reports (5 tables / 25 rows), scholarships (10 rows),
+  announcements (now a plain list, 0 cards), applications. Console empty of
+  errors throughout.
+- **Lighthouse** on home, directory, detail, about, student dashboard, admin
+  dashboard, admin grants and admin applications: **Accessibility 100, Best
+  Practices 100, SEO 100, zero audit failures.**
+- **Two regressions found and fixed by that audit:** the directory jumped
+  `h1 → h3` (fixed with a visually hidden "Search results" `h2`), and the
+  dashboard shell's sidebar label used `slate-400` on white (≈2.6:1), failing
+  contrast on every authenticated page — raised to `slate-500`, along with the
+  notification relative-time, the dialog close control, the 404 eyebrow and the
+  unsaved-bookmark icon.
+
 ### 2026-10-17 — release polish: disclaimers removed, home page rebuilt (all passing)
 
 - **Build/lint:** `npm run lint` clean; `tsc -b` + Vite build clean, no
@@ -390,6 +452,46 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-17 — redesign to a modern, minimal interface (maroon and gold)
+
+**Design tokens** (`src/index.css`): replaced the blue accent with a maroon
+scale and added a gold scale. Canvas moved to a near-white warm off-white and
+the single `shadow-float` token replaced the previous shadow scale. Added an
+`.accent-rule` utility for the maroon→gold masthead hairline.
+
+**Primitives rewritten:** `Button`/`buttonClasses` (flat, `rounded-md`, no
+resting shadow, only the primary variant carries the accent), `controlClasses`
+(no shadow, subtler borders), `Card` (`rounded-lg`, no shadow, `px-5 py-4`),
+`Badge` (muted; `accent` tone removed, `gold` tone added), `PageHeader`
+(title down to `text-xl`/`text-2xl` `semibold`), `Table` (quieter header, less
+padding), `Dialog` (`rounded-lg`, no backdrop blur, `shadow-float`), `Alert`
+(no icon), `EmptyState` (borderless, no box), `DefinitionList` (quiet labels),
+`States`, `DeadlineBadge` (quiet text that gains weight as the date nears).
+
+**Added:** `Section` — a titled region separated by a hairline, with no border,
+background or shadow. This is now the default way to group content, so pages no
+longer read as a stack of cards. `Card` is reserved for forms and distinct
+panels. Also added `StatRow`/`StatCell`, and `hideLabel` on `Field`, `Input`
+and `Select` so filter toolbars can stay compact without losing their labels.
+
+**`StatCard` rebuilt** from a bordered tile into plain label + value, and its
+`icon` prop was removed. The 8-tile admin dashboard grid and the 6-tile reports
+grid are gone; metrics are now grouped in a single bordered band.
+
+**Layouts:** `PublicLayout` reduced to logo + Scholarships + About + Sign in +
+one primary action, with a minimal single-row footer replacing the four-column
+block. `DashboardLayout` narrowed to a `w-60` sidebar with quieter nav items and
+a slimmer top bar; it still supplies the `max-w-6xl` container for its pages.
+
+**Pages:** home reduced to hero-with-search, featured listings and one call to
+action. Directory reduced to one search bar plus four filters in a single
+toolbar, a two-column grid and pagination. Detail page split into sections with
+a sticky sidebar holding the single primary action. Login and register reduced
+to centred `max-w-sm` forms. About converted from stacked cards to sections.
+Student and admin areas regrouped into sections, with a read-only profile plus
+explicit edit mode, a review-before-submit step for semester registration, and
+chronological lists for announcements and notifications.
 
 ### 2026-10-17 — release polish pass
 

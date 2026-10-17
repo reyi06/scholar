@@ -2,9 +2,6 @@ import { useState } from 'react'
 import {
   Alert,
   Button,
-  Card,
-  CardBody,
-  CardHeader,
   Checkbox,
   ConfirmDialog,
   DefinitionList,
@@ -12,6 +9,7 @@ import {
   Input,
   LoadingState,
   PageHeader,
+  Section,
   Select,
   Textarea,
 } from '../../components/ui'
@@ -41,6 +39,13 @@ interface SettingsFormErrors {
 const YEAR_OPTIONS = ACADEMIC_YEARS.map((year) => ({ value: year, label: `AY ${year}` }))
 const SEMESTER_OPTIONS = SEMESTERS.map((semester) => ({ value: semester, label: semester }))
 
+/**
+ * Platform settings.
+ *
+ * Two sections only: the configuration form, and the records this deployment
+ * currently holds with the restore action. Restoring is irreversible and is
+ * confirmed before it runs.
+ */
 export function AdminSettingsPage() {
   useDocumentTitle('Settings')
   const toast = useToast()
@@ -49,7 +54,7 @@ export function AdminSettingsPage() {
   const [errors, setErrors] = useState<SettingsFormErrors>({})
 
   // Copy the loaded settings into editable state. Re-runs after a save or a
-  // demo reset, so the form always reflects what is actually persisted.
+  // restore, so the form always reflects what is actually persisted.
   const settings = useAsync(() => settingsApi.get(), [], {
     onSuccess: (loaded) => {
       setForm({
@@ -124,7 +129,7 @@ export function AdminSettingsPage() {
   const stats = demoStats.data
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PageHeader
         title="Settings"
         description="Platform-wide configuration for the current term and public-facing messages."
@@ -137,12 +142,12 @@ export function AdminSettingsPage() {
       ) : null}
 
       {!settings.error && form ? (
-        <Card>
-          <CardHeader
-            title="Platform settings"
-            description="These values drive which academic term is treated as current and whether applications are open."
-          />
-          <CardBody className="space-y-4">
+        <Section
+          divider={false}
+          title="Platform settings"
+          description="These values drive which academic term is treated as current and whether applications are open."
+        >
+          <div className="max-w-2xl space-y-5">
             <div className="grid gap-4 sm:grid-cols-2">
               <Select
                 id="settings-year"
@@ -205,16 +210,15 @@ export function AdminSettingsPage() {
                 </span>
               ) : null}
             </div>
-          </CardBody>
-        </Card>
+          </div>
+        </Section>
       ) : null}
 
-      <Card>
-        <CardHeader
-          title="Stored records"
-          description="Records currently held by this deployment. Restoring replaces them with the set the application ships with."
-        />
-        <CardBody className="space-y-4">
+      <Section
+        title="Stored records"
+        description="Records currently held by this deployment. Restoring replaces them with the set the application ships with."
+      >
+        <div className="max-w-2xl space-y-5">
           {demoStats.loading && !stats ? (
             <LoadingState label="Counting records…" />
           ) : demoStats.error ? (
@@ -242,8 +246,8 @@ export function AdminSettingsPage() {
               Restore shipped records
             </Button>
           </div>
-        </CardBody>
-      </Card>
+        </div>
+      </Section>
 
       <ConfirmDialog
         open={resetOpen}

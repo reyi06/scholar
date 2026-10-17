@@ -1,15 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
-import {
-  Alert,
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Input,
-  LinkButton,
-  Select,
-} from '../../components/ui'
+import { Alert, Button, Input, Select } from '../../components/ui'
 import { MUNICIPALITIES_ONLY } from '../../lib/constants.ts'
 import {
   emailFormat,
@@ -38,7 +29,7 @@ interface RegisterFormValues {
 const MUNICIPALITY_OPTIONS = MUNICIPALITIES_ONLY.map((name) => ({ value: name, label: name }))
 
 export function RegisterPage() {
-  useDocumentTitle('Create a student account')
+  useDocumentTitle('Create an account')
   const { register } = useAuth()
   const toast = useToast()
   const navigate = useNavigate()
@@ -89,150 +80,114 @@ export function RegisterPage() {
     const user = await run(values)
     if (!user) return
 
-    toast.success(
-      'Account created',
-      'Complete your student profile to improve your scholarship matches.',
-    )
+    toast.success('Account created', 'Complete your profile to improve your scholarship matches.')
     navigate('/student/profile', { replace: true })
   }
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_1.1fr] lg:items-start lg:py-16 lg:px-8">
-      <div className="space-y-6">
-        <div className="space-y-3">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Create a student account
-          </h1>
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            A student account lets you save scholarships, submit applications, file your semester
-            registration as a grantee, and follow the status of your grants.
-          </p>
+    <div className="mx-auto max-w-sm px-5 py-16 sm:py-24">
+      <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">
+        Create a student account
+      </h1>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        Save listings, submit applications and follow their progress.
+      </p>
+
+      <form onSubmit={handleSubmit} className="mt-8 space-y-5" noValidate>
+        {error ? <Alert tone="danger">{error}</Alert> : null}
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Input
+            id="register-first-name"
+            label="First name"
+            required
+            autoComplete="given-name"
+            value={values.firstName}
+            error={errors.firstName}
+            onChange={(event) => update('firstName', event.target.value)}
+          />
+          <Input
+            id="register-last-name"
+            label="Last name"
+            required
+            autoComplete="family-name"
+            value={values.lastName}
+            error={errors.lastName}
+            onChange={(event) => update('lastName', event.target.value)}
+          />
         </div>
 
-        <ul className="space-y-2.5 text-sm text-slate-700 dark:text-slate-300">
-          {[
-            'Save a shortlist of scholarships you are interested in',
-            'Submit applications and track their review status',
-            'File semester registration if you are an existing grantee',
-            'See confirmed grant records once an administrator confirms them',
-          ].map((item) => (
-            <li key={item} className="flex gap-2.5">
-              <span aria-hidden="true" className="mt-0.5 text-brand-600 dark:text-brand-400">
-                ✓
-              </span>
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
+        <Input
+          id="register-email"
+          label="Email address"
+          type="email"
+          required
+          autoComplete="email"
+          value={values.email}
+          error={errors.email}
+          onChange={(event) => update('email', event.target.value)}
+        />
 
-      </div>
+        <Input
+          id="register-phone"
+          label="Mobile number"
+          type="tel"
+          required
+          autoComplete="tel"
+          placeholder="+63 917 000 0000"
+          value={values.phone}
+          error={errors.phone}
+          onChange={(event) => update('phone', event.target.value)}
+        />
 
-      <Card>
-        <CardHeader title="Your details" description="All fields are required." />
-        <CardBody>
-          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-            {error ? <Alert tone="danger" title="Could not create your account">{error}</Alert> : null}
+        <Select
+          id="register-municipality"
+          label="Municipality or city"
+          required
+          placeholder="Select your municipality or city"
+          options={MUNICIPALITY_OPTIONS}
+          value={values.municipality}
+          error={errors.municipality}
+          onChange={(event) => update('municipality', event.target.value)}
+        />
 
-            <div className="grid gap-5 sm:grid-cols-2">
-              <Input
-                id="register-first-name"
-                label="First name"
-                required
-                autoComplete="given-name"
-                value={values.firstName}
-                error={errors.firstName}
-                onChange={(event) => update('firstName', event.target.value)}
-              />
-              <Input
-                id="register-last-name"
-                label="Last name"
-                required
-                autoComplete="family-name"
-                value={values.lastName}
-                error={errors.lastName}
-                onChange={(event) => update('lastName', event.target.value)}
-              />
-            </div>
+        <Input
+          id="register-password"
+          label="Password"
+          type="password"
+          required
+          autoComplete="new-password"
+          hint="At least 8 characters."
+          value={values.password}
+          error={errors.password}
+          onChange={(event) => update('password', event.target.value)}
+        />
 
-            <Input
-              id="register-email"
-              label="Email address"
-              type="email"
-              required
-              autoComplete="email"
-              placeholder="name@example.com"
-              hint="This becomes your sign-in name."
-              value={values.email}
-              error={errors.email}
-              onChange={(event) => update('email', event.target.value)}
-            />
+        <Input
+          id="register-confirm-password"
+          label="Confirm password"
+          type="password"
+          required
+          autoComplete="new-password"
+          value={values.confirmPassword}
+          error={errors.confirmPassword}
+          onChange={(event) => update('confirmPassword', event.target.value)}
+        />
 
-            <Input
-              id="register-phone"
-              label="Mobile number"
-              type="tel"
-              required
-              autoComplete="tel"
-              placeholder="+63 917 000 0000"
-              value={values.phone}
-              error={errors.phone}
-              onChange={(event) => update('phone', event.target.value)}
-            />
+        <Button type="submit" loading={loading} fullWidth>
+          Create account
+        </Button>
+      </form>
 
-            <Select
-              id="register-municipality"
-              label="Municipality or city"
-              required
-              placeholder="Select your municipality or city"
-              options={MUNICIPALITY_OPTIONS}
-              value={values.municipality}
-              error={errors.municipality}
-              onChange={(event) => update('municipality', event.target.value)}
-            />
-
-            <div className="grid gap-5 sm:grid-cols-2">
-              <Input
-                id="register-password"
-                label="Password"
-                type="password"
-                required
-                autoComplete="new-password"
-                hint="At least 8 characters."
-                value={values.password}
-                error={errors.password}
-                onChange={(event) => update('password', event.target.value)}
-              />
-              <Input
-                id="register-confirm-password"
-                label="Confirm password"
-                type="password"
-                required
-                autoComplete="new-password"
-                value={values.confirmPassword}
-                error={errors.confirmPassword}
-                onChange={(event) => update('confirmPassword', event.target.value)}
-              />
-            </div>
-
-            <Button type="submit" loading={loading} fullWidth size="lg">
-              Create account
-            </Button>
-
-            <p className="text-center text-sm text-slate-600 dark:text-slate-300">
-              Already have an account?{' '}
-              <Link to="/login" className="font-medium text-brand-700 dark:text-brand-300">
-                Sign in
-              </Link>
-            </p>
-          </form>
-        </CardBody>
-      </Card>
-
-      <div className="lg:col-span-2">
-        <LinkButton to="/" variant="ghost" size="sm">
-          ← Back to home
-        </LinkButton>
-      </div>
+      <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
+        Already have an account?{' '}
+        <Link
+          to="/login"
+          className="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-300"
+        >
+          Sign in
+        </Link>
+      </p>
     </div>
   )
 }

@@ -3,8 +3,6 @@ import { StatusBadge } from '../../components/StatusBadge.tsx'
 import {
   Alert,
   Button,
-  Card,
-  CardBody,
   ConfirmDialog,
   DataTable,
   EmptyState,
@@ -46,6 +44,11 @@ const SEMESTER_OPTIONS: SelectOption[] = [
   ...SEMESTERS.map((semester) => ({ value: semester, label: semester })),
 ]
 
+/**
+ * Semester registrations filed by students who already hold a grant.
+ * Verification and rejection both route through a confirmation dialog, and a
+ * rejection requires a short reason.
+ */
 export function AdminRegistrationsPage() {
   useDocumentTitle('Semester registrations')
   const toast = useToast()
@@ -91,6 +94,17 @@ export function AdminRegistrationsPage() {
     ]),
   )
 
+  const hasFilters =
+    debouncedQuery.trim() !== '' || status !== 'all' || academicYear !== 'all' || semester !== 'all'
+
+  function clearFilters(): void {
+    setQuery('')
+    setStatus('all')
+    setAcademicYear('all')
+    setSemester('all')
+    setPage(1)
+  }
+
   const columns: Column<SemesterRegistration>[] = [
     {
       key: 'referenceNo',
@@ -128,7 +142,7 @@ export function AdminRegistrationsPage() {
       header: 'Actions',
       align: 'right',
       render: (row) => (
-        <div className="flex justify-end gap-2">
+        <div className="flex items-center justify-end gap-1">
           <Button
             variant="outline"
             size="sm"
@@ -142,8 +156,10 @@ export function AdminRegistrationsPage() {
             Verify
           </Button>
           <Button
-            variant="danger"
+            variant="ghost"
             size="sm"
+            aria-label={`Reject ${row.referenceNo}`}
+            className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
             disabled={row.status === 'rejected'}
             onClick={() => {
               setDecision({ id: row.id, status: 'rejected' })
@@ -151,7 +167,7 @@ export function AdminRegistrationsPage() {
               setRemarksError(null)
             }}
           >
-            Reject
+            <Icon name="close" className="size-4" />
           </Button>
         </div>
       ),
@@ -182,101 +198,101 @@ export function AdminRegistrationsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PageHeader
         title="Semester registrations"
         description="Verify the semester re-registration of students who already hold a grant."
       />
 
-      <Alert tone="info" title="This is the existing-grantee re-registration flow">
-        Semester registration is filed by students who already have a confirmed grant, so they can
-        keep receiving assistance for a new term. It is tracked separately from new scholarship
-        applications and does not replace them.
+      <Alert tone="info">
+        Semester registration is filed by students who already have a confirmed grant, so they can keep
+        receiving assistance for a new term. It is tracked separately from new scholarship applications.
       </Alert>
 
-      <Card>
-        <CardBody className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <SearchInput
-            id="registrations-search"
-            label="Search registrations"
-            placeholder="Reference no., student or school"
-            value={query}
-            onChange={(value) => {
-              setQuery(value)
-              setPage(1)
-            }}
-          />
-          <Select
-            id="registrations-status"
-            label="Status"
-            options={STATUS_OPTIONS}
-            value={status}
-            onChange={(event) => {
-              setStatus(event.target.value as RegistrationStatus | 'all')
-              setPage(1)
-            }}
-          />
-          <Select
-            id="registrations-year"
-            label="Academic year"
-            options={ACADEMIC_YEAR_OPTIONS}
-            value={academicYear}
-            onChange={(event) => {
-              setAcademicYear(event.target.value)
-              setPage(1)
-            }}
-          />
-          <Select
-            id="registrations-semester"
-            label="Semester"
-            options={SEMESTER_OPTIONS}
-            value={semester}
-            onChange={(event) => {
-              setSemester(event.target.value)
-              setPage(1)
-            }}
-          />
-        </CardBody>
-      </Card>
+      <div className="space-y-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="min-w-0 flex-1">
+            <SearchInput
+              id="registrations-search"
+              label="Search registrations"
+              hideLabel
+              placeholder="Search reference no., student or school"
+              value={query}
+              onChange={(value) => {
+                setQuery(value)
+                setPage(1)
+              }}
+            />
+          </div>
+          <div className="sm:w-36">
+            <Select
+              id="registrations-status"
+              aria-label="Status"
+              options={STATUS_OPTIONS}
+              value={status}
+              onChange={(event) => {
+                setStatus(event.target.value as RegistrationStatus | 'all')
+                setPage(1)
+              }}
+            />
+          </div>
+          <div className="sm:w-44">
+            <Select
+              id="registrations-year"
+              aria-label="Academic year"
+              options={ACADEMIC_YEAR_OPTIONS}
+              value={academicYear}
+              onChange={(event) => {
+                setAcademicYear(event.target.value)
+                setPage(1)
+              }}
+            />
+          </div>
+          <div className="sm:w-40">
+            <Select
+              id="registrations-semester"
+              aria-label="Semester"
+              options={SEMESTER_OPTIONS}
+              value={semester}
+              onChange={(event) => {
+                setSemester(event.target.value)
+                setPage(1)
+              }}
+            />
+          </div>
+          {hasFilters ? (
+            <Button variant="ghost" onClick={clearFilters} className="shrink-0">
+              Reset
+            </Button>
+          ) : null}
+        </div>
 
-      {list.error ? <ErrorState message={list.error} onRetry={list.reload} /> : null}
-
-      {!list.error && list.loading && !list.data ? (
-        <LoadingState label="Loading registrations…" />
-      ) : null}
-
-      {!list.error && list.data ? (
-        <Card>
-          <DataTable
-            columns={columns}
-            rows={list.data.items}
-            getRowId={(row) => row.id}
-            loading={list.loading}
-            caption="Semester registrations"
-            empty={
+        {list.error ? (
+          <ErrorState message={list.error} onRetry={list.reload} />
+        ) : list.loading && !list.data ? (
+          <LoadingState label="Loading registrations…" />
+        ) : list.data ? (
+          <>
+            {list.data.items.length === 0 ? (
               <EmptyState
-                icon={<Icon name="calendar" className="size-8" />}
                 title="No registrations match these filters"
                 description="Try clearing the search box or choosing a different status, academic year or semester."
                 action={
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setQuery('')
-                      setStatus('all')
-                      setAcademicYear('all')
-                      setSemester('all')
-                      setPage(1)
-                    }}
-                  >
-                    Clear filters
+                  <Button variant="outline" size="sm" onClick={clearFilters}>
+                    Reset filters
                   </Button>
                 }
               />
-            }
-          />
-          <div className="px-4 pb-4">
+            ) : (
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <DataTable
+                  columns={columns}
+                  rows={list.data.items}
+                  getRowId={(row) => row.id}
+                  caption="Semester registrations"
+                />
+              </div>
+            )}
             <Pagination
               page={list.data.page}
               totalPages={list.data.totalPages}
@@ -284,9 +300,9 @@ export function AdminRegistrationsPage() {
               pageSize={list.data.pageSize}
               onPageChange={setPage}
             />
-          </div>
-        </Card>
-      ) : null}
+          </>
+        ) : null}
+      </div>
 
       <ConfirmDialog
         open={decision !== null}

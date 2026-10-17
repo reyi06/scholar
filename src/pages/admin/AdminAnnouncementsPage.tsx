@@ -3,9 +3,6 @@ import {
   Alert,
   Badge,
   Button,
-  Card,
-  CardBody,
-  CardHeader,
   Checkbox,
   ConfirmDialog,
   Dialog,
@@ -47,6 +44,13 @@ const EMPTY_FORM: AnnouncementFormState = {
   pinned: false,
 }
 
+/**
+ * Announcements.
+ *
+ * A plain chronological list — pinned items first, then newest. No card per
+ * notice: the date, title and body carry it. Creating and editing happen in a
+ * dialog, and deleting is confirmed.
+ */
 export function AdminAnnouncementsPage() {
   useDocumentTitle('Announcements')
   const toast = useToast()
@@ -136,7 +140,7 @@ export function AdminAnnouncementsPage() {
   const announcements = list.data ?? []
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PageHeader
         title="Announcements"
         description="Post notices for students and administrators. They appear inside the app."
@@ -147,9 +151,9 @@ export function AdminAnnouncementsPage() {
         }
       />
 
-      <Alert tone="info" title="Announcements are shown in-app only">
-        Publishing an announcement adds it to this platform. No email is sent, and no external
-        service is contacted.
+      <Alert tone="info">
+        Publishing an announcement adds it to this platform. No email is sent and no external service
+        is contacted.
       </Alert>
 
       {list.error ? <ErrorState message={list.error} onRetry={list.reload} /> : null}
@@ -160,7 +164,6 @@ export function AdminAnnouncementsPage() {
 
       {!list.error && list.data && announcements.length === 0 ? (
         <EmptyState
-          icon={<Icon name="megaphone" className="size-8" />}
           title="No announcements yet"
           description="Publish the first announcement to keep students informed about deadlines and requirements."
           action={<Button onClick={openCreate}>New announcement</Button>}
@@ -168,39 +171,46 @@ export function AdminAnnouncementsPage() {
       ) : null}
 
       {!list.error && announcements.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <ul className="divide-y divide-slate-200 dark:divide-slate-800">
           {announcements.map((announcement) => (
-            <Card key={announcement.id} className="flex flex-col">
-              <CardHeader
-                title={announcement.title}
-                actions={
-                  <>
-                    <Button variant="outline" size="sm" onClick={() => openEdit(announcement)}>
-                      Edit
-                    </Button>
-                    <Button variant="danger" size="sm" onClick={() => setDeleting(announcement)}>
-                      Delete
-                    </Button>
-                  </>
-                }
-              />
-              <CardBody className="flex flex-1 flex-col gap-3">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {announcement.pinned ? <Badge tone="brand">Pinned</Badge> : null}
-                  <Badge tone="neutral">
-                    {ANNOUNCEMENT_AUDIENCE_LABELS[announcement.audience]}
-                  </Badge>
+            <li
+              key={announcement.id}
+              className="flex flex-col gap-3 py-6 first:pt-0 sm:flex-row sm:items-start sm:justify-between"
+            >
+              <div className="min-w-0 space-y-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    {formatDateTime(announcement.publishedAt)}
+                  </span>
+                  {announcement.pinned ? <Badge tone="gold">Pinned</Badge> : null}
+                  <Badge tone="neutral">{ANNOUNCEMENT_AUDIENCE_LABELS[announcement.audience]}</Badge>
                 </div>
-                <p className="text-sm whitespace-pre-line text-slate-700 dark:text-slate-200">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                  {announcement.title}
+                </h3>
+                <p className="text-sm whitespace-pre-line text-slate-600 dark:text-slate-300">
                   {announcement.body}
                 </p>
-                <p className="mt-auto text-xs text-slate-500 dark:text-slate-400">
-                  Published {formatDateTime(announcement.publishedAt)} · {announcement.author}
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Posted by {announcement.author}
                 </p>
-              </CardBody>
-            </Card>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                <Button variant="ghost" size="sm" onClick={() => openEdit(announcement)}>
+                  Edit
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
+                  onClick={() => setDeleting(announcement)}
+                >
+                  Delete
+                </Button>
+              </div>
+            </li>
           ))}
-        </div>
+        </ul>
       ) : null}
 
       <Dialog

@@ -1,34 +1,82 @@
-import type { ReactNode } from 'react'
 import { Link } from 'react-router'
-import { ScholarshipCard } from '../../components/ScholarshipCard.tsx'
-import { StatusBadge } from '../../components/StatusBadge.tsx'
 import {
-  Card,
-  CardBody,
-  CardHeader,
   EmptyState,
   ErrorState,
   LinkButton,
   LoadingState,
   PageHeader,
+  Section,
   StatCard,
 } from '../../components/ui'
 import { useAuth } from '../../context/authContext.ts'
 import { useAsync } from '../../hooks/useAsync.ts'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
-import {
-  announcementsApi,
-  applicationsApi,
-  grantsApi,
-  registrationsApi,
-  savedApi,
-  scholarshipsApi,
-} from '../../lib/api.ts'
-import { formatCurrency, formatDate, truncate } from '../../lib/format.ts'
+import { applicationsApi, notificationsApi, registrationsApi } from '../../lib/api.ts'
+import { formatDate } from '../../lib/format.ts'
+import type { Application, SemesterRegistration } from '../../types/index.ts'
 
 /** Statuses that still count as an application in progress. */
-const ACTIVE_STATUSES = ['draft', 'submitted', 'under-review', 'needs-info']
+const ACTIVE_STATUSES: Application['status'][] = [
+  'draft',
+  'submitted',
+  'under-review',
+  'needs-info',
+]
 
+interface NextStep {
+  sentence: string
+  label: string
+  to: string
+}
+
+/**
+ * Choose the single most useful thing this student can do next.
+ *
+ * Ordered by how much it unblocks: a request for more information first, then a
+ * registration awaiting verification, then an unfinished draft, and finally
+ * browsing for something new.
+ */
+function pickNextStep(applications: Application[], registrations: SemesterRegistration[]): NextStep {
+  const needsInfo = applications.find((application) => application.status === 'needs-info')
+  if (needsInfo) {
+    return {
+      sentence: `Application ${needsInfo.referenceNo} needs more information before it can be reviewed.`,
+      label: 'Review the request',
+      to: `/student/applications/${needsInfo.id}`,
+    }
+  }
+
+  const pendingRegistration = registrations.find((registration) => registration.status === 'pending')
+  if (pendingRegistration) {
+    return {
+      sentence: `Your ${pendingRegistration.semester} registration for AY ${pendingRegistration.academicYear} is awaiting verification.`,
+      label: 'View registration',
+      to: '/student/semester-registration',
+    }
+  }
+
+  const draft = applications.find((application) => application.status === 'draft')
+  if (draft) {
+    return {
+      sentence: 'You have a draft application that has not been submitted yet.',
+      label: 'Continue your draft',
+      to: `/student/applications/${draft.id}`,
+    }
+  }
+
+  return {
+    sentence: 'Find a scholarship to apply for; everything you submit is tracked here.',
+    label: 'Browse scholarships',
+    to: '/scholarships',
+  }
+}
+
+/**
+ * Student landing page.
+ *
+ * Three things only: the one step that matters now, where the applications
+ * stand, and the latest updates. The detail lives on the pages it links to.
+ */
 export function StudentDashboardPage() {
   useDocumentTitle('Dashboard')
   const { user } = useAuth()
@@ -36,17 +84,12 @@ export function StudentDashboardPage() {
 
   const dashboard = useAsync(async () => {
     if (!userId) return null
-    const [saved, applications, registrations, grants, closingSoon, announcements, scholarships] =
-      await Promise.all([
-        savedApi.listForStudent(userId),
-        applicationsApi.listForStudent(userId),
-        registrationsApi.listForStudent(userId),
-        grantsApi.listForStudent(userId),
-        scholarshipsApi.closingSoon(4),
-        announcementsApi.list('students'),
-        scholarshipsApi.listAll(),
-      ])
-    return { saved, applications, registrations, grants, closingSoon, announcements, scholarships }
+    const [applications, registrations, notifications] = await Promise.all([
+      applicationsApi.listForStudent(userId),
+      registrationsApi.listForStudent(userId),
+      notificationsApi.listForUser(userId),
+    ])
+    return { applications, registrations, notifications }
   }, [userId])
 
   if (!user) {
@@ -59,176 +102,84 @@ export function StudentDashboardPage() {
     )
   }
 
-  const data = dashboard.data
+  const applications = dashboard.data?.applications ?? []
+  const registrations = dashboard.data?.registrations ?? []
+  const notifications = dashboard.data?.notifications ?? []
 
-  let body: ReactNode
-  if (dashboard.loading) {
-    body = <LoadingState label="Loading your dashboard…" />
-  } else if (dashboard.error) {
-    body = <ErrorState message={dashboard.error} onRetry={dashboard.reload} />
-  } else if (!data) {
-    body = (
-      <EmptyState
-        title="Nothing to show yet"
-        description="Your dashboard fills up as you save scholarships and submit applications."
-        action={<LinkButton to="/scholarships">Browse scholarships</LinkButton>}
-      />
-    )
-  } else {
-    const scholarshipNames = new Map(data.scholarships.map((item) => [item.id, item.name]))
-    const activeApplications = data.applications.filter((application) =>
-      ACTIVE_STATUSES.includes(application.status),
-    )
-    const pendingRegistrations = data.registrations.filter((item) => item.status === 'pending')
-    const totalReleased = data.grants.reduce((sum, grant) => sum + grant.amount, 0)
-
-    body = (
-      <>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard
-            label="Saved scholarships"
-            value={data.saved.length}
-            hint="On your shortlist"
-            icon="★"
-            to="/student/saved"
-          />
-          <StatCard
-            label="Applications in progress"
-            value={activeApplications.length}
-            hint="Draft, submitted, under review or needing information"
-            tone="brand"
-            to="/student/applications"
-          />
-          <StatCard
-            label="Pending registrations"
-            value={pendingRegistrations.length}
-            hint="Semester registrations awaiting verification"
-            tone="warning"
-            to="/student/semester-registration"
-          />
-          <StatCard
-            label="Confirmed grants"
-            value={data.grants.length}
-            hint={`${formatCurrency(totalReleased)} released in total`}
-            tone="success"
-            to="/student/grants"
-          />
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-3">
-          <Card className="lg:col-span-2">
-            <CardHeader
-              title="Applications in progress"
-              description="Your most recent applications submitted through this system."
-              actions={
-                <LinkButton to="/student/applications" variant="ghost" size="sm">
-                  View all
-                </LinkButton>
-              }
-            />
-            <CardBody className="space-y-3">
-              {data.applications.length === 0 ? (
-                <EmptyState
-                  title="No applications yet"
-                  description="When you apply to an internal scholarship, it appears here so you can track its progress."
-                  action={
-                    <LinkButton to="/scholarships" size="sm">
-                      Browse scholarships
-                    </LinkButton>
-                  }
-                />
-              ) : (
-                data.applications.slice(0, 4).map((application) => (
-                  <div
-                    key={application.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-800"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
-                        <Link
-                          to={`/student/applications/${application.id}`}
-                          className="transition hover:text-brand-700 dark:hover:text-brand-300"
-                        >
-                          {scholarshipNames.get(application.scholarshipId) ?? 'Scholarship application'}
-                        </Link>
-                      </p>
-                      <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                        Reference {application.referenceNo} · submitted {formatDate(application.submittedAt)}
-                      </p>
-                    </div>
-                    <StatusBadge kind="application" status={application.status} />
-                  </div>
-                ))
-              )}
-            </CardBody>
-          </Card>
-
-          <div className="space-y-6">
-            <Card>
-              <CardHeader title="Recent announcements" />
-              <CardBody className="space-y-4">
-                {data.announcements.length === 0 ? (
-                  <p className="text-sm text-slate-500 dark:text-slate-400">No announcements yet.</p>
-                ) : (
-                  data.announcements.slice(0, 3).map((announcement) => (
-                    <article key={announcement.id} className="space-y-1">
-                      <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
-                        {announcement.title}
-                      </h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {formatDate(announcement.publishedAt)}
-                      </p>
-                      <p className="text-sm text-slate-600 dark:text-slate-300">
-                        {truncate(announcement.body, 200)}
-                      </p>
-                    </article>
-                  ))
-                )}
-              </CardBody>
-            </Card>
-
-          </div>
-        </div>
-
-        <section className="space-y-4">
-          <div className="flex flex-wrap items-end justify-between gap-2">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-                Deadlines approaching
-              </h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                Open scholarships closing within the next three weeks.
-              </p>
-            </div>
-            <LinkButton to="/scholarships" variant="outline" size="sm">
-              See all scholarships
-            </LinkButton>
-          </div>
-          {data.closingSoon.length === 0 ? (
-            <EmptyState
-              title="No closing deadlines"
-              description="No open scholarships are closing in the next three weeks. Check the directory for the full list."
-              action={<LinkButton to="/scholarships">Browse scholarships</LinkButton>}
-            />
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {data.closingSoon.map((scholarship) => (
-                <ScholarshipCard key={scholarship.id} scholarship={scholarship} />
-              ))}
-            </div>
-          )}
-        </section>
-      </>
-    )
-  }
+  const nextStep = pickNextStep(applications, registrations)
+  const inProgress = applications.filter((application) =>
+    ACTIVE_STATUSES.includes(application.status),
+  ).length
+  const approved = applications.filter((application) => application.status === 'approved').length
+  const closed = applications.filter((application) => application.status === 'rejected').length
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PageHeader
-        title="Dashboard"
-        description={`Welcome back, ${user.firstName}. Here is where your saved scholarships, applications and grants stand today.`}
+        title={`Welcome back, ${user.firstName}`}
+        description="A short view of what needs your attention and where your applications stand."
       />
-      {body}
+
+      {dashboard.loading ? (
+        <LoadingState label="Loading your dashboard…" />
+      ) : dashboard.error ? (
+        <ErrorState message={dashboard.error} onRetry={dashboard.reload} />
+      ) : (
+        <>
+          <Section divider={false} title="Your next step">
+            <p className="text-sm text-slate-600 dark:text-slate-300">{nextStep.sentence}</p>
+            <div className="mt-4">
+              <LinkButton to={nextStep.to}>{nextStep.label}</LinkButton>
+            </div>
+          </Section>
+
+          <Section
+            title="Application status"
+            description="Counts across every application you have filed."
+          >
+            <div className="grid grid-cols-2 gap-x-8 gap-y-6 border-y border-slate-200 py-6 sm:grid-cols-4 dark:border-slate-800">
+              <StatCard
+                label="All applications"
+                value={applications.length}
+                to="/student/applications"
+              />
+              <StatCard
+                label="In progress"
+                value={inProgress}
+                hint="Draft, submitted, under review or needing information"
+                to="/student/applications"
+              />
+              <StatCard label="Approved" value={approved} to="/student/applications" />
+              <StatCard label="Closed" value={closed} to="/student/applications" />
+            </div>
+          </Section>
+
+          <Section title="Recent updates" description="The latest notifications on your account.">
+            {notifications.length === 0 ? (
+              <p className="text-sm text-slate-500 dark:text-slate-400">No updates yet.</p>
+            ) : (
+              <ul className="divide-y divide-slate-200 dark:divide-slate-800">
+                {notifications.slice(0, 5).map((notification) => (
+                  <li
+                    key={notification.id}
+                    className="flex flex-wrap items-baseline justify-between gap-2 py-3"
+                  >
+                    <Link
+                      to={notification.link ?? '/student/notifications'}
+                      className="min-w-0 text-sm text-slate-700 transition-colors hover:text-brand-800 dark:text-slate-200 dark:hover:text-brand-300"
+                    >
+                      {notification.title}
+                    </Link>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      {formatDate(notification.createdAt)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Section>
+        </>
+      )}
     </div>
   )
 }

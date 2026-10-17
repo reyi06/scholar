@@ -5,26 +5,24 @@ import { initials } from '../../lib/format.ts'
 import { Button, Icon, LinkButton } from '../ui/index.ts'
 import { Avatar, Dropdown } from './Dropdown.tsx'
 
-/** Evaluated once at module load rather than during render. */
 const CURRENT_YEAR = new Date().getFullYear()
 
 const NAV_LINKS = [
-  { to: '/', label: 'Home', end: true },
   { to: '/scholarships', label: 'Scholarships', end: false },
   { to: '/about', label: 'About', end: false },
 ]
 
-/** Office details shown in the footer. Placeholder values — replace before launch. */
-const OFFICE = {
-  name: 'Scholarship Office',
-  address: 'Provincial Capitol Compound, San Fernando City, Pampanga',
-  email: 'scholarships@example.gov.ph',
-  phone: '(045) 555 0100',
-}
+const FOOTER_LINKS = [
+  { to: '/scholarships', label: 'Scholarships' },
+  { to: '/about', label: 'About' },
+  { to: '/login', label: 'Sign in' },
+]
 
 /**
- * Shell for the public site: header, navigation and footer.
- * The header collapses into a disclosure panel on small screens.
+ * Shell for the public site.
+ *
+ * Deliberately plain: a hairline accent rule, a logo, two nav links and one
+ * primary action. Everything else belongs on a page.
  */
 export function PublicLayout() {
   const { user, logout, isAdmin, isStudent } = useAuth()
@@ -39,30 +37,27 @@ export function PublicLayout() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col bg-slate-50 dark:bg-slate-950">
+    <div className="flex min-h-svh flex-col bg-canvas dark:bg-slate-950">
       <a
         href="#main"
-        className="sr-only-focusable absolute top-2 left-2 z-50 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white"
+        className="sr-only-focusable absolute top-2 left-2 z-50 rounded-md bg-brand-700 px-4 py-2 text-sm font-medium text-white"
       >
         Skip to main content
       </a>
 
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-950/90">
+        <div className="accent-rule h-0.5 w-full" aria-hidden="true" />
+
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-3 sm:px-8">
           <Link to="/" className="flex items-center gap-2.5">
             <span
               aria-hidden="true"
-              className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white"
+              className="flex size-8 shrink-0 items-center justify-center rounded bg-brand-800 text-white"
             >
-              <Icon name="graduation" className="size-5" />
+              <Icon name="graduation" className="size-4" />
             </span>
-            <span className="flex flex-col leading-tight">
-              <span className="text-sm font-bold text-slate-900 sm:text-base dark:text-white">
-                Pampanga GrantConnect
-              </span>
-              <span className="hidden text-xs text-slate-500 sm:block dark:text-slate-400">
-                Scholarship information &amp; grant management
-              </span>
+            <span className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
+              Pampanga GrantConnect
             </span>
           </Link>
 
@@ -73,10 +68,10 @@ export function PublicLayout() {
                 to={link.to}
                 end={link.end}
                 className={({ isActive }) =>
-                  `rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  `rounded-md px-3 py-1.5 text-sm transition-colors ${
                     isActive
-                      ? 'bg-brand-50 text-brand-800 dark:bg-brand-900/40 dark:text-brand-200'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
+                      ? 'text-brand-800 dark:text-brand-200'
+                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
                   }`
                 }
               >
@@ -94,10 +89,10 @@ export function PublicLayout() {
                 <Dropdown
                   label="Account menu"
                   align="right"
-                  trigger={<Avatar initials={initials(user.firstName, user.lastName)} className="m-1" />}
+                  trigger={<Avatar initials={initials(user.firstName, user.lastName)} className="m-0.5" />}
                   header={
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                      <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
                         {user.firstName} {user.lastName}
                       </p>
                       <p className="truncate text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
@@ -139,9 +134,9 @@ export function PublicLayout() {
           <nav
             id="mobile-nav"
             aria-label="Main"
-            className="border-t border-slate-200 bg-white px-4 py-3 md:hidden dark:border-slate-800 dark:bg-slate-950"
+            className="border-t border-slate-200 px-5 py-3 md:hidden dark:border-slate-800"
           >
-            <ul className="flex flex-col gap-1">
+            <ul className="flex flex-col gap-0.5">
               {NAV_LINKS.map((link) => (
                 <li key={link.to}>
                   <NavLink
@@ -149,9 +144,9 @@ export function PublicLayout() {
                     end={link.end}
                     onClick={() => setMenuOpen(false)}
                     className={({ isActive }) =>
-                      `block rounded-lg px-3 py-2 text-sm font-medium transition ${
+                      `block rounded-md px-3 py-2 text-sm transition-colors ${
                         isActive
-                          ? 'bg-brand-50 text-brand-800 dark:bg-brand-900/40 dark:text-brand-200'
+                          ? 'text-brand-800 dark:text-brand-200'
                           : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
                       }`
                     }
@@ -160,17 +155,6 @@ export function PublicLayout() {
                   </NavLink>
                 </li>
               ))}
-              {user ? (
-                <li>
-                  <Link
-                    to={dashboardPath}
-                    onClick={() => setMenuOpen(false)}
-                    className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                  >
-                    {isStudent ? 'My dashboard' : 'Admin area'}
-                  </Link>
-                </li>
-              ) : null}
             </ul>
           </nav>
         ) : null}
@@ -181,104 +165,24 @@ export function PublicLayout() {
       </main>
 
       <footer className="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
-          {/* Office */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center gap-2.5">
-              <span
-                aria-hidden="true"
-                className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white"
-              >
-                <Icon name="graduation" className="size-5" />
-              </span>
-              <span className="text-sm font-bold text-slate-900 dark:text-white">
-                Pampanga GrantConnect
-              </span>
-            </div>
-            <p className="mt-3 max-w-md text-sm text-slate-500 dark:text-slate-400">
-              Consolidated scholarship listings and grant records for students across the province of
-              Pampanga.
-            </p>
-
-            <address className="mt-5 space-y-2 text-sm not-italic">
-              <p className="font-medium text-slate-900 dark:text-white">{OFFICE.name}</p>
-              <p className="flex items-start gap-2 text-slate-500 dark:text-slate-400">
-                <Icon name="building" className="mt-0.5 size-4 shrink-0" />
-                <span>{OFFICE.address}</span>
-              </p>
-              <p className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-                <Icon name="info" className="size-4 shrink-0" />
-                <a
-                  href={`tel:${OFFICE.phone.replace(/[^\d+]/g, '')}`}
-                  className="transition hover:text-brand-700 dark:hover:text-brand-300"
-                >
-                  {OFFICE.phone}
-                </a>
-              </p>
-              <p className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-                <Icon name="inbox" className="size-4 shrink-0" />
-                <a
-                  href={`mailto:${OFFICE.email}`}
-                  className="break-all transition hover:text-brand-700 dark:hover:text-brand-300"
-                >
-                  {OFFICE.email}
-                </a>
-              </p>
-            </address>
-          </div>
-
-          {/* Scholarships */}
-          <div>
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">Scholarships</p>
-            <ul className="mt-3 space-y-2 text-sm">
-              {[
-                { to: '/scholarships', label: 'All scholarships' },
-                { to: '/scholarships?type=provincial', label: 'Provincial' },
-                { to: '/scholarships?type=municipal', label: 'Municipal and city' },
-                { to: '/scholarships?type=national', label: 'National' },
-                { to: '/scholarships?deadline=30&sort=deadline', label: 'Closing soon' },
-              ].map((link) => (
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            © {CURRENT_YEAR} Pampanga GrantConnect
+          </p>
+          <nav aria-label="Footer">
+            <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">
+              {FOOTER_LINKS.map((link) => (
                 <li key={link.label}>
                   <Link
                     to={link.to}
-                    className="text-slate-500 transition hover:text-brand-700 dark:text-slate-400 dark:hover:text-brand-300"
+                    className="text-slate-500 transition-colors hover:text-brand-800 dark:text-slate-400 dark:hover:text-brand-300"
                   >
                     {link.label}
                   </Link>
                 </li>
               ))}
             </ul>
-          </div>
-
-          {/* Students */}
-          <div>
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">For students</p>
-            <ul className="mt-3 space-y-2 text-sm">
-              {[
-                { to: '/register', label: 'Create an account' },
-                { to: '/login', label: 'Sign in' },
-                { to: '/student/applications', label: 'Track an application' },
-                { to: '/student/semester-registration', label: 'Semester registration' },
-                { to: '/about', label: 'How it works' },
-              ].map((link) => (
-                <li key={link.label}>
-                  <Link
-                    to={link.to}
-                    className="text-slate-500 transition hover:text-brand-700 dark:text-slate-400 dark:hover:text-brand-300"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <div className="border-t border-slate-200 py-5 dark:border-slate-800">
-          <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8 dark:text-slate-400">
-            <p>© {CURRENT_YEAR} Pampanga GrantConnect. All rights reserved.</p>
-            <p>Applications handled by external providers are linked directly from each listing.</p>
-          </div>
+          </nav>
         </div>
       </footer>
     </div>

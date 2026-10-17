@@ -7,6 +7,8 @@ export interface FieldProps {
   error?: string
   hint?: string
   required?: boolean
+  /** Keep the label for assistive tech but hide it visually (compact toolbars). */
+  hideLabel?: boolean
   className?: string
   children: ReactNode
 }
@@ -25,13 +27,19 @@ export function Field({
   error,
   hint,
   required = false,
+  hideLabel = false,
   className = '',
   children,
 }: FieldProps) {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
       {label ? (
-        <label htmlFor={htmlFor} className="text-sm font-medium text-slate-700 dark:text-slate-200">
+        <label
+          htmlFor={htmlFor}
+          className={
+            hideLabel ? 'sr-only' : 'text-sm font-medium text-slate-700 dark:text-slate-200'
+          }
+        >
           {label}
           {required ? (
             <span className="ml-1 text-rose-600 dark:text-rose-400" aria-hidden="true">

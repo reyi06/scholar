@@ -73,7 +73,7 @@ export function Dropdown({
         <div
           role="menu"
           aria-label={label}
-          className={`absolute z-40 mt-2 w-64 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900 ${
+          className={`absolute z-40 mt-2 w-64 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-float dark:border-slate-800 dark:bg-slate-900 ${
             align === 'right' ? 'right-0' : 'left-0'
           }`}
         >
@@ -145,7 +145,7 @@ export function Avatar({ initials, className = '' }: { initials: string; classNa
     <span
       aria-hidden="true"
       data-initials={initials}
-      className={`flex size-9 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-800 after:content-[attr(data-initials)] dark:bg-brand-900/50 dark:text-brand-200 ${className}`}
+      className={`flex size-8 items-center justify-center rounded-full bg-brand-50 text-xs font-semibold text-brand-800 after:content-[attr(data-initials)] dark:bg-brand-950/60 dark:text-brand-200 ${className}`}
     />
   )
 }

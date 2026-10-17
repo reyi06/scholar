@@ -2,19 +2,18 @@ import { useState } from 'react'
 import {
   Alert,
   Button,
-  Card,
-  CardBody,
   ConfirmDialog,
   DataTable,
   EmptyState,
   ErrorState,
+  Icon,
   LinkButton,
   LoadingState,
   PageHeader,
   Pagination,
-  type Column,
   SearchInput,
   Select,
+  type Column,
   type SelectOption,
 } from '../../components/ui'
 import { DeadlineBadge } from '../../components/DeadlineBadge.tsx'
@@ -138,10 +137,8 @@ export function AdminScholarshipsPage() {
       key: 'name',
       header: 'Scholarship',
       render: (row) => (
-        <div className="flex flex-col gap-1">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="font-medium text-slate-900 dark:text-white">{row.name}</span>
-          </div>
+        <div className="flex flex-col">
+          <span className="font-medium text-slate-900 dark:text-white">{row.name}</span>
           <span className="text-xs text-slate-500 dark:text-slate-400">{row.provider}</span>
         </div>
       ),
@@ -161,7 +158,7 @@ export function AdminScholarshipsPage() {
       header: 'Deadline',
       render: (row) => (
         <div className="flex flex-col items-start gap-1">
-          <span>{formatDate(row.deadline)}</span>
+          <span className="text-slate-700 dark:text-slate-200">{formatDate(row.deadline)}</span>
           <DeadlineBadge deadline={row.deadline} open={row.status === 'open'} />
         </div>
       ),
@@ -176,20 +173,26 @@ export function AdminScholarshipsPage() {
       header: 'Actions',
       align: 'right',
       render: (row) => (
-        <div className="flex flex-wrap items-center justify-end gap-1.5">
+        <div className="flex items-center justify-end gap-1">
           <LinkButton to={`/admin/scholarships/${row.id}/edit`} variant="outline" size="sm">
             Edit
           </LinkButton>
-          <Button variant="ghost" size="sm" onClick={() => setStatusTarget(row)}>
-            {row.status === 'open' ? 'Close' : 'Publish'}
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label={row.status === 'open' ? `Close ${row.name}` : `Publish ${row.name}`}
+            onClick={() => setStatusTarget(row)}
+          >
+            <Icon name={row.status === 'open' ? 'close' : 'check'} className="size-4" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
+            aria-label={`Delete ${row.name}`}
             className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
             onClick={() => setDeleteTarget(row)}
           >
-            Delete
+            <Icon name="trash" className="size-4" />
           </Button>
         </div>
       ),
@@ -197,57 +200,12 @@ export function AdminScholarshipsPage() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PageHeader
         title="Scholarships"
         description="Create, edit and retire every scholarship listing, including drafts that are not yet published."
         actions={<LinkButton to="/admin/scholarships/new">New scholarship</LinkButton>}
       />
-
-      <Card>
-        <CardBody className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <SearchInput
-            id="scholarship-search"
-            label="Search"
-            placeholder="Name, provider or keyword"
-            value={query}
-            onChange={(value) => {
-              setQuery(value)
-              setPage(1)
-            }}
-          />
-          <Select
-            id="scholarship-type"
-            label="Type"
-            options={TYPE_OPTIONS}
-            value={type}
-            onChange={(event) => {
-              setType(event.target.value as ScholarshipType | 'all')
-              setPage(1)
-            }}
-          />
-          <Select
-            id="scholarship-municipality"
-            label="Municipality"
-            options={MUNICIPALITY_OPTIONS}
-            value={municipality}
-            onChange={(event) => {
-              setMunicipality(event.target.value)
-              setPage(1)
-            }}
-          />
-          <Select
-            id="scholarship-status"
-            label="Status"
-            options={STATUS_OPTIONS}
-            value={status}
-            onChange={(event) => {
-              setStatus(event.target.value as ScholarshipStatus | 'all')
-              setPage(1)
-            }}
-          />
-        </CardBody>
-      </Card>
 
       {deleteAction.error || statusAction.error ? (
         <Alert tone="danger" title="That action did not complete">
@@ -255,50 +213,108 @@ export function AdminScholarshipsPage() {
         </Alert>
       ) : null}
 
-      <Card>
-        <CardBody className="space-y-4">
-          {loading ? (
-            <LoadingState label="Loading scholarships…" />
-          ) : error ? (
-            <ErrorState message={error} onRetry={reload} />
-          ) : data ? (
-            <>
-              <DataTable
-                columns={columns}
-                rows={data.items}
-                getRowId={(row) => row.id}
-                caption="Scholarship listings"
-                empty={
-                  <EmptyState
-                    title={hasFilters ? 'No scholarships match your filters' : 'No scholarships yet'}
-                    description={
-                      hasFilters
-                        ? 'Try a different search term or clear the filters to see every listing.'
-                        : 'Create a scholarship listing to start collecting applications.'
-                    }
-                    action={
-                      hasFilters ? (
-                        <Button variant="outline" onClick={clearFilters}>
-                          Clear filters
-                        </Button>
-                      ) : (
-                        <LinkButton to="/admin/scholarships/new">New scholarship</LinkButton>
-                      )
-                    }
-                  />
+      <div className="space-y-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="min-w-0 flex-1">
+            <SearchInput
+              id="scholarship-search"
+              label="Search scholarships"
+              hideLabel
+              placeholder="Search name, provider or keyword"
+              value={query}
+              onChange={(value) => {
+                setQuery(value)
+                setPage(1)
+              }}
+            />
+          </div>
+          <div className="sm:w-40">
+            <Select
+              id="scholarship-type"
+              aria-label="Type"
+              options={TYPE_OPTIONS}
+              value={type}
+              onChange={(event) => {
+                setType(event.target.value as ScholarshipType | 'all')
+                setPage(1)
+              }}
+            />
+          </div>
+          <div className="sm:w-36">
+            <Select
+              id="scholarship-status"
+              aria-label="Status"
+              options={STATUS_OPTIONS}
+              value={status}
+              onChange={(event) => {
+                setStatus(event.target.value as ScholarshipStatus | 'all')
+                setPage(1)
+              }}
+            />
+          </div>
+          <div className="sm:w-44">
+            <Select
+              id="scholarship-municipality"
+              aria-label="Municipality"
+              options={MUNICIPALITY_OPTIONS}
+              value={municipality}
+              onChange={(event) => {
+                setMunicipality(event.target.value)
+                setPage(1)
+              }}
+            />
+          </div>
+          {hasFilters ? (
+            <Button variant="ghost" onClick={clearFilters} className="shrink-0">
+              Reset
+            </Button>
+          ) : null}
+        </div>
+
+        {loading ? (
+          <LoadingState label="Loading scholarships…" />
+        ) : error ? (
+          <ErrorState message={error} onRetry={reload} />
+        ) : data ? (
+          <>
+            {data.items.length === 0 ? (
+              <EmptyState
+                title={hasFilters ? 'No scholarships match your filters' : 'No scholarships yet'}
+                description={
+                  hasFilters
+                    ? 'Try a different search term or reset the filters to see every listing.'
+                    : 'Create a scholarship listing to start collecting applications.'
+                }
+                action={
+                  hasFilters ? (
+                    <Button variant="outline" onClick={clearFilters}>
+                      Reset filters
+                    </Button>
+                  ) : (
+                    <LinkButton to="/admin/scholarships/new">New scholarship</LinkButton>
+                  )
                 }
               />
-              <Pagination
-                page={data.page}
-                totalPages={data.totalPages}
-                total={data.total}
-                pageSize={data.pageSize}
-                onPageChange={setPage}
-              />
-            </>
-          ) : null}
-        </CardBody>
-      </Card>
+            ) : (
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <DataTable
+                  columns={columns}
+                  rows={data.items}
+                  getRowId={(row) => row.id}
+                  caption="Scholarship listings"
+                />
+              </div>
+            )}
+            <Pagination
+              page={data.page}
+              totalPages={data.totalPages}
+              total={data.total}
+              pageSize={data.pageSize}
+              onPageChange={setPage}
+            />
+          </>
+        ) : null}
+      </div>
 
       <ConfirmDialog
         open={Boolean(deleteTarget)}

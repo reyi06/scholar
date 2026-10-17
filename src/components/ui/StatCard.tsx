@@ -16,41 +16,51 @@ export interface StatCardProps {
   value: ReactNode
   hint?: ReactNode
   tone?: StatTone
-  icon?: ReactNode
-  /** When provided the whole card becomes a link. */
+  /** When provided the metric becomes a link. */
   to?: string
 }
 
-/** Compact metric tile used across both dashboards and the reports page. */
-export function StatCard({ label, value, hint, tone = 'neutral', icon, to }: StatCardProps) {
+/**
+ * A single metric, rendered as text rather than a box.
+ *
+ * Deliberately has no card chrome so that a group of metrics reads as one line
+ * of figures instead of a wall of tiles. Wrap several in `StatRow`.
+ */
+export function StatCard({ label, value, hint, tone = 'neutral', to }: StatCardProps) {
   const inner = (
     <>
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
-        {icon ? (
-          <span aria-hidden="true" className="text-lg text-slate-400 dark:text-slate-500">
-            {icon}
-          </span>
-        ) : null}
-      </div>
-      <p className={`mt-2 text-2xl font-semibold tabular-nums ${TONE_ACCENT[tone]}`}>{value}</p>
-      {hint ? <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{hint}</p> : null}
+      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{label}</p>
+      <p className={`mt-1 text-lg font-semibold tabular-nums ${TONE_ACCENT[tone]}`}>{value}</p>
+      {hint ? <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{hint}</p> : null}
     </>
   )
 
-  const base =
-    'rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900'
-
   if (to) {
     return (
-      <Link
-        to={to}
-        className={`${base} block transition hover:border-brand-400 hover:shadow-md dark:hover:border-brand-600`}
-      >
+      <Link to={to} className="block transition-colors hover:opacity-80">
         {inner}
       </Link>
     )
   }
 
-  return <div className={base}>{inner}</div>
+  return <div>{inner}</div>
+}
+
+/**
+ * Lays metrics out in a row separated by hairlines — the lightweight
+ * alternative to a grid of statistic cards.
+ */
+export function StatRow({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return (
+    <div
+      className={`grid grid-cols-2 gap-y-6 divide-slate-200 sm:grid-cols-4 sm:divide-x dark:divide-slate-800 ${className}`}
+    >
+      {children}
+    </div>
+  )
+}
+
+/** One cell inside a `StatRow`, providing the padding the dividers need. */
+export function StatCell({ children }: { children: ReactNode }) {
+  return <div className="px-0 sm:px-5 sm:first:pl-0">{children}</div>
 }

@@ -16,9 +16,11 @@ export interface DashboardLayoutProps {
 }
 
 /**
- * Shared shell for the student and administrator areas: a persistent sidebar
- * on desktop, a slide-over drawer on mobile, and a top bar with notifications
- * and the account menu.
+ * Shell for the student and administrator areas.
+ *
+ * A compact sidebar for navigation, a slim top bar carrying the current page
+ * title and account controls, and a single content column. No breadcrumb
+ * duplication and no decorative chrome — the work is the page.
  */
 export function DashboardLayout({ navItems, areaLabel, notificationsPath }: DashboardLayoutProps) {
   const { user, logout } = useAuth()
@@ -42,11 +44,9 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
   )
 
   const sidebar = (
-    <div className="flex h-full flex-col gap-1 p-3">
-      <div className="flex items-center justify-between gap-2 px-2 py-2">
-        <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400">
-          {areaLabel}
-        </span>
+    <div className="flex h-full flex-col px-3 py-4">
+      <div className="flex items-center justify-between gap-2 px-2 pb-4">
+        <BrandMark />
         <Button
           variant="ghost"
           size="sm"
@@ -58,6 +58,10 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
         </Button>
       </div>
 
+      <p className="px-2 pb-2 text-xs font-medium tracking-wide text-slate-500 uppercase dark:text-slate-400">
+        {areaLabel}
+      </p>
+
       <nav aria-label={`${areaLabel} navigation`} className="flex flex-1 flex-col gap-0.5">
         {navItems.map((item) => (
           <NavLink
@@ -65,25 +69,25 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
             to={item.to}
             end={item.end}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
+              `flex items-center gap-3 rounded-md px-2.5 py-1.5 text-sm transition-colors ${
                 isActive
-                  ? 'bg-brand-50 text-brand-800 dark:bg-brand-900/40 dark:text-brand-200'
+                  ? 'bg-brand-50 font-medium text-brand-800 dark:bg-brand-950/60 dark:text-brand-200'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
               }`
             }
           >
-            <Icon name={item.icon} className="size-5 shrink-0" />
+            <Icon name={item.icon} className="size-4 shrink-0 opacity-70" />
             <span className="truncate">{item.label}</span>
           </NavLink>
         ))}
       </nav>
 
-      <div className="mt-auto border-t border-slate-200 pt-2 dark:border-slate-800">
+      <div className="mt-4 border-t border-slate-200 pt-2 dark:border-slate-800">
         <NavLink
           to="/"
-          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+          className="flex items-center gap-3 rounded-md px-2.5 py-1.5 text-sm text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
         >
-          <Icon name="home" className="size-5 shrink-0" />
+          <Icon name="home" className="size-4 shrink-0 opacity-70" />
           Public site
         </NavLink>
       </div>
@@ -91,75 +95,50 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
   )
 
   return (
-    <div className="flex min-h-svh bg-slate-100 dark:bg-slate-950">
+    <div className="flex min-h-svh bg-canvas dark:bg-slate-950">
       <a
         href="#dashboard-main"
-        className="sr-only-focusable absolute top-2 left-2 z-50 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white"
+        className="sr-only-focusable absolute top-2 left-2 z-50 rounded-md bg-brand-700 px-4 py-2 text-sm font-medium text-white"
       >
         Skip to main content
       </a>
 
-      {/* Desktop sidebar */}
-      <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white lg:block dark:border-slate-800 dark:bg-slate-900">
-        <div className="sticky top-0 h-svh overflow-y-auto">
-          <div className="flex items-center gap-2.5 border-b border-slate-200 px-4 py-4 dark:border-slate-800">
-            <span
-              aria-hidden="true"
-              className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white"
-            >
-              <Icon name="graduation" className="size-5" />
-            </span>
-            <span className="flex min-w-0 flex-col leading-tight">
-              <span className="truncate text-sm font-bold text-slate-900 dark:text-white">
-                GrantConnect
-              </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">{areaLabel} area</span>
-            </span>
-          </div>
-          {sidebar}
-        </div>
+      {/* Sidebar — desktop */}
+      <aside className="hidden w-60 shrink-0 border-r border-slate-200 bg-white lg:block dark:border-slate-800 dark:bg-slate-950">
+        <div className="sticky top-0 h-svh overflow-y-auto">{sidebar}</div>
       </aside>
 
-      {/* Mobile drawer */}
+      {/* Sidebar — mobile drawer */}
       {drawerOpen ? (
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
             type="button"
             aria-label="Close navigation"
             onClick={closeDrawer}
-            className="absolute inset-0 size-full bg-slate-900/50 backdrop-blur-sm"
+            className="absolute inset-0 size-full bg-slate-900/40"
           />
-          <div className="relative z-10 h-full w-72 max-w-[85%] overflow-y-auto bg-white shadow-xl dark:bg-slate-900">
-            <div className="flex items-center gap-2.5 border-b border-slate-200 px-4 py-4 dark:border-slate-800">
-              <span
-                aria-hidden="true"
-                className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white"
-              >
-                <Icon name="graduation" className="size-5" />
-              </span>
-              <span className="text-sm font-bold text-slate-900 dark:text-white">GrantConnect</span>
-            </div>
+          <div className="relative z-10 h-full w-64 max-w-[85%] overflow-y-auto bg-white dark:bg-slate-950">
             {sidebar}
           </div>
         </div>
       ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
-          <div className="flex items-center justify-between gap-3 px-4 py-3">
-            <div className="flex min-w-0 items-center gap-3">
+        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-950/90">
+          <div className="flex items-center justify-between gap-3 px-5 py-3 sm:px-8">
+            <div className="flex min-w-0 items-center gap-2">
               <Button
                 variant="ghost"
                 size="sm"
-                className="lg:hidden"
+                className="-ml-2 lg:hidden"
                 onClick={openDrawer}
                 aria-label="Open navigation"
               >
                 <Icon name="menu" className="size-5" />
               </Button>
-              <h1 className="truncate text-base font-semibold text-slate-900 dark:text-white">
+              <h2 className="truncate text-sm font-medium text-slate-900 dark:text-white">
                 {activeItem?.label ?? areaLabel}
-              </h1>
+              </h2>
             </div>
 
             <div className="flex items-center gap-1">
@@ -168,10 +147,10 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
                 <Dropdown
                   label="Account menu"
                   align="right"
-                  trigger={<Avatar initials={initials(user.firstName, user.lastName)} className="m-1" />}
+                  trigger={<Avatar initials={initials(user.firstName, user.lastName)} className="m-0.5" />}
                   header={
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                      <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
                         {user.firstName} {user.lastName}
                       </p>
                       <p className="truncate text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
@@ -181,7 +160,6 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
                     ...(user.role === 'student'
                       ? [{ label: 'My profile', to: '/student/profile' }]
                       : [{ label: 'Settings', to: '/admin/settings' }]),
-                    { label: 'Public site', to: '/' },
                     { label: 'Sign out', onClick: () => void logout(), tone: 'danger' as const },
                   ]}
                 />
@@ -190,12 +168,31 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
           </div>
         </header>
 
-        <main id="dashboard-main" className="flex-1 p-4 sm:p-6 lg:p-8">
-          <div className="mx-auto max-w-7xl">
+        <main id="dashboard-main" className="flex-1 px-5 py-8 sm:px-8">
+          <div className="mx-auto max-w-6xl">
             <Outlet />
           </div>
         </main>
       </div>
     </div>
+  )
+}
+
+/** Brand mark shown at the top of the sidebar. */
+function BrandMark() {
+  return (
+    <a href="/" className="flex items-center gap-2.5">
+      <span
+        aria-hidden="true"
+        className="flex size-8 shrink-0 items-center justify-center rounded bg-brand-800 text-white"
+      >
+        <Icon name="graduation" className="size-4" />
+      </span>
+      <span className="flex min-w-0 flex-col leading-tight">
+        <span className="truncate text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
+          GrantConnect
+        </span>
+      </span>
+    </a>
   )
 }
