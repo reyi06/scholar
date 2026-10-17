@@ -300,8 +300,36 @@ These rules are enforced in code. Treat them as regression risks.
 
 ## Deploying
 
-`npm run build` writes a static site to `dist/`. Upload that folder to any
-static host.
+`npm run build` runs the type check, builds the bundle, then **prerenders** each
+public route with `scripts/prerender.ts`. The output in `dist/` is a static site.
+
+Set the real domain before building, or every canonical URL, Open Graph tag and
+`sitemap.xml` entry will say `example.com`:
+
+```bash
+SITE_URL=https://your-domain.example npm run build
+```
+
+### Why prerendering
+
+The app is a single-page application, so without this every URL would serve the
+same empty shell — search engines would index nothing, and sharing a listing to
+Facebook would produce a bare link. The script writes one HTML file per public
+route (home, directory, about, login, register and **every published listing**)
+carrying a real `<title>`, description, canonical link and Open Graph tags, while
+still shipping the bundle so the page behaves normally once it loads.
+
+It also generates, so none of these need to be maintained by hand:
+
+| Artefact | Purpose |
+| --- | --- |
+| `sitemap.xml` | Every public route plus every published listing |
+| `robots.txt` | Allows the public site, disallows `/student/` and `/admin/` |
+| `og-image.png` | 1200×630 social preview card |
+| `icon-192/512.png`, `apple-touch-icon.png` | Home-screen icons |
+| `sw.js` | Service worker: offline shell and asset caching |
+
+### Host requirements
 
 **The host must return `index.html` for unknown paths**, because routing happens
 in the browser. Without it, refreshing or sharing a link such as
@@ -310,18 +338,21 @@ in the browser. Without it, refreshing or sharing a link such as
 - `public/_redirects` — copied into `dist/`, read by Netlify and Cloudflare Pages
 - `vercel.json` — read by Vercel
 
-On a host that reads neither (nginx, Apache, S3), add the equivalent fallback
-yourself.
+Prerendered pages are real files (`dist/scholarships/<id>/index.html`), and the
+common hosts serve those for both `/x` and `/x/` before applying the fallback.
+On a host that reads neither config (nginx, Apache, S3), add the equivalent
+fallback yourself.
 
-Also shipped in `dist/`:
+### Progressive web app
 
-- `robots.txt` — allows the public site, disallows `/student/` and `/admin/`
-- `sitemap.xml` — public routes only; scholarship detail pages cannot be listed
-  while the listings are held in the browser
-- `favicon.svg`
+`manifest.webmanifest` makes the site installable, with shortcuts to
+Scholarships and My applications. The service worker precaches the app shell,
+caches hashed assets on first use, and serves a cached shell when a navigation
+fails offline. It **never** caches `/api/` — stale application data would be
+worse than an honest error. It registers in production builds only, so it cannot
+interfere with hot module replacement during development.
 
-**`robots.txt` and `sitemap.xml` both contain `https://example.com` placeholders
-that must be replaced with the real domain before deploying.**
+### Caching
 
 `dist/assets/*` is content-hashed, so it can be cached immutably; `vercel.json`
 sets that header for Vercel. Set the same header on any other host.

@@ -353,6 +353,50 @@ Do not present the current implementation as secure.
 
 Newest first. Record the command and its observed result.
 
+### 2026-10-17 — Tier 1 chunk 1: prerendering, Open Graph and a PWA (all passing)
+
+**Prerendering.** `npm run build` now runs `scripts/prerender.ts` after
+`vite build`. Verified on the built output:
+
+- 19 pages written (14 published listings plus home, directory, about, login,
+  register), each a real file at `dist/scholarships/<id>/index.html`.
+- A prerendered listing carries exactly **one** `<title>` and **one**
+  `description` (no duplicates from the shell), plus `og:title`,
+  `og:description`, `og:image`, `og:url`, `og:image:width/height`,
+  `twitter:card` and a canonical link.
+- The SPA body is preserved: `id="root"` and the inline theme script survive, so
+  the page still behaves like an app once the bundle loads.
+- `login` is marked `noindex` — an auth screen has nothing to offer a search
+  result.
+
+**Generated crawler files.** `sitemap.xml` now lists **19 URLs including all 14
+listing pages** (previously 5 static routes and no listings, because the listings
+were browser-side). `robots.txt` is generated with the real domain.
+
+**Images and PWA.** Verified present in `dist/` and valid: `og-image.png`
+(1200×630), `icon-192.png`, `icon-512.png`, `apple-touch-icon.png`,
+`manifest.webmanifest`, `sw.js`.
+
+**Service worker.** Served the real build with `vite preview` and loaded it:
+the app boots (3 featured listings, correct `h1`), the manifest link is present,
+`theme-color` resolves to `#7c1d20`, and
+`navigator.serviceWorker.getRegistrations()` reports **1 registration** scoped to
+the origin. Precache list reports `/`, `/index.html`, `/manifest.webmanifest`,
+`/favicon.svg`, `/icon-192.png`. The API is deliberately never cached.
+
+**Two bugs found and fixed while verifying this:**
+1. The generated PNGs were written only into `public/`, which Vite had already
+   copied into `dist/` by the time the script ran — so they never reached the
+   build. The script now writes to both.
+2. The hand-written `capBase` drawing primitive placed its shape at x≈1080 on a
+   1200px canvas instead of the centre. Decoding the PNG pixels showed it
+   precisely. Rather than debug a primitive whose output was invisible on the
+   icon anyway, it was deleted and the mark is built from the two shapes that
+   provably render correctly — a centred diamond and a gold rule.
+
+- `npm run lint` clean; `npm run build` clean, including type-checking
+  `scripts/` via `tsconfig.server.json`.
+
 ### 2026-10-17 — dark mode and UI refinement pass (all passing)
 
 - **Dark mode** is class-based and toggleable, with `ThemeProvider` persisting
@@ -525,6 +569,29 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-17 — prerendering, Open Graph, PWA (Tier 1, part 1)
+
+- **`scripts/prerender.ts`** runs after `vite build` (wired into `npm run
+  build`). It writes one HTML file per public route with per-page `<title>`,
+  description, canonical and Open Graph/Twitter tags, then regenerates
+  `sitemap.xml` (now including every published listing) and `robots.txt` with
+  the real domain. `SITE_URL` controls the origin and defaults to
+  `https://example.com`.
+- **Brand images generated with no dependency**: a small PNG encoder using
+  `node:zlib`, drawing a centred diamond and gold rule on maroon. Writes
+  `og-image.png` (1200×630), `icon-192/512.png` and `apple-touch-icon.png` into
+  both `public/` (dev, committed) and `dist/` (the build — Vite has already
+  copied `public/` by then).
+- **PWA**: `public/manifest.webmanifest` with shortcuts, plus a service worker
+  emitted by the prerender script. It precaches the app shell, caches hashed
+  assets on first use and serves the cached shell when a navigation fails
+  offline. `/api/` is never cached. Registered in production builds only, via
+  `src/lib/serviceWorker.ts`.
+- **`public/sitemap.xml` and `public/robots.txt` deleted** — they are generated
+  artefacts now, and the checked-in copies had `example.com` placeholders that
+  would otherwise ship.
+- `tsconfig.server.json` now also covers `scripts/`.
 
 ### 2026-10-17 — dark mode, plus the defects the visual audit turned up
 

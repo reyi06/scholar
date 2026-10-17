@@ -22,5 +22,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["server", "prisma/seed.ts", "prisma.config.ts"]
+  "include": ["server", "scripts", "prisma/seed.ts", "prisma.config.ts"]
 }

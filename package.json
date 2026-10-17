@@ -5,14 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node --env-file=.env scripts/prerender.ts",
     "lint": "oxlint",
     "preview": "vite preview",
     "server": "node --env-file=.env server/index.ts",
     "db:migrate": "prisma migrate dev",
     "db:seed": "node --env-file=.env prisma/seed.ts",
     "db:studio": "prisma studio",
-    "db:reset": "prisma migrate reset --force"
+    "db:reset": "prisma migrate reset --force",
+    "prerender": "node --env-file=.env scripts/prerender.ts"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.1",

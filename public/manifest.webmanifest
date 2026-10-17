@@ -1,0 +1,43 @@
+{
+  "name": "Pampanga GrantConnect",
+  "short_name": "GrantConnect",
+  "description": "Scholarship information and student grant management for the province of Pampanga.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#fbfaf9",
+  "theme_color": "#7c1d20",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Scholarships",
+      "url": "/scholarships",
+      "description": "Browse scholarship listings"
+    },
+    {
+      "name": "My applications",
+      "url": "/student/applications",
+      "description": "Track your applications"
+    }
+  ]
+}
