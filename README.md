@@ -267,6 +267,34 @@ These rules are enforced in code. Treat them as regression risks.
 > provider names are generic stand-ins, so replace them with verified
 > information before the listings are published.
 
+## Deploying
+
+`npm run build` writes a static site to `dist/`. Upload that folder to any
+static host.
+
+**The host must return `index.html` for unknown paths**, because routing happens
+in the browser. Without it, refreshing or sharing a link such as
+`/scholarships/sch_001` returns a 404. Two configurations are included:
+
+- `public/_redirects` — copied into `dist/`, read by Netlify and Cloudflare Pages
+- `vercel.json` — read by Vercel
+
+On a host that reads neither (nginx, Apache, S3), add the equivalent fallback
+yourself.
+
+Also shipped in `dist/`:
+
+- `robots.txt` — allows the public site, disallows `/student/` and `/admin/`
+- `sitemap.xml` — public routes only; scholarship detail pages cannot be listed
+  while the listings are held in the browser
+- `favicon.svg`
+
+**`robots.txt` and `sitemap.xml` both contain `https://example.com` placeholders
+that must be replaced with the real domain before deploying.**
+
+`dist/assets/*` is content-hashed, so it can be cached immutably; `vercel.json`
+sets that header for Vercel. Set the same header on any other host.
+
 ## Current scope
 
 What is not built yet, and what that means in practice:

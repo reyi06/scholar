@@ -1,4 +1,4 @@
-# Pampanga GrantConnect — demonstration prototype.
+# Pampanga GrantConnect
 #
 # These are crawler directives only. They are NOT a security or access-control
 # mechanism: robots.txt is advisory and is ignored by anything that chooses to.
@@ -9,3 +9,6 @@ User-agent: *
 Allow: /
 Disallow: /student/
 Disallow: /admin/
+
+# TODO: replace with the real domain before deploying.
+Sitemap: https://example.com/sitemap.xml

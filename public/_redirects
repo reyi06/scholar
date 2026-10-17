@@ -1,0 +1,10 @@
+# Single-page application fallback.
+#
+# Every route is rendered client-side, so the host must return index.html for
+# any path that is not a real file. Without this, a refresh or a shared link on
+# /scholarships/sch_001 returns a 404.
+#
+# Static files are served before redirects are applied, so /assets/*, and
+# /favicon.svg and /robots.txt are unaffected.
+
+/*    /index.html   200
