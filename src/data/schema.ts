@@ -23,7 +23,7 @@ import {
 } from './sampleData.ts'
 
 /** Bump when the shape below changes so stale localStorage is discarded. */
-export const DB_VERSION = 1
+export const DB_VERSION = 2
 
 export interface DemoCredential {
   userId: string
@@ -74,7 +74,7 @@ function seedSettings(): PlatformSettings {
 }
 
 /**
- * Build a fresh database from the sample data.
+ * Build a fresh database from the seed records.
  * `structuredClone` keeps the exported sample arrays pristine so repeated
  * resets produce identical starting state.
  */

@@ -9,7 +9,7 @@ import {
   Input,
   LinkButton,
 } from '../../components/ui'
-import { DEMO_MODE, demoApi } from '../../lib/api.ts'
+import { demoApi } from '../../lib/api.ts'
 import { emailFormat, hasErrors, required, validateForm, type FormErrors } from '../../lib/validation.ts'
 import { useAsyncAction } from '../../hooks/useAsync.ts'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
@@ -29,7 +29,7 @@ export function LoginPage() {
 
   const { run, loading, error } = useAsyncAction(login)
 
-  // Demo sign-in details, surfaced so the accounts can be filled in with one click.
+  // Test sign-in details, surfaced so the accounts can be filled in with one click.
   const demoAccounts = demoApi.accounts()
 
   // Send the user back to whatever they were trying to reach, if anything.
@@ -53,7 +53,7 @@ export function LoginPage() {
     })
   }
 
-  const fillDemoAccount = (account: { email: string; password: string }) => {
+  const fillTestAccount = (account: { email: string; password: string }) => {
     setValues({ email: account.email, password: account.password })
     setErrors({})
   }
@@ -71,15 +71,8 @@ export function LoginPage() {
           </p>
         </div>
 
-        {DEMO_MODE ? (
-          <Alert tone="warning" title="This is a demonstration sign-in">
-            There is no backend and no real authentication. Accounts and passwords are sample data stored
-            in your browser. Do not enter a password you use anywhere else.
-          </Alert>
-        ) : null}
-
         <Card>
-          <CardHeader title="Demo accounts" description="Use these to explore either role." />
+          <CardHeader title="Test accounts" description="Sign in with either role to look around." />
           <CardBody className="space-y-3">
             {demoAccounts.map((account) => (
               <div
@@ -90,7 +83,7 @@ export function LoginPage() {
                   <p className="text-sm font-medium text-slate-900 dark:text-white">{account.label}</p>
                   <p className="truncate text-xs text-slate-500 dark:text-slate-400">{account.email}</p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => fillDemoAccount(account)}>
+                <Button variant="outline" size="sm" onClick={() => fillTestAccount(account)}>
                   Use this account
                 </Button>
               </div>
@@ -137,10 +130,6 @@ export function LoginPage() {
               <Link to="/register" className="font-medium text-brand-700 dark:text-brand-300">
                 Create a student account
               </Link>
-            </p>
-
-            <p className="border-t border-slate-200 pt-4 text-center text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
-              Password reset and email verification are not implemented in this prototype.
             </p>
           </form>
         </CardBody>

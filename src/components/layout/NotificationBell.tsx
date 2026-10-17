@@ -49,18 +49,21 @@ export function NotificationBell({ notificationsPath }: { notificationsPath?: st
     else if (notificationsPath) navigate(notificationsPath)
   }
 
-  const hasUnread = (unread ?? 0) > 0
+  const unreadCount = unread ?? 0
+  const hasUnread = unreadCount > 0
+  // Shown in the badge, and reused in the accessible name so the two agree.
+  const unreadDisplay = unreadCount > 9 ? '9+' : String(unreadCount)
 
   return (
     <Dropdown
-      label="Notifications"
+      label={hasUnread ? `Notifications, ${unreadDisplay} unread` : 'Notifications'}
       align="right"
       trigger={
         <span className="relative flex size-10 items-center justify-center text-slate-600 dark:text-slate-300">
           <Icon name="bell" className="size-5" />
           {hasUnread ? (
             <span className="absolute top-1.5 right-1.5 flex size-4 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white">
-              {(unread ?? 0) > 9 ? '9+' : unread}
+              {unreadDisplay}
             </span>
           ) : null}
         </span>

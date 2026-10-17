@@ -190,7 +190,6 @@ export function AdminAnnouncementsPage() {
                   <Badge tone="neutral">
                     {ANNOUNCEMENT_AUDIENCE_LABELS[announcement.audience]}
                   </Badge>
-                  {announcement.isSample ? <Badge tone="warning">Sample data</Badge> : null}
                 </div>
                 <p className="text-sm whitespace-pre-line text-slate-700 dark:text-slate-200">
                   {announcement.body}

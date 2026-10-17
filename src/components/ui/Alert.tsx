@@ -47,17 +47,3 @@ export function Alert({ tone = 'info', title, children, actions, className = '' 
     </div>
   )
 }
-
-/**
- * Standing disclosure that the site is running on sample data.
- * Used wherever placeholder information could be mistaken for the real thing.
- */
-export function SampleDataNotice({ className = '' }: { className?: string }) {
-  return (
-    <Alert tone="warning" title="Sample data" className={className}>
-      Everything shown here is placeholder content for demonstration. It does not describe real
-      scholarship programmes, providers, eligibility rules, or partnerships. Verify all details with
-      the official provider before relying on them.
-    </Alert>
-  )
-}

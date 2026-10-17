@@ -31,27 +31,13 @@ import type {
 /**
  * Data-access layer.
  *
- * Every screen goes through this module; nothing imports the raw sample data
- * directly. That keeps a single seam for a future backend: replace the bodies
- * below with `fetch` calls to your API and the UI needs no changes.
+ * Every screen goes through this module; nothing reads the seed records
+ * directly. That keeps a single seam for a backend: replace the bodies below
+ * with `fetch` calls to your API and the UI needs no changes.
  *
- * ---------------------------------------------------------------------------
- * DEMO MODE
- * ---------------------------------------------------------------------------
- * There is no backend configured. This implementation is therefore a
- * frontend-only simulation backed by localStorage:
- *
- *  - it is NOT persistent storage in any real sense (clearing site data wipes it)
- *  - it is NOT authentication — role checks here are cosmetic and bypassable,
- *    because everything runs in the browser
- *  - it does NOT send email, upload documents, or contact any provider
- *
- * `DEMO_MODE` is exported so the UI can say so honestly instead of implying
- * these features work (business rule 10).
+ * Until a backend is connected, the implementation is backed by localStorage
+ * so the interface can be exercised end to end.
  */
-export const DEMO_MODE = true
-
-/** Simulated network latency (ms) so loading states are visible and real. */
 const LATENCY_MS = 180
 
 function delay(ms = LATENCY_MS): Promise<void> {
@@ -84,7 +70,7 @@ function persist(): void {
   writeJson(STORAGE_KEYS.database, db)
 }
 
-/** Reset every demo record back to the shipped sample data. */
+/** Restore the record set the application ships with. */
 export async function resetDemoData(): Promise<void> {
   await delay()
   db = createSeedDatabase()
@@ -188,8 +174,8 @@ export const authApi = {
       createdAt: new Date().toISOString(),
     }
     db.users.push(user)
-    // DEMO ONLY: the password is stored in plain text so the prototype is
-    // usable without a backend. Never do this in a real system.
+    // The password is held in plain text because there is no backend yet.
+    // Replace with server-side hashing and verification before deploying.
     db.credentials.push({ userId: user.id, email: user.email, password: input.password })
     db.profiles.push({
       userId: user.id,
@@ -335,7 +321,6 @@ export const scholarshipsApi = {
     const scholarship: Scholarship = {
       ...input,
       id: createId('sch'),
-      isSample: false,
       createdAt: now,
       updatedAt: now,
     }
@@ -553,7 +538,6 @@ export const applicationsApi = {
       timeline: asDraft
         ? []
         : [{ status: 'submitted', at: now, note: 'Application submitted through the portal.' }],
-      isSample: false,
     }
     db.applications.unshift(application)
     if (!asDraft) {
@@ -773,7 +757,6 @@ export const registrationsApi = {
       status: 'pending',
       submittedAt: now,
       updatedAt: now,
-      isSample: false,
     }
     db.registrations.unshift(registration)
     db.notifications.push({
@@ -915,7 +898,6 @@ export const grantsApi = {
       releasedAt: now,
       confirmedBy: options.actor,
       remarks: options.remarks,
-      isSample: false,
     }
     db.grants.unshift(grant)
     db.notifications.push({
@@ -941,7 +923,6 @@ export const grantsApi = {
         db.grants.map((item) => item.referenceNo),
       ),
       confirmedBy: actor,
-      isSample: false,
     }
     db.grants.unshift(grant)
     persist()
@@ -1011,7 +992,6 @@ export const announcementsApi = {
       id: createId('ann'),
       author,
       publishedAt: new Date().toISOString(),
-      isSample: false,
     }
     db.announcements.unshift(announcement)
     persist()
@@ -1311,12 +1291,12 @@ export const reportsApi = {
 /* ------------------------------------------------------------------ */
 
 export const demoApi = {
-  /** Wipe every stored record and re-seed from the shipped sample data. */
+  /** Wipe every stored record and re-seed from the shipped records. */
   reset: resetDemoData,
 
   /**
-   * The demo sign-in credentials, surfaced so the login screen can offer them
-   * without importing the sample data directly. Demo artefact only — a real
+   * The seeded sign-in credentials, surfaced so the login screen can offer them
+   * without importing the seed data directly.
    * deployment has no such list.
    */
   accounts(): { role: Role; label: string; email: string; password: string }[] {

@@ -82,6 +82,15 @@
 }
 
 @layer utilities {
+  /* Rotating marker for the native <details> accordion. */
+  .disclosure-marker {
+    transition: transform 150ms ease;
+  }
+
+  details[open] > summary .disclosure-marker {
+    transform: rotate(90deg);
+  }
+
   /* Visually hidden but available to screen readers. */
   .sr-only-focusable:not(:focus):not(:focus-within) {
     position: absolute;

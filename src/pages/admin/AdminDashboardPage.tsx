@@ -11,7 +11,6 @@ import {
   LinkButton,
   LoadingState,
   PageHeader,
-  SampleDataNotice,
   StatCard,
 } from '../../components/ui'
 import { StatusBadge } from '../../components/StatusBadge.tsx'
@@ -110,7 +109,6 @@ export function AdminDashboardPage() {
           description="An overview of activity across the province."
           actions={<LinkButton to="/admin/scholarships/new">New scholarship</LinkButton>}
         />
-        <SampleDataNotice />
         <EmptyState
           title="No records yet"
           description="There are no scholarships, students, applications or grants in this workspace. Create a scholarship listing to get started."
@@ -157,7 +155,6 @@ export function AdminDashboardPage() {
         actions={<LinkButton to="/admin/scholarships/new">New scholarship</LinkButton>}
       />
 
-      <SampleDataNotice />
 
       <section aria-label="Key figures" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
@@ -324,7 +321,6 @@ export function AdminDashboardPage() {
                     <p className="text-sm font-semibold text-slate-900 dark:text-white">{announcement.title}</p>
                     <Badge tone="brand">{ANNOUNCEMENT_AUDIENCE_LABELS[announcement.audience]}</Badge>
                     {announcement.pinned ? <Badge tone="warning">Pinned</Badge> : null}
-                    {announcement.isSample ? <Badge tone="neutral">Sample</Badge> : null}
                   </div>
                   <p className="text-sm text-slate-600 dark:text-slate-300">{truncate(announcement.body, 180)}</p>
                   <p className="text-xs text-slate-400 dark:text-slate-500">

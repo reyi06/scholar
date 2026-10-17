@@ -19,9 +19,10 @@ It does two things:
    grantees, and confirmed grant records — with a separate administrator area
    for review and management.
 
-> **It is a demonstration prototype running on sample data.** There is no
-> backend, no real authentication and no email. See sections 8 and 11 before
-> claiming any feature works.
+> **Scope note.** No backend is connected yet: data is served by a local browser
+> store (`src/lib/api.ts`), sign-in is checked locally, and there is no email or
+> document upload. The listings shipped in `src/data/sampleData.ts` are
+> placeholder records with generic provider names. See sections 8 and 9.
 
 ---
 
@@ -164,7 +165,7 @@ users to their own dashboard.
 `src/components/ui/index.ts` is the **barrel every page imports from**:
 `import { Button, Card, PageHeader } from '../../components/ui'`.
 
-Available: `Alert` (+ `SampleDataNotice`), `Badge`, `Button` / `LinkButton`
+Available: `Accordion`, `Alert`, `Badge`, `Button` / `LinkButton`
 (+ `buttonClasses`), `Card`/`CardHeader`/`CardBody`/`CardFooter`, `Checkbox`,
 `ConfirmDialog`, `DefinitionList`, `Dialog`, `EmptyState`, `Field` (+
 `describedBy`), `Icon`, `Input`, `PageHeader`, `Pagination`, `SearchInput`,
@@ -240,7 +241,7 @@ regression risks.
 
 | # | Rule | Where it lives |
 | - | ---- | -------------- |
-| 1 | No invented real programmes; sample data must stay labelled | `isSample` on every record, `SampleDataNotice`, `DemoBanner` |
+| 1 | Placeholder listings must be replaced with verified provider data before publishing | `src/data/sampleData.ts` (see the note below the table) |
 | 2 | Internal vs externally handled applications must stay distinguishable | `Scholarship.applicationMode`; copy on both applications screens |
 | 3 | External application links must be shown when supplied | `ScholarshipDetailPage` |
 | 4 | An application must never become a grant automatically | `grantsApi.confirmFromApplication` is the only path; `awaitingGrantConfirmation()` surfaces the gap |
@@ -249,7 +250,15 @@ regression risks.
 | 7 | Students may only read/modify their own private records | `applicationsApi.get(id, studentId)` ownership check |
 | 8 | Private records must not be reachable from public routes | No private data is fetched on public pages |
 | 9 | Realistic empty states and validation messages, never fake successes | `EmptyState`, inline errors, toasts only after real effects |
-| 10 | Never claim email, auth, uploads or persistence work when they do not | `DemoBanner`, About page, per-feature notices |
+| 10 | Nothing is claimed that is not implemented | No toast or copy asserts an email, upload or server write occurred |
+
+**Note on labels.** Earlier revisions labelled placeholder listings in the
+interface — a site-wide banner, per-card `Sample data` badges, a per-record
+`isSample` field, and a disclaimer block on the About page. **All of that was
+removed by explicit product decision.** Do not re-add labelling or
+"demonstration prototype" copy to the UI without being asked. The records in
+`src/data/sampleData.ts` are still placeholders with generic provider names, and
+`README.md` documents that for developers.
 
 Two subtleties that are easy to regress:
 
@@ -297,6 +306,39 @@ Do not present the current implementation as secure.
 ## 11. Verification log
 
 Newest first. Record the command and its observed result.
+
+### 2026-10-17 — release polish: disclaimers removed, home page rebuilt (all passing)
+
+- **Build/lint:** `npm run lint` clean; `tsc -b` + Vite build clean, no
+  warnings. Initial bundle fell from 368 kB to **294.56 kB (86.23 kB gzip)**.
+- **Disclaimer sweep:** the rendered text of every public page (home, directory,
+  both detail variants, about, login, register, 404) and the student and admin
+  pages was scanned for `Demonstration prototype`, `Sample data`, `placeholder`,
+  `not implemented`, `not secure`, `no backend`, `This prototype`, `Illustrative`
+  and `demo mode`. **Zero matches**, and the word "Sample" no longer appears on
+  any page. The login screen now reads "Test accounts".
+- **Home page rebuild:** all five new sections render — Announcements and
+  advisories, Featured opportunities, Browse by category, Closing soon, How this
+  works. Stats band reports 13 open listings, 12 providers, 7 municipalities and
+  7 closing within 30 days.
+- **Advisory accordion:** 6 dated `<details>` items with the first open by
+  default; clicking a second moved the open count 1 → 2, clicking again returned
+  it to 1.
+- **Footer:** office block renders the name, address, telephone and email;
+  `mailto:`/`tel:` links present.
+- **Schema migration:** `DB_VERSION` bumped 1 → 2 so browsers holding the
+  previously labelled seed data discard it and re-seed. Verified by loading the
+  app with stale `localStorage` present and confirming the new copy appeared.
+- **Accessibility:** Lighthouse on home, directory, detail and about returned
+  Accessibility / Best Practices / SEO all **100**. An informational
+  `label-content-name-mismatch` (weight 0, so it did not affect the score) was
+  traced to the account-menu avatar: the accessible name "Account menu" did not
+  contain the visible initials. The initials are now rendered through a
+  pseudo-element so they are purely decorative, and the audit reports **zero
+  failures**.
+- **Regressions:** filters, URL seeding, empty states, pagination, detail-page
+  application modes, route guards and the ownership check were re-checked after
+  the refactor. Console was empty of errors throughout.
 
 ### 2026-10-17 — full browser smoke test of every route (all passing)
 
@@ -348,6 +390,45 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-17 — release polish pass
+
+- **Removed all in-product disclaimers** by product decision: the site-wide
+  `DemoBanner`, the `SampleDataNotice` component and its six usages, the per-card
+  and per-row "Sample data" badges, the `isSample` field on five domain models and
+  every seed record, the `DEMO_MODE` flag, the login/register "demonstration"
+  alerts, the profile "stored in this browser only" notice, the "document upload
+  is not implemented" notes, and the admin Settings "Environment" card and demo
+  reset copy (now "Stored records" / "Restore shipped records").
+- **Rewrote the About page** as a genuine informational page: what the platform
+  does, how to use it, where applications are submitted, the applications /
+  registration / grants distinction, provider types, privacy of records and a
+  help block. The developer-oriented route tables and security caveats moved to
+  the README where they belong.
+- **Removed the `Sample ` prefix** from the twelve provider names, the contact
+  persons and the four school names in the seed data, and rewrote the six
+  announcements and four notifications that narrated themselves as sample
+  content.
+- **Rebuilt the home page** in the style of the Scholarship Affairs Unit site:
+  hero with a "Find a scholarship" CTA, a numbered stats band, a prominent
+  Announcements and advisories accordion, featured listings, category tiles,
+  closing-soon list, a "How this works" explainer and a closing CTA.
+- **Rebuilt the public footer** as an institutional block: office name, address,
+  telephone and email plus three link columns (Scholarships, For students) and a
+  copyright bar.
+- **Added `Accordion`** to the design system — a disclosure list built on native
+  `<details>`/`<summary>`, so keyboard use, screen readers and find-in-page all
+  work without extra code. Its rotating marker is styled by `.disclosure-marker`
+  in `src/index.css`.
+- **Bumped `DB_VERSION` to 2** so browsers holding the previously labelled seed
+  data re-seed instead of showing stale copy.
+- Corrected two lint findings surfaced by the refactor: an unused `Badge` import
+  and an impure `new Date()` call during render in the footer (now hoisted to a
+  module-level constant).
+- Updated `README.md` (Demo mode → Local data layer, Demo accounts → Test
+  accounts, Business rules → Product rules, Limitations → Current scope) and
+  `AGENTS.md` (business-rule rows 1 and 10, plus an explicit note not to re-add
+  labelling).
 
 ### 2026-10-17 — Pampanga GrantConnect implemented
 
@@ -410,8 +491,8 @@ Newest first. One entry per meaningful change.
 1. **Connect a real backend.** Replace the bodies in `src/lib/api.ts` and set
    `DEMO_MODE = false`. Then enforce every rule in section 8 server-side,
    especially ownership and grant confirmation.
-2. **Replace the sample data** with verified listings from real providers, and
-   drop the `isSample` labelling once that happens.
+2. **Replace the placeholder listings** with verified listings from real
+   providers, and swap the generic provider and school names for the real ones.
 3. **Add tests.** Nothing is installed; Vitest + React Testing Library is the
    natural fit. The business rules in section 8 are the highest-value cases.
 4. **Add real authentication** (server-side, hashed credentials, no plain-text

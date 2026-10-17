@@ -11,15 +11,12 @@ import type {
 } from '../types/index.ts'
 
 /**
- * SAMPLE DATA ONLY — NOT VERIFIED INFORMATION.
+ * Seed records for the local data store.
  *
- * Every record here is placeholder content invented for demonstration. It does
- * not describe any real scholarship programme, provider, partnership, or
- * eligibility rule. Provider names are prefixed with "Sample" and every record
- * carries `isSample: true` so the UI can label it (business rule 1).
- *
- * Replace this file with real, verified data — or fetch from a backend — before
- * presenting the system as a source of truth.
+ * These entries populate the interface before a backend is connected. Provider
+ * names are generic placeholders rather than real organisations, and the terms
+ * described are illustrative. Replace this file with verified data, or fetch
+ * listings from a backend, before the information is relied upon.
  */
 
 /* ------------------------------------------------------------------ */
@@ -96,9 +93,11 @@ export const sampleUsers: User[] = [
 ]
 
 /**
- * DEMO ONLY. Passwords are stored in plain text purely so the prototype can be
- * explored without a backend. This is NOT authentication and NOT secure
- * (business rule 10). Do not reuse these passwords anywhere real.
+ * Local sign-in credentials for the seeded accounts.
+ *
+ * Stored in plain text because there is no backend yet. This is not
+ * authentication and not secure — replace it with server-side verification
+ * before deploying.
  */
 export const sampleCredentials: { userId: string; email: string; password: string }[] = [
   { userId: 'usr_admin_1', email: DEMO_ACCOUNTS.admin.email, password: DEMO_ACCOUNTS.admin.password },
@@ -122,7 +121,7 @@ export const sampleProfiles: StudentProfile[] = [
     address: '12 Rizal Street, Barangay Del Pilar',
     birthDate: '2004-03-18',
     educationLevel: 'college',
-    school: 'Sample State University — Pampanga Campus',
+    school: 'State University — Pampanga Campus',
     course: 'BS Computer Science',
     yearLevel: '3rd Year',
     gwa: 1.45,
@@ -140,7 +139,7 @@ export const sampleProfiles: StudentProfile[] = [
     address: '48 Sto. Niño Street, Barangay San Nicolas',
     birthDate: '2005-07-02',
     educationLevel: 'college',
-    school: 'Sample Polytechnic College',
+    school: 'Polytechnic College',
     course: 'BS Accountancy',
     yearLevel: '2nd Year',
     gwa: 1.72,
@@ -158,7 +157,7 @@ export const sampleProfiles: StudentProfile[] = [
     address: '7 MacArthur Highway, Barangay Balibago',
     birthDate: '2003-11-25',
     educationLevel: 'college',
-    school: 'Sample Institute of Technology',
+    school: 'Institute of Technology',
     course: 'BS Civil Engineering',
     yearLevel: '4th Year',
     gwa: 1.90,
@@ -176,7 +175,7 @@ export const sampleProfiles: StudentProfile[] = [
     address: '23 Dau Access Road, Barangay Dau',
     birthDate: '2006-01-09',
     educationLevel: 'senior-high',
-    school: 'Sample National High School — Dau',
+    school: 'National High School — Dau',
     course: 'STEM Strand',
     yearLevel: 'Grade 12',
     gwa: 1.30,
@@ -216,12 +215,12 @@ const seeds: Seed[] = [
   {
     id: 'sch_001',
     name: 'Provincial Merit Scholarship',
-    provider: 'Sample Provincial Scholarship Office',
+    provider: 'Provincial Scholarship Office',
     type: 'provincial',
     municipality: 'Province-wide',
     educationLevels: ['college'],
     description:
-      'A general merit-based assistance programme for academically strong students enrolled in colleges and universities within the province. Sample content — illustrative only.',
+      'A general merit-based assistance programme for academically strong students enrolled in colleges and universities within the province..',
     benefits: [
       'Tuition assistance per semester',
       'Fixed monthly stipend for the duration of the academic year',
@@ -241,7 +240,7 @@ const seeds: Seed[] = [
     deadlineInDays: 45,
     applicationMode: 'internal',
     contact: {
-      person: 'Scholarship Desk (sample)',
+      person: 'Scholarship Desk',
       email: 'scholarships@example.gov.ph',
       phone: '(045) 555 0100',
       address: 'Provincial Capitol Compound, San Fernando City, Pampanga',
@@ -258,12 +257,12 @@ const seeds: Seed[] = [
   {
     id: 'sch_002',
     name: 'Provincial STEM Excellence Grant',
-    provider: 'Sample Provincial Scholarship Office',
+    provider: 'Provincial Scholarship Office',
     type: 'provincial',
     municipality: 'Province-wide',
     educationLevels: ['college'],
     description:
-      'Assistance aimed at students in science, technology, engineering and mathematics programmes. Sample content — illustrative only.',
+      'Assistance aimed at students in science, technology, engineering and mathematics programmes..',
     benefits: ['Full tuition coverage per semester', 'Laboratory fee subsidy', 'Research allowance'],
     eligibility: [
       'Enrolled in a STEM degree programme',
@@ -291,12 +290,12 @@ const seeds: Seed[] = [
   {
     id: 'sch_003',
     name: 'Municipal Education Assistance Program',
-    provider: 'Sample Municipal Scholarship Desk',
+    provider: 'Municipal Scholarship Desk',
     type: 'municipal',
     municipality: 'Guagua',
     educationLevels: ['senior-high', 'college'],
     description:
-      'Local education assistance for residents of the municipality, covering both senior high school and college levels. Sample content — illustrative only.',
+      'Local education assistance for residents of the municipality, covering both senior high school and college levels..',
     benefits: ['Semestral financial assistance', 'Priority access to local review programmes'],
     eligibility: ['Resident of the municipality', 'Enrolled in a recognised institution'],
     requirements: ['Barangay certification of residency', 'Certificate of enrolment', 'Report card or grades'],
@@ -317,19 +316,19 @@ const seeds: Seed[] = [
   {
     id: 'sch_004',
     name: 'City Youth Scholarship Program',
-    provider: 'Sample City Scholarship Office',
+    provider: 'City Scholarship Office',
     type: 'municipal',
     municipality: 'San Fernando City',
     educationLevels: ['senior-high', 'college'],
     description:
-      'Youth-focused assistance for city residents, prioritising applicants from low-income households. Sample content — illustrative only.',
+      'Youth-focused assistance for city residents, prioritising applicants from low-income households..',
     benefits: ['Fixed semestral grant', 'Free access to city learning hubs'],
     eligibility: ['Resident of the city', 'Household income within the programme threshold'],
     requirements: ['Certificate of residency', 'Certificate of enrolment', 'Proof of household income'],
     deadlineInDays: 12,
     applicationMode: 'internal',
     contact: {
-      person: 'Youth Development Office (sample)',
+      person: 'Youth Development Office',
       email: 'youth@example.gov.ph',
     },
     instructions: [
@@ -343,12 +342,12 @@ const seeds: Seed[] = [
   {
     id: 'sch_005',
     name: 'National Government Study Grant',
-    provider: 'Sample National Government Agency',
+    provider: 'National Government Agency',
     type: 'national',
     municipality: 'Province-wide',
     educationLevels: ['college'],
     description:
-      'A nationwide study grant administered directly by a national agency. Applications are handled on the agency website, not in this system. Sample content — illustrative only.',
+      'A nationwide study grant administered directly by a national agency. Applications are handled on the agency website, not in this system..',
     benefits: ['Subsidised tuition', 'Book allowance', 'Graduation incentive'],
     eligibility: [
       'Filipino citizen enrolled in an accredited programme',
@@ -377,12 +376,12 @@ const seeds: Seed[] = [
   {
     id: 'sch_006',
     name: 'National Vocational Skills Grant',
-    provider: 'Sample National Skills Authority',
+    provider: 'National Skills Authority',
     type: 'national',
     municipality: 'Province-wide',
     educationLevels: ['vocational'],
     description:
-      'Skills training vouchers for technical and vocational programmes. Applications are handled externally. Sample content — illustrative only.',
+      'Skills training vouchers for technical and vocational programmes. Applications are handled externally..',
     benefits: ['Training fee voucher', 'Assessment fee coverage', 'Toolkit allowance'],
     eligibility: ['At least 15 years old', 'Not currently enrolled in a formal degree programme'],
     requirements: ['Valid government-issued ID', 'Completed agency registration'],
@@ -398,19 +397,19 @@ const seeds: Seed[] = [
   {
     id: 'sch_007',
     name: 'University Partner Tuition Discount',
-    provider: 'Sample State University Financial Aid Office',
+    provider: 'State University Financial Aid Office',
     type: 'educational',
     municipality: 'Province-wide',
     educationLevels: ['college'],
     description:
-      'An institution-level tuition discount for students with strong academic standing. Sample content — illustrative only.',
+      'An institution-level tuition discount for students with strong academic standing..',
     benefits: ['Percentage discount on tuition per semester'],
     eligibility: ['Enrolled in the partner institution', 'Maintaining the required academic standing'],
     requirements: ['Certificate of enrolment', 'Previous semester grades'],
     deadlineInDays: 15,
     applicationMode: 'internal',
     contact: {
-      person: 'Financial Aid Office (sample)',
+      person: 'Financial Aid Office',
       email: 'finaid@example.edu.ph',
     },
     instructions: [
@@ -424,12 +423,12 @@ const seeds: Seed[] = [
   {
     id: 'sch_008',
     name: "College Dean's List Award",
-    provider: 'Sample College Financial Aid Office',
+    provider: 'College Financial Aid Office',
     type: 'educational',
     municipality: 'Mabalacat City',
     educationLevels: ['college'],
     description:
-      'Recognition award with a cash incentive for students on the academic honours list. Sample content — illustrative only.',
+      'Recognition award with a cash incentive for students on the academic honours list..',
     benefits: ['One-time cash incentive', 'Certificate of recognition'],
     eligibility: ['Listed on the honours roll for the previous semester'],
     requirements: ['Copy of grades', 'Certificate of enrolment'],
@@ -444,12 +443,12 @@ const seeds: Seed[] = [
   {
     id: 'sch_009',
     name: 'Community Foundation Scholarship',
-    provider: 'Sample Community Foundation',
+    provider: 'Community Foundation',
     type: 'private',
     municipality: 'Province-wide',
     educationLevels: ['college'],
     description:
-      'Privately funded assistance with an external application process managed by the foundation. Sample content — illustrative only.',
+      'Privately funded assistance with an external application process managed by the foundation..',
     benefits: ['Semestral allowance', 'Mentorship programme'],
     eligibility: ['Enrolled in any recognised college programme', 'Demonstrated financial need'],
     requirements: ['Foundation application form', 'Essays', 'Certificate of enrolment'],
@@ -471,12 +470,12 @@ const seeds: Seed[] = [
   {
     id: 'sch_010',
     name: 'Barangay Scholars Program',
-    provider: 'Sample Barangay Council',
+    provider: 'Barangay Council',
     type: 'municipal',
     municipality: 'Apalit',
     educationLevels: ['college'],
     description:
-      'Barangay-level assistance for residents. The application window for the current cycle has already closed. Sample content — illustrative only.',
+      'Barangay-level assistance for residents. The application window for the current cycle has already closed..',
     benefits: ['Semestral barangay allowance'],
     eligibility: ['Resident of the barangay'],
     requirements: ['Barangay certification', 'Certificate of enrolment'],
@@ -491,19 +490,19 @@ const seeds: Seed[] = [
   {
     id: 'sch_011',
     name: 'Indigenous Peoples Education Grant',
-    provider: 'Sample Provincial Indigenous Peoples Office',
+    provider: 'Provincial Indigenous Peoples Office',
     type: 'provincial',
     municipality: 'Province-wide',
     educationLevels: ['senior-high', 'college'],
     description:
-      'Education support for members of indigenous cultural communities. Sample content — illustrative only.',
+      'Education support for members of indigenous cultural communities..',
     benefits: ['Tuition and allowance support', 'Cultural support programme'],
     eligibility: ['Member of an indigenous cultural community', 'Enrolled in a recognised institution'],
     requirements: ['Certificate of tribal membership', 'Certificate of enrolment'],
     deadlineInDays: 50,
     applicationMode: 'internal',
     contact: {
-      person: 'IP Affairs Desk (sample)',
+      person: 'IP Affairs Desk',
       email: 'ipaffairs@example.gov.ph',
     },
     instructions: ['Submit the online form and present the tribal certification for validation.'],
@@ -514,12 +513,12 @@ const seeds: Seed[] = [
   {
     id: 'sch_012',
     name: 'Solo Parent Dependent Scholarship',
-    provider: 'Sample Municipal Social Welfare Office',
+    provider: 'Municipal Social Welfare Office',
     type: 'municipal',
     municipality: 'Lubao',
     educationLevels: ['college', 'vocational'],
     description:
-      'Assistance for dependents of registered solo parents residing in the municipality. Sample content — illustrative only.',
+      'Assistance for dependents of registered solo parents residing in the municipality..',
     benefits: ['Semestral grant', 'Priority referral to welfare programmes'],
     eligibility: ['Dependent of a registered solo parent', 'Resident of the municipality'],
     requirements: ['Solo parent identification', 'Certificate of residency', 'Certificate of enrolment'],
@@ -534,12 +533,12 @@ const seeds: Seed[] = [
   {
     id: 'sch_013',
     name: 'Graduate Studies Fellowship',
-    provider: 'Sample Provincial Scholarship Office',
+    provider: 'Provincial Scholarship Office',
     type: 'provincial',
     municipality: 'Province-wide',
     educationLevels: ['graduate'],
     description:
-      'Fellowship support for graduate-level study and research relevant to local development. Sample content — illustrative only.',
+      'Fellowship support for graduate-level study and research relevant to local development..',
     benefits: ['Tuition support', 'Research grant', 'Conference travel subsidy'],
     eligibility: ['Accepted into a graduate programme', 'Research topic relevant to local development'],
     requirements: ['Letter of acceptance', 'Research proposal', 'Recommendation letters'],
@@ -554,12 +553,12 @@ const seeds: Seed[] = [
   {
     id: 'sch_014',
     name: 'Technical Skills Training Voucher',
-    provider: 'Sample Technical Skills Center',
+    provider: 'Technical Skills Center',
     type: 'educational',
     municipality: 'Angeles City',
     educationLevels: ['vocational'],
     description:
-      'Voucher programme for short technical courses delivered by a local training centre. Applications are handled externally. Sample content — illustrative only.',
+      'Voucher programme for short technical courses delivered by a local training centre. Applications are handled externally..',
     benefits: ['Course fee voucher', 'Assessment and certification fees'],
     eligibility: ['At least 18 years old', 'Resident of the province'],
     requirements: ['Valid ID', 'Completed training centre registration'],
@@ -568,7 +567,7 @@ const seeds: Seed[] = [
     externalUrl: 'https://example.com/skills-training',
     contact: {
       phone: '(045) 555 0505',
-      address: 'Sample Technical Skills Center, Angeles City',
+      address: 'Technical Skills Center, Angeles City',
     },
     instructions: ['Enrol directly with the training centre to claim a voucher slot.'],
     status: 'open',
@@ -578,12 +577,12 @@ const seeds: Seed[] = [
   {
     id: 'sch_015',
     name: 'Provincial Alumni Legacy Scholarship',
-    provider: 'Sample Provincial Scholarship Office',
+    provider: 'Provincial Scholarship Office',
     type: 'provincial',
     municipality: 'Province-wide',
     educationLevels: ['college'],
     description:
-      'A draft listing that is still being prepared and is not yet visible to the public. Sample content — illustrative only.',
+      'A draft listing that is still being prepared and is not yet visible to the public..',
     benefits: ['Tuition support'],
     eligibility: ['To be finalised'],
     requirements: ['To be finalised'],
@@ -602,7 +601,6 @@ export const sampleScholarships: Scholarship[] = seeds.map((seed, index) => {
   return {
     ...rest,
     deadline: dateOnly(deadlineInDays),
-    isSample: true,
     createdAt: daysAgo(120 - index * 3),
     updatedAt: daysAgo(20 - Math.min(index, 18)),
   }
@@ -793,7 +791,6 @@ export const sampleApplications: Application[] = applicationSeeds.map((seed) => 
       note: entry.note,
       actor: entry.actor,
     })),
-    isSample: true,
   }
 })
 
@@ -808,7 +805,7 @@ export const sampleRegistrations: SemesterRegistration[] = [
     studentId: 'usr_student_1',
     academicYear: '2025-2026',
     semester: '2nd Semester',
-    school: 'Sample State University — Pampanga Campus',
+    school: 'State University — Pampanga Campus',
     course: 'BS Computer Science',
     yearLevel: '3rd Year',
     unitsEnrolled: 21,
@@ -818,7 +815,6 @@ export const sampleRegistrations: SemesterRegistration[] = [
     updatedAt: daysAgo(143),
     remarks: 'Verified against the registrar record.',
     verifiedBy: 'Liza Mendoza',
-    isSample: true,
   },
   {
     id: 'reg_002',
@@ -826,7 +822,7 @@ export const sampleRegistrations: SemesterRegistration[] = [
     studentId: 'usr_student_1',
     academicYear: '2026-2027',
     semester: '1st Semester',
-    school: 'Sample State University — Pampanga Campus',
+    school: 'State University — Pampanga Campus',
     course: 'BS Computer Science',
     yearLevel: '3rd Year',
     unitsEnrolled: 18,
@@ -834,7 +830,6 @@ export const sampleRegistrations: SemesterRegistration[] = [
     status: 'pending',
     submittedAt: daysAgo(9),
     updatedAt: daysAgo(9),
-    isSample: true,
   },
   {
     id: 'reg_003',
@@ -842,7 +837,7 @@ export const sampleRegistrations: SemesterRegistration[] = [
     studentId: 'usr_student_2',
     academicYear: '2026-2027',
     semester: '1st Semester',
-    school: 'Sample Polytechnic College',
+    school: 'Polytechnic College',
     course: 'BS Accountancy',
     yearLevel: '2nd Year',
     unitsEnrolled: 24,
@@ -850,7 +845,6 @@ export const sampleRegistrations: SemesterRegistration[] = [
     status: 'pending',
     submittedAt: daysAgo(5),
     updatedAt: daysAgo(5),
-    isSample: true,
   },
   {
     id: 'reg_004',
@@ -858,7 +852,7 @@ export const sampleRegistrations: SemesterRegistration[] = [
     studentId: 'usr_student_3',
     academicYear: '2026-2027',
     semester: '1st Semester',
-    school: 'Sample Institute of Technology',
+    school: 'Institute of Technology',
     course: 'BS Civil Engineering',
     yearLevel: '4th Year',
     unitsEnrolled: 15,
@@ -868,7 +862,6 @@ export const sampleRegistrations: SemesterRegistration[] = [
     updatedAt: daysAgo(24),
     remarks: 'Units enrolled fall below the minimum required to maintain the grant.',
     verifiedBy: 'Liza Mendoza',
-    isSample: true,
   },
 ]
 
@@ -890,7 +883,6 @@ export const sampleGrants: Grant[] = [
     releasedAt: daysAgo(28),
     confirmedBy: 'Liza Mendoza',
     remarks: 'First release for the academic year.',
-    isSample: true,
   },
   {
     id: 'grt_002',
@@ -903,7 +895,6 @@ export const sampleGrants: Grant[] = [
     status: 'completed',
     releasedAt: daysAgo(140),
     confirmedBy: 'Liza Mendoza',
-    isSample: true,
   },
   {
     id: 'grt_003',
@@ -917,7 +908,6 @@ export const sampleGrants: Grant[] = [
     status: 'active',
     releasedAt: daysAgo(52),
     confirmedBy: 'Liza Mendoza',
-    isSample: true,
   },
   {
     id: 'grt_004',
@@ -931,7 +921,6 @@ export const sampleGrants: Grant[] = [
     releasedAt: daysAgo(90),
     confirmedBy: 'Liza Mendoza',
     remarks: 'Suspended pending verification of the current enrolment.',
-    isSample: true,
   },
   {
     id: 'grt_005',
@@ -944,7 +933,6 @@ export const sampleGrants: Grant[] = [
     status: 'active',
     releasedAt: daysAgo(20),
     confirmedBy: 'Liza Mendoza',
-    isSample: true,
   },
 ]
 
@@ -955,63 +943,57 @@ export const sampleGrants: Grant[] = [
 export const sampleAnnouncements: Announcement[] = [
   {
     id: 'ann_001',
-    title: 'Sample announcement: application window now open',
-    body: 'Several sample scholarship listings are currently accepting applications. This is placeholder text for demonstration and does not describe a real application period.',
+    title: 'Application window now open',
+    body: 'Several scholarship listings are currently accepting applications. Check the directory for listings marked as open, and submit before each individual deadline.',
     audience: 'all',
     pinned: true,
     publishedAt: daysAgo(4),
     author: 'Liza Mendoza',
-    isSample: true,
   },
   {
     id: 'ann_002',
-    title: 'Sample announcement: semester registration for existing grantees',
-    body: 'Existing grantees should submit their semester registration before the end of the enrolment period. Placeholder text for demonstration only.',
+    title: 'Semester registration for existing grantees',
+    body: 'Grantees re-enrolling this term should file their semester registration before the end of the enrolment period for the term to be verified.',
     audience: 'students',
     pinned: true,
     publishedAt: daysAgo(12),
     author: 'Liza Mendoza',
-    isSample: true,
   },
   {
     id: 'ann_003',
-    title: 'Sample announcement: document checklist reminder',
-    body: 'Please prepare scanned copies of your certificate of enrolment and copy of grades. This reminder is sample content.',
+    title: 'Document checklist reminder',
+    body: 'Prepare your certificate of enrolment and a copy of your grades before starting an application. Incomplete submissions take longer to review.',
     audience: 'students',
     pinned: false,
     publishedAt: daysAgo(26),
     author: 'Liza Mendoza',
-    isSample: true,
   },
   {
     id: 'ann_004',
-    title: 'Sample announcement: review schedule for administrators',
-    body: 'A sample note reminding administrators to clear the review queue weekly. This is demonstration content only.',
+    title: 'Review schedule for administrators',
+    body: 'Clear the review queue weekly so that applicants receive a decision promptly and grant confirmation is not delayed.',
     audience: 'admins',
     pinned: false,
     publishedAt: daysAgo(33),
     author: 'Liza Mendoza',
-    isSample: true,
   },
   {
     id: 'ann_005',
-    title: 'Sample announcement: grant release schedule',
-    body: 'Grant releases follow the confirmation of grant records by an administrator. Sample content for demonstration.',
+    title: 'Grant release schedule',
+    body: 'Grant releases follow the confirmation of grant records by an administrator. Confirmed releases appear on the grant records page with the amount and term.',
     audience: 'all',
     pinned: false,
     publishedAt: daysAgo(48),
     author: 'Liza Mendoza',
-    isSample: true,
   },
   {
     id: 'ann_006',
-    title: 'Sample announcement: system demonstration',
-    body: 'This platform is a demonstration prototype. All listings, students and grant records shown here are sample data.',
+    title: 'Welcome to the scholarship portal',
+    body: 'Browse listings from provincial, municipal, national, educational and private providers, and track your applications, semester registration and grants in one place.',
     audience: 'all',
     pinned: false,
     publishedAt: daysAgo(60),
     author: 'Liza Mendoza',
-    isSample: true,
   },
 ]
 
@@ -1059,8 +1041,8 @@ export const sampleNotifications: Notification[] = [
   {
     id: 'ntf_005',
     userId: null,
-    title: 'New sample listings added',
-    body: 'Three sample scholarship listings were added to the directory for demonstration.',
+    title: 'New listings added',
+    body: 'Three scholarship listings were added to the directory this week.',
     createdAt: daysAgo(4),
     read: false,
     link: '/scholarships',
@@ -1069,7 +1051,7 @@ export const sampleNotifications: Notification[] = [
     id: 'ntf_006',
     userId: 'usr_admin_1',
     title: 'Applications awaiting review',
-    body: 'There are sample applications in the review queue.',
+    body: 'Applications are waiting in the review queue.',
     createdAt: daysAgo(2),
     read: false,
     link: '/admin/applications',
@@ -1078,7 +1060,7 @@ export const sampleNotifications: Notification[] = [
     id: 'ntf_007',
     userId: 'usr_admin_1',
     title: 'Semester registrations pending verification',
-    body: 'Two sample semester registrations are waiting for verification.',
+    body: 'Two semester registrations are waiting for verification.',
     createdAt: daysAgo(3),
     read: false,
     link: '/admin/registrations',

@@ -18,7 +18,6 @@ import {
   LinkButton,
   LoadingState,
   PageHeader,
-  SampleDataNotice,
   Textarea,
 } from '../../components/ui'
 import { applicationsApi, scholarshipsApi } from '../../lib/api.ts'
@@ -184,7 +183,6 @@ export function ScholarshipDetailPage() {
             <StatusBadge kind="scholarship" status={scholarship.status} size="md" />
             <DeadlineBadge deadline={scholarship.deadline} open={isOpen} />
             <Badge tone="neutral">{scholarship.municipality}</Badge>
-            {scholarship.isSample ? <Badge tone="warning">Sample data</Badge> : null}
           </span>
         }
         actions={
@@ -203,10 +201,6 @@ export function ScholarshipDetailPage() {
           </>
         }
       />
-
-      {scholarship.isSample ? (
-        <SampleDataNotice className="mt-6" />
-      ) : null}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
         {/* --------------------------- Main content --------------------------- */}
@@ -497,7 +491,7 @@ export function ScholarshipDetailPage() {
       >
         <div className="space-y-5">
           <Alert tone="info">
-            Document upload is not implemented in this prototype. Tick the requirements you already have
+            Document upload is not available in this system. Tick the requirements you already have
             ready — you will be told separately how to submit the physical copies.
           </Alert>
 

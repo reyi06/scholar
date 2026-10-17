@@ -11,7 +11,6 @@ import {
   Select,
 } from '../../components/ui'
 import { MUNICIPALITIES_ONLY } from '../../lib/constants.ts'
-import { DEMO_MODE } from '../../lib/api.ts'
 import {
   emailFormat,
   hasErrors,
@@ -126,13 +125,6 @@ export function RegisterPage() {
           ))}
         </ul>
 
-        {DEMO_MODE ? (
-          <Alert tone="warning" title="Demonstration only">
-            This form does not contact a server and no verification email is sent. The account is created
-            only in this browser's storage, and the password is saved in plain text because there is no
-            backend. Do not reuse a real password here.
-          </Alert>
-        ) : null}
       </div>
 
       <Card>
@@ -169,7 +161,7 @@ export function RegisterPage() {
               required
               autoComplete="email"
               placeholder="name@example.com"
-              hint="Used only as your sign-in name in this prototype. No email is sent."
+              hint="This becomes your sign-in name."
               value={values.email}
               error={errors.email}
               onChange={(event) => update('email', event.target.value)}

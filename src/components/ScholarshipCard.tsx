@@ -32,7 +32,6 @@ export function ScholarshipCard({ scholarship, onToggleSave, saved = false, comp
             <div className="flex flex-wrap items-center gap-1.5">
               <Badge tone="brand">{SCHOLARSHIP_TYPE_LABELS[scholarship.type]}</Badge>
               <StatusBadge kind="scholarship" status={scholarship.status} />
-              {scholarship.isSample ? <Badge tone="warning">Sample data</Badge> : null}
             </div>
             <h3 className="text-base leading-snug font-semibold text-slate-900 dark:text-white">
               <Link to={detailsPath} className="transition hover:text-brand-700 dark:hover:text-brand-300">

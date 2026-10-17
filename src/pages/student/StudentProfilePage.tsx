@@ -193,7 +193,7 @@ export function StudentProfilePage() {
       guardianContact: form.guardianContact.trim(),
     })
     if (result) {
-      toast.success('Profile updated', 'Your details are stored in this browser only.')
+      toast.success('Profile updated', 'Your profile details have been saved.')
       profile.reload()
     }
   }
@@ -442,11 +442,6 @@ export function StudentProfilePage() {
                   onChange={(event) => setField('guardianContact', event.target.value)}
                 />
               </div>
-
-              <Alert tone="info" title="Stored in this browser only">
-                This prototype keeps your profile in this browser's local storage. Nothing is sent to
-                an office, and clearing site data removes it.
-              </Alert>
 
               <Button type="submit" loading={saveProfile.loading}>
                 Save profile

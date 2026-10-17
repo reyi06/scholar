@@ -198,10 +198,6 @@ export function ApplicationDetailPage() {
         <Card>
           <CardHeader title="Documents" description="File names you listed for this application." />
           <CardBody className="space-y-3">
-            <Alert tone="warning" title="Document upload is not implemented">
-              This prototype does not accept file uploads. The names below are text labels only and no
-              document has been sent anywhere.
-            </Alert>
             {application.documentNames.length === 0 ? (
               <p className="text-sm text-slate-500 dark:text-slate-400">No documents were listed.</p>
             ) : (

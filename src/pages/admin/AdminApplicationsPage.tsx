@@ -385,10 +385,6 @@ export function AdminApplicationsPage() {
                   ))}
                 </ul>
               )}
-              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                Document upload is not implemented in this demo. These are the file names the student
-                listed; no files are stored anywhere.
-              </p>
             </section>
 
             <section>

@@ -4,6 +4,7 @@
  * Pages should import from here (`../components/ui`) rather than reaching into
  * individual files, so the component surface stays discoverable and consistent.
  */
+export * from './Accordion.tsx'
 export * from './Alert.tsx'
 export * from './Badge.tsx'
 export * from './Button.tsx'

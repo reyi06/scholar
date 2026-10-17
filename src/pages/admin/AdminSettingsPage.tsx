@@ -211,12 +211,12 @@ export function AdminSettingsPage() {
 
       <Card>
         <CardHeader
-          title="Demo data"
-          description="This prototype stores everything in your browser. Resetting restores the records shipped with the demo."
+          title="Stored records"
+          description="Records currently held by this deployment. Restoring replaces them with the set the application ships with."
         />
         <CardBody className="space-y-4">
           {demoStats.loading && !stats ? (
-            <LoadingState label="Counting demo records…" />
+            <LoadingState label="Counting records…" />
           ) : demoStats.error ? (
             <ErrorState message={demoStats.error} onRetry={demoStats.reload} />
           ) : (
@@ -231,40 +231,17 @@ export function AdminSettingsPage() {
             />
           )}
 
-          <Alert tone="warning" title="Resetting is destructive">
-            Resetting restores the shipped sample records and discards everything currently stored in
-            this browser, including records you created. It does not sign you out automatically, so
-            reload or navigate afterwards to see the restored data.
+          <Alert tone="warning" title="This cannot be undone">
+            Restoring discards everything currently held, including records you have created, and puts
+            back the shipped set. You will not be signed out automatically, so reload afterwards to see
+            the restored data.
           </Alert>
 
           <div>
             <Button variant="danger" onClick={() => setResetOpen(true)}>
-              Reset demo data
+              Restore shipped records
             </Button>
           </div>
-        </CardBody>
-      </Card>
-
-      <Card>
-        <CardHeader
-          title="Environment"
-          description="An honest description of how this deployment works today."
-        />
-        <CardBody className="space-y-3 text-sm text-slate-700 dark:text-slate-200">
-          <p>
-            This prototype runs in demo mode. There is no backend, no API keys are used, and no
-            requests leave your browser. All data lives in this browser's localStorage and can be
-            cleared at any time from your browser settings.
-          </p>
-          <p>
-            Role checks in this application are cosmetic and exist only to shape the interface. They
-            are <strong>not</strong> production security — anyone with access to the browser can
-            bypass them.
-          </p>
-          <Alert tone="info" title="Before any real deployment">
-            Authorisation and data access must be enforced on the server. Do not put real student or
-            financial data into this prototype.
-          </Alert>
         </CardBody>
       </Card>
 
@@ -272,11 +249,11 @@ export function AdminSettingsPage() {
         open={resetOpen}
         onClose={() => setResetOpen(false)}
         onConfirm={handleReset}
-        title="Reset demo data"
-        confirmLabel="Reset everything"
+        title="Restore shipped records"
+        confirmLabel="Restore everything"
         tone="danger"
         loading={resetAction.loading}
-        description="This restores the shipped sample records and permanently discards every record stored in this browser. It cannot be undone, and you will not be signed out automatically."
+        description="This puts back the records the application ships with and permanently discards everything currently held. It cannot be undone."
       />
     </div>
   )

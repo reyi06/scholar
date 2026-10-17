@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router'
 import { ScholarshipCard } from '../../components/ScholarshipCard.tsx'
 import { DeadlineBadge } from '../../components/DeadlineBadge.tsx'
 import {
-  Alert,
+  Accordion,
   Badge,
   Button,
   Card,
@@ -16,7 +16,6 @@ import {
   LinkButton,
   LoadingState,
   Select,
-  SampleDataNotice,
 } from '../../components/ui'
 import { announcementsApi, scholarshipsApi } from '../../lib/api.ts'
 import { SCHOLARSHIP_TYPES } from '../../lib/constants.ts'
@@ -50,7 +49,7 @@ export function HomePage() {
     navigate(`/scholarships${params.toString() ? `?${params.toString()}` : ''}`)
   }
 
-  // Derive everything the home page needs from a single listing fetch.
+  // Everything below is derived from a single listing fetch.
   const all: Scholarship[] = data ?? []
   const open = all.filter((item) => item.status === 'open')
   const featured = open.filter((item) => item.featured).slice(0, 3)
@@ -69,20 +68,22 @@ export function HomePage() {
     count: open.filter((item) => item.type === option.value).length,
   }))
 
+  const advisories = (announcements ?? []).slice(0, 6)
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <div>
       {/* -------------------------------- Hero -------------------------------- */}
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="grid gap-8 p-6 sm:p-10 lg:grid-cols-[1.2fr_1fr] lg:items-center">
-          <div className="space-y-5">
+      <section className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:items-center lg:px-8 lg:py-20">
+          <div className="space-y-6">
             <Badge tone="brand" size="md">
-              Pampanga · Scholarship information
+              Scholarship information · Pampanga
             </Badge>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl dark:text-white">
               Find and manage scholarships across Pampanga
             </h1>
             <p className="max-w-2xl text-base text-slate-600 dark:text-slate-300">
-              One place to discover scholarship opportunities from provincial, municipal, national,
+              One place to find scholarship opportunities from provincial, municipal, national,
               educational and private providers — and to track your own applications, semester
               registration and confirmed grants.
             </p>
@@ -104,19 +105,21 @@ export function HomePage() {
                 onChange={(event) => setType(event.target.value)}
                 className="sm:w-44"
               />
-              <Button type="submit" leadingIcon={<Icon name="search" className="size-4" />}>
-                Search
+              <Button type="submit" size="lg" leadingIcon={<Icon name="search" className="size-4" />}>
+                Find a scholarship
               </Button>
             </form>
 
-            <div className="flex flex-wrap gap-3 pt-1">
-              <LinkButton to="/scholarships">Browse all scholarships</LinkButton>
+            <div className="flex flex-wrap gap-3">
+              <LinkButton to="/scholarships" variant="outline">
+                Browse all scholarships
+              </LinkButton>
               {!user ? (
-                <LinkButton to="/register" variant="outline">
+                <LinkButton to="/register" variant="ghost">
                   Create a student account
                 </LinkButton>
               ) : isStudent ? (
-                <LinkButton to="/student/dashboard" variant="outline">
+                <LinkButton to="/student/dashboard" variant="ghost">
                   Go to my dashboard
                 </LinkButton>
               ) : null}
@@ -128,14 +131,21 @@ export function HomePage() {
               { label: 'Open listings', value: open.length, icon: 'graduation' as const },
               { label: 'Providers', value: providers.size, icon: 'building' as const },
               { label: 'Municipalities covered', value: municipalities.size, icon: 'list' as const },
-              { label: 'Types of assistance', value: SCHOLARSHIP_TYPES.length, icon: 'award' as const },
+              {
+                label: 'Closing within 30 days',
+                value: open.filter((item) => {
+                  const days = daysUntil(item.deadline)
+                  return days !== null && days >= 0 && days <= 30
+                }).length,
+                icon: 'clock' as const,
+              },
             ].map((stat) => (
               <div
                 key={stat.label}
                 className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/40"
               >
                 <Icon name={stat.icon} className="size-5 text-brand-600 dark:text-brand-400" />
-                <p className="mt-2 text-2xl font-semibold tabular-nums text-slate-900 dark:text-white">
+                <p className="mt-2 text-3xl font-semibold tabular-nums text-slate-900 dark:text-white">
                   {stat.value}
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">{stat.label}</p>
@@ -145,23 +155,113 @@ export function HomePage() {
         </div>
       </section>
 
-      <SampleDataNotice className="mt-6" />
-
-      {loading ? <LoadingState label="Loading scholarships…" className="mt-10" /> : null}
-      {error ? <ErrorState className="mt-10" message={error} onRetry={reload} /> : null}
+      {loading ? (
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <LoadingState label="Loading scholarships…" />
+        </div>
+      ) : null}
+      {error ? (
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <ErrorState message={error} onRetry={reload} />
+        </div>
+      ) : null}
 
       {!loading && !error ? (
-        <>
-          {/* ------------------------------ Categories ------------------------------ */}
-          <section className="mt-12">
-            <div className="flex items-end justify-between gap-4">
+        <div className="mx-auto max-w-7xl space-y-14 px-4 py-12 sm:px-6 lg:px-8">
+          {/* ---------------------- Announcements and advisories ---------------------- */}
+          <section>
+            <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Browse by category</h2>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                  Announcements and advisories
+                </h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Filter the directory by the kind of provider offering the assistance.
+                  Notices for applicants and current grantees. Select one to read it.
                 </p>
               </div>
             </div>
+
+            <Card className="mt-4">
+              <CardBody className="px-0 py-0 sm:px-0">
+                {advisories.length === 0 ? (
+                  <p className="p-5 text-sm text-slate-500 dark:text-slate-400">
+                    There are no announcements at the moment.
+                  </p>
+                ) : (
+                  <div className="px-5">
+                    <Accordion
+                      items={advisories.map((announcement, index) => ({
+                        id: announcement.id,
+                        meta: (
+                          <span className="flex items-center gap-2">
+                            {formatDate(announcement.publishedAt)}
+                            {announcement.pinned ? <Badge tone="brand">Pinned</Badge> : null}
+                          </span>
+                        ),
+                        title: announcement.title,
+                        content: (
+                          <div className="space-y-2">
+                            <p className="whitespace-pre-line">{announcement.body}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                              {announcement.author}
+                            </p>
+                          </div>
+                        ),
+                        defaultOpen: index === 0,
+                      }))}
+                    />
+                  </div>
+                )}
+              </CardBody>
+            </Card>
+          </section>
+
+          {/* ------------------------------- Featured ------------------------------- */}
+          <section>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                  Featured opportunities
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Highlighted listings currently accepting applications.
+                </p>
+              </div>
+              <Link
+                to="/scholarships"
+                className="text-sm font-medium text-brand-700 transition hover:text-brand-800 dark:text-brand-300"
+              >
+                View the full directory →
+              </Link>
+            </div>
+
+            {featured.length === 0 ? (
+              <EmptyState
+                className="mt-4"
+                icon={<Icon name="inbox" className="size-8" />}
+                title="No featured listings right now"
+                description="There are no highlighted open listings at the moment. Browse the full directory to see everything available."
+                action={
+                  <LinkButton to="/scholarships" variant="outline">
+                    Browse all scholarships
+                  </LinkButton>
+                }
+              />
+            ) : (
+              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {featured.map((scholarship) => (
+                  <ScholarshipCard key={scholarship.id} scholarship={scholarship} />
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* ------------------------------ Categories ------------------------------ */}
+          <section>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Browse by category</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Filter the directory by the kind of provider offering the assistance.
+            </p>
             <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
               {byType.map((category) => (
                 <Link
@@ -183,41 +283,8 @@ export function HomePage() {
             </div>
           </section>
 
-          {/* ------------------------------- Featured ------------------------------- */}
-          <section className="mt-12">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Featured opportunities</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Highlighted listings currently accepting applications.
-                </p>
-              </div>
-              <Link
-                to="/scholarships"
-                className="text-sm font-medium text-brand-700 transition hover:text-brand-800 dark:text-brand-300"
-              >
-                View the full directory →
-              </Link>
-            </div>
-            {featured.length === 0 ? (
-              <EmptyState
-                className="mt-4"
-                icon={<Icon name="inbox" className="size-8" />}
-                title="No featured listings right now"
-                description="There are no highlighted open listings at the moment. Browse the full directory to see everything available."
-                action={<LinkButton to="/scholarships" variant="outline">Browse all scholarships</LinkButton>}
-              />
-            ) : (
-              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {featured.map((scholarship) => (
-                  <ScholarshipCard key={scholarship.id} scholarship={scholarship} />
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* ------------------------------- Deadlines ------------------------------ */}
-          <section className="mt-12 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+          {/* ------------------------------ Deadlines ------------------------------- */}
+          <section className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
             <Card>
               <CardHeader
                 title="Closing soon"
@@ -267,45 +334,56 @@ export function HomePage() {
             </Card>
 
             <Card>
-              <CardHeader title="Announcements" description="Notices for applicants and grantees." />
-              <CardBody className="p-0">
-                {(announcements ?? []).length === 0 ? (
-                  <p className="p-4 text-sm text-slate-500 dark:text-slate-400">No announcements yet.</p>
-                ) : (
-                  <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {(announcements ?? []).slice(0, 3).map((announcement) => (
-                      <li key={announcement.id} className="p-4">
-                        <div className="flex flex-wrap items-center gap-2">
-                          {announcement.pinned ? <Badge tone="brand">Pinned</Badge> : null}
-                          {announcement.isSample ? <Badge tone="warning">Sample</Badge> : null}
-                          <span className="text-xs text-slate-500 dark:text-slate-400">
-                            {formatDate(announcement.publishedAt)}
-                          </span>
-                        </div>
-                        <p className="mt-1.5 text-sm font-medium text-slate-900 dark:text-white">
-                          {announcement.title}
-                        </p>
-                        <p className="mt-1 line-clamp-3 text-sm text-slate-600 dark:text-slate-300">
-                          {announcement.body}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+              <CardHeader title="How this works" />
+              <CardBody className="space-y-4 text-sm text-slate-600 dark:text-slate-300">
+                <div className="flex gap-3">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-800 dark:bg-brand-900/50 dark:text-brand-200">
+                    1
+                  </span>
+                  <p>
+                    Browse listings and filter by type, municipality, education level or deadline.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-800 dark:bg-brand-900/50 dark:text-brand-200">
+                    2
+                  </span>
+                  <p>
+                    Some providers accept applications through this system and those submissions are
+                    tracked here. Others run their own process — for those we link to the provider
+                    directly and progress is not tracked.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-800 dark:bg-brand-900/50 dark:text-brand-200">
+                    3
+                  </span>
+                  <p>
+                    Approving an application records the review decision. A grant record is confirmed
+                    separately before any funds are released.
+                  </p>
+                </div>
+                <Link
+                  to="/about"
+                  className="inline-block text-sm font-medium text-brand-700 dark:text-brand-300"
+                >
+                  Read more about the process →
+                </Link>
               </CardBody>
             </Card>
           </section>
 
           {/* --------------------------------- CTA --------------------------------- */}
-          <section className="mt-12 rounded-2xl border border-brand-200 bg-brand-50 p-6 sm:p-8 dark:border-brand-900 dark:bg-brand-950/40">
+          <section className="rounded-2xl border border-brand-200 bg-brand-50 p-6 sm:p-8 dark:border-brand-900 dark:bg-brand-950/40">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div className="max-w-2xl space-y-2">
                 <h2 className="text-xl font-bold text-brand-900 dark:text-brand-100">
-                  Track your applications in one place
+                  {isStudent ? 'Continue where you left off' : 'Track your applications in one place'}
                 </h2>
                 <p className="text-sm text-brand-900/80 dark:text-brand-100/80">
-                  Create a student account to save listings, submit applications, file your semester
-                  registration and follow the status of your confirmed grants.
+                  {isStudent
+                    ? 'Check the status of your applications, file your semester registration and review your confirmed grants.'
+                    : 'Create a student account to save listings, submit applications, file your semester registration and follow the status of your grants.'}
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
@@ -324,14 +402,7 @@ export function HomePage() {
               </div>
             </div>
           </section>
-
-          <Alert tone="info" title="How this system handles applications" className="mt-6">
-            Some providers accept applications through this platform, and those submissions are tracked
-            here. Other providers run their own application process on their website — for those listings
-            we only show the official link, and progress is not tracked in this system. Each scholarship
-            page states which applies.
-          </Alert>
-        </>
+        </div>
       ) : null}
     </div>
   )

@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
-import { DemoBanner } from '../DemoBanner.tsx'
 import { useAuth } from '../../context/authContext.ts'
 import { initials } from '../../lib/format.ts'
 import { Button, Icon, LinkButton } from '../ui/index.ts'
 import { Avatar, Dropdown } from './Dropdown.tsx'
+
+/** Evaluated once at module load rather than during render. */
+const CURRENT_YEAR = new Date().getFullYear()
 
 const NAV_LINKS = [
   { to: '/', label: 'Home', end: true },
@@ -12,8 +14,16 @@ const NAV_LINKS = [
   { to: '/about', label: 'About', end: false },
 ]
 
+/** Office details shown in the footer. Placeholder values — replace before launch. */
+const OFFICE = {
+  name: 'Scholarship Office',
+  address: 'Provincial Capitol Compound, San Fernando City, Pampanga',
+  email: 'scholarships@example.gov.ph',
+  phone: '(045) 555 0100',
+}
+
 /**
- * Shell for the public site: header, navigation, demo disclosure and footer.
+ * Shell for the public site: header, navigation and footer.
  * The header collapses into a disclosure panel on small screens.
  */
 export function PublicLayout() {
@@ -36,8 +46,6 @@ export function PublicLayout() {
       >
         Skip to main content
       </a>
-
-      <DemoBanner />
 
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
@@ -173,46 +181,104 @@ export function PublicLayout() {
       </main>
 
       <footer className="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3 lg:px-8">
-          <div>
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">Pampanga GrantConnect</p>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              A demonstration platform for consolidating scholarship information and tracking student
-              grants across the province of Pampanga.
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
+          {/* Office */}
+          <div className="lg:col-span-2">
+            <div className="flex items-center gap-2.5">
+              <span
+                aria-hidden="true"
+                className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white"
+              >
+                <Icon name="graduation" className="size-5" />
+              </span>
+              <span className="text-sm font-bold text-slate-900 dark:text-white">
+                Pampanga GrantConnect
+              </span>
+            </div>
+            <p className="mt-3 max-w-md text-sm text-slate-500 dark:text-slate-400">
+              Consolidated scholarship listings and grant records for students across the province of
+              Pampanga.
             </p>
+
+            <address className="mt-5 space-y-2 text-sm not-italic">
+              <p className="font-medium text-slate-900 dark:text-white">{OFFICE.name}</p>
+              <p className="flex items-start gap-2 text-slate-500 dark:text-slate-400">
+                <Icon name="building" className="mt-0.5 size-4 shrink-0" />
+                <span>{OFFICE.address}</span>
+              </p>
+              <p className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                <Icon name="info" className="size-4 shrink-0" />
+                <a
+                  href={`tel:${OFFICE.phone.replace(/[^\d+]/g, '')}`}
+                  className="transition hover:text-brand-700 dark:hover:text-brand-300"
+                >
+                  {OFFICE.phone}
+                </a>
+              </p>
+              <p className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                <Icon name="inbox" className="size-4 shrink-0" />
+                <a
+                  href={`mailto:${OFFICE.email}`}
+                  className="break-all transition hover:text-brand-700 dark:hover:text-brand-300"
+                >
+                  {OFFICE.email}
+                </a>
+              </p>
+            </address>
           </div>
+
+          {/* Scholarships */}
           <div>
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">Explore</p>
-            <ul className="mt-2 space-y-1.5 text-sm">
-              <li>
-                <Link to="/scholarships" className="text-slate-500 transition hover:text-brand-700 dark:text-slate-400">
-                  Scholarship directory
-                </Link>
-              </li>
-              <li>
-                <Link to="/about" className="text-slate-500 transition hover:text-brand-700 dark:text-slate-400">
-                  How this system works
-                </Link>
-              </li>
-              <li>
-                <Link to="/login" className="text-slate-500 transition hover:text-brand-700 dark:text-slate-400">
-                  Sign in
-                </Link>
-              </li>
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">Scholarships</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              {[
+                { to: '/scholarships', label: 'All scholarships' },
+                { to: '/scholarships?type=provincial', label: 'Provincial' },
+                { to: '/scholarships?type=municipal', label: 'Municipal and city' },
+                { to: '/scholarships?type=national', label: 'National' },
+                { to: '/scholarships?deadline=30&sort=deadline', label: 'Closing soon' },
+              ].map((link) => (
+                <li key={link.label}>
+                  <Link
+                    to={link.to}
+                    className="text-slate-500 transition hover:text-brand-700 dark:text-slate-400 dark:hover:text-brand-300"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
+
+          {/* Students */}
           <div>
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">Important</p>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              This is a prototype using sample data. It is not affiliated with any government agency or
-              scholarship provider, and it does not process real applications.
-            </p>
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">For students</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              {[
+                { to: '/register', label: 'Create an account' },
+                { to: '/login', label: 'Sign in' },
+                { to: '/student/applications', label: 'Track an application' },
+                { to: '/student/semester-registration', label: 'Semester registration' },
+                { to: '/about', label: 'How it works' },
+              ].map((link) => (
+                <li key={link.label}>
+                  <Link
+                    to={link.to}
+                    className="text-slate-500 transition hover:text-brand-700 dark:text-slate-400 dark:hover:text-brand-300"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
-        <div className="border-t border-slate-200 py-4 dark:border-slate-800">
-          <p className="mx-auto max-w-7xl px-4 text-xs text-slate-500 sm:px-6 lg:px-8 dark:text-slate-400">
-            Demonstration build · No backend connected · Data is stored only in your browser
-          </p>
+
+        <div className="border-t border-slate-200 py-5 dark:border-slate-800">
+          <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8 dark:text-slate-400">
+            <p>© {CURRENT_YEAR} Pampanga GrantConnect. All rights reserved.</p>
+            <p>Applications handled by external providers are linked directly from each listing.</p>
+          </div>
         </div>
       </footer>
     </div>

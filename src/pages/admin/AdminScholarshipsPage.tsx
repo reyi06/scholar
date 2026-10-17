@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import {
   Alert,
-  Badge,
   Button,
   Card,
   CardBody,
@@ -142,7 +141,6 @@ export function AdminScholarshipsPage() {
         <div className="flex flex-col gap-1">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="font-medium text-slate-900 dark:text-white">{row.name}</span>
-            {row.isSample ? <Badge tone="warning">Sample</Badge> : null}
           </div>
           <span className="text-xs text-slate-500 dark:text-slate-400">{row.provider}</span>
         </div>

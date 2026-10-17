@@ -11,7 +11,6 @@ import {
   LinkButton,
   LoadingState,
   PageHeader,
-  SampleDataNotice,
   StatCard,
 } from '../../components/ui'
 import { useAuth } from '../../context/authContext.ts'
@@ -188,7 +187,6 @@ export function StudentDashboardPage() {
               </CardBody>
             </Card>
 
-            <SampleDataNotice />
           </div>
         </div>
 

@@ -4,10 +4,6 @@
  * These types are the single source of truth for the shape of data flowing
  * between the UI and the data-access layer (`src/lib/api.ts`). When a real
  * backend is added, keep these types and swap the API implementation.
- *
- * NOTE: every record carries `isSample` where the data is placeholder content
- * (see business rule 1 in the project brief). Sample records must stay clearly
- * labelled in the UI until verified information replaces them.
  */
 
 /* ------------------------------------------------------------------ */
@@ -115,7 +111,6 @@ export interface Scholarship {
   status: ScholarshipStatus
   featured: boolean
   tags: string[]
-  isSample: boolean
   createdAt: string
   updatedAt: string
 }
@@ -186,7 +181,6 @@ export interface Application {
   reviewNotes?: string
   reviewedBy?: string
   timeline: ApplicationTimelineEntry[]
-  isSample: boolean
 }
 
 export interface ApplicationFilters {
@@ -222,7 +216,6 @@ export interface SemesterRegistration {
   updatedAt: string
   remarks?: string
   verifiedBy?: string
-  isSample: boolean
 }
 
 export interface RegistrationFilters {
@@ -261,7 +254,6 @@ export interface Grant {
   releasedAt: string
   confirmedBy: string
   remarks?: string
-  isSample: boolean
 }
 
 export interface GrantFilters {
@@ -286,7 +278,6 @@ export interface Announcement {
   pinned: boolean
   publishedAt: string
   author: string
-  isSample: boolean
 }
 
 export interface Notification {

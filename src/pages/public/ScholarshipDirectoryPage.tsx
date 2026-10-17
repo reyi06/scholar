@@ -11,7 +11,6 @@ import {
   LoadingState,
   PageHeader,
   Pagination,
-  SampleDataNotice,
   SearchInput,
   Select,
 } from '../../components/ui'
@@ -148,8 +147,6 @@ export function ScholarshipDirectoryPage() {
         description="Search and filter scholarship listings from provincial, municipal, national, educational and private providers across Pampanga."
         breadcrumbs={[{ label: 'Home', to: '/' }, { label: 'Scholarships' }]}
       />
-
-      <SampleDataNotice className="mt-6" />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[18rem_1fr] lg:items-start">
         {/* ------------------------------- Filters ------------------------------- */}

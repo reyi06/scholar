@@ -131,15 +131,22 @@ export function Dropdown({
   )
 }
 
-/** Initials avatar used in the header and dashboards. */
+/**
+ * Initials avatar used in the header and dashboards.
+ *
+ * The initials are rendered through a pseudo-element rather than as text
+ * content, so the surrounding control's accessible name comes from its own
+ * label instead of the initials. Without this, an avatar button reads as
+ * "Account menu" while showing "LM", which accessibility audits flag as a
+ * visible-text/name mismatch.
+ */
 export function Avatar({ initials, className = '' }: { initials: string; className?: string }) {
   return (
     <span
       aria-hidden="true"
-      className={`flex size-9 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-800 dark:bg-brand-900/50 dark:text-brand-200 ${className}`}
-    >
-      {initials}
-    </span>
+      data-initials={initials}
+      className={`flex size-9 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-800 after:content-[attr(data-initials)] dark:bg-brand-900/50 dark:text-brand-200 ${className}`}
+    />
   )
 }
 

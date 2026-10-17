@@ -3,10 +3,13 @@
 A web-based scholarship information and student grant management system for the
 province of Pampanga, Philippines.
 
-> **This is a demonstration prototype.** It contains **no real scholarship
-> programmes** and is **not affiliated with any government agency, school or
-> provider**. Every listing is clearly labelled sample data. See
-> [Limitations](#limitations) before reading anything on screen as fact.
+Built with React, Vite, TypeScript and Tailwind CSS. The interface runs entirely
+in the browser against a local data store; no backend is connected yet, so
+`src/lib/api.ts` is the seam where one would be added.
+
+Scholarship listings currently shipped with the application are placeholder
+records used to populate the interface. Replace them with verified provider
+information before publishing.
 
 ---
 
@@ -14,15 +17,15 @@ province of Pampanga, Philippines.
 
 - [Stack](#stack)
 - [Getting started](#getting-started)
-- [Demo mode](#demo-mode)
-- [Demo accounts](#demo-accounts)
+- [Local data layer](#local-data-layer)
+- [Test accounts](#test-accounts)
 - [Environment variables](#environment-variables)
 - [Route documentation](#route-documentation)
 - [Project structure](#project-structure)
 - [Architecture](#architecture)
 - [Connecting a real backend](#connecting-a-real-backend)
-- [Business rules](#business-rules)
-- [Limitations](#limitations)
+- [Product rules](#product-rules)
+- [Current scope](#current-scope)
 
 ---
 
@@ -57,36 +60,36 @@ npm run dev     # start the dev server at http://localhost:5173
 
 There is no test runner configured.
 
-## Demo mode
+## Local data layer
 
-**No backend is configured, so the application runs in demo mode.**
+No backend is connected yet, so the interface is served by a frontend data layer:
 
-Demo mode is implemented entirely in the frontend:
+- `src/lib/api.ts` is the only module that touches data. It exposes promise-based
+  methods (`scholarshipsApi.list(...)`, `applicationsApi.create(...)` and so on)
+  with a small simulated latency so that loading states behave like the real thing.
+- Records are seeded from `src/data/sampleData.ts` and persisted to the browser's
+  `localStorage` under keys prefixed `pgc:`, so changes survive a refresh.
+  `schema.ts` exports `DB_VERSION`; bump it when the record shape changes and
+  stale payloads are discarded automatically.
+- The administrator **Settings** page can restore the shipped record set.
 
-- `src/lib/api.ts` is the only place that touches data. It exposes
-  promise-based methods (`scholarshipsApi.list(...)`, `applicationsApi.create(...)`
-  and so on) with a small simulated latency so that loading states are real.
-- Data is seeded from `src/data/sampleData.ts` and persisted to the browser's
-  `localStorage` under keys prefixed `pgc:`. Changes survive a refresh but
-  vanish when site data is cleared.
-- The administrator **Settings** page has a *Reset demo data* action that
-  restores the shipped sample records.
+Sign-in is handled locally against the seeded accounts, so role-based navigation
+can be exercised without a server. Replace this with server-side authentication
+and authorisation before deploying — see [Current scope](#current-scope).
 
-Because everything is client-side, demo mode **cannot** provide real
-authentication, authorisation, email, document upload or durable storage. The
-interface says so wherever those features would otherwise be implied.
+## Test accounts
 
-## Demo accounts
-
-Passwords are stored in plain text in `localStorage` purely so the prototype can
-be explored without a backend. **Never reuse a real password here.**
+Sign-in uses the seeded accounts listed below. Passwords are stored in plain text
+in the data layer because there is no backend yet; replace this with server-side
+verification before deploying.
 
 | Role          | Email                       | Password     |
 | ------------- | --------------------------- | ------------ |
 | Student       | `maria.santos@example.com`  | `student123` |
 | Administrator | `admin@example.com`         | `admin123`   |
 
-Additional sample student accounts exist in `src/data/sampleData.ts`
+The login screen lists both accounts and can fill them in with one click.
+Additional student accounts exist in `src/data/sampleData.ts`
 (`juan.delacruz@`, `ana.reyes@`, `paolo.bautista@` — all `@example.com`, all with
 the password `student123`).
 
@@ -148,7 +151,7 @@ the app still boots in demo mode.
 | `/admin/grants`                    | Grant records              | Confirm and manage grant records                |
 | `/admin/announcements`             | Announcements              | Publish and manage announcements                |
 | `/admin/reports`                   | Reports                    | Breakdowns with filters and CSV export          |
-| `/admin/settings`                  | Settings                   | Platform settings and demo data controls        |
+| `/admin/settings`                  | Settings                   | Platform settings and record controls           |
 
 Any other URL renders the 404 page.
 
@@ -161,8 +164,8 @@ src/
 ├── index.css                # Tailwind import + design tokens
 ├── types/index.ts           # Every domain model
 ├── data/
-│   ├── sampleData.ts        # Clearly labelled sample records
-│   └── schema.ts            # Demo database shape + seed builder
+│   ├── sampleData.ts        # Seed records for the local store
+│   └── schema.ts            # Local store shape + seed builder
 ├── lib/
 │   ├── api.ts               # Data-access layer (the backend seam)
 │   ├── storage.ts           # localStorage wrapper
@@ -214,18 +217,18 @@ Errors are rendered inline and associated with their control through
 3. In `src/lib/api.ts`, replace the body of each method with a `fetch` call.
    The signatures are already async and already throw `Error` with
    user-presentable messages.
-4. Set `DEMO_MODE` to `false` — the demo disclosure banners then disappear
-   automatically.
+4. Move the seeded sign-in credentials out of the client and verify them
+   server-side.
 5. Enforce every rule server-side, especially ownership on application reads,
    role checks, and the rule that a grant requires explicit confirmation.
 
-## Business rules
+## Product rules
 
-The following rules from the project brief are enforced in code:
+These rules are enforced in code. Treat them as regression risks.
 
 | #   | Rule                                                                                              | Where                                                        |
 | --- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| 1   | No invented real programmes — sample data is labelled                                              | `src/data/sampleData.ts`, `SampleDataNotice`, `SampleBadge`   |
+| 1   | Placeholder listings must be replaced with verified provider data before publishing                | `src/data/sampleData.ts`                                     |
 | 2   | Internal vs externally handled applications are distinguished                                      | `Scholarship.applicationMode`, applications pages             |
 | 3   | External application links are shown when supplied                                                 | `ScholarshipDetailPage`                                      |
 | 4   | A pending/approved application never becomes a grant automatically                                 | `grantsApi.confirmFromApplication` is the only path; `awaitingGrantConfirmation()` surfaces the gap |
@@ -234,27 +237,35 @@ The following rules from the project brief are enforced in code:
 | 7   | Students only see and modify their own private records                                             | `applicationsApi.get(id, studentId)` ownership check         |
 | 8   | Private records are not reachable from public routes                                               | No private data is fetched on public pages                   |
 | 9   | Realistic empty states and validation messages, no fake successes                                  | `EmptyState`, inline form errors, toasts only after real effects |
-| 10  | No claims that email, auth, uploads or persistence work                                            | `DemoBanner`, About page, per-feature notices                |
+| 10  | Nothing is claimed that is not implemented                                                         | No toast or copy asserts an email, upload or server write occurred |
 
-## Limitations
+> **Note on labels.** Earlier revisions labelled placeholder listings in the
+> interface — a site-wide banner, per-card `Sample data` badges, and a disclaimer
+> block on the About page. That labelling was removed by explicit product
+> decision. The records in `src/data/sampleData.ts` are still placeholders and
+> provider names are generic stand-ins, so replace them with verified
+> information before the listings are published.
 
-Read this before evaluating the prototype:
+## Current scope
 
-- **No backend.** There is no server, database or API.
-- **No real authentication.** Sign-in compares against sample credentials held in
-  the browser. Passwords are stored in plain text because there is no backend.
-  This is not secure and must be replaced.
-- **Authorisation is cosmetic.** `ProtectedRoute` guards navigation only. Anyone
-  can bypass it with developer tools. Real deployments must enforce
-  authorisation server-side.
-- **No email, SMS or push.** Notifications are in-app only and generated by the
-  demo data layer.
-- **No document upload.** Requirements are stored as text labels; no file ever
-  leaves the browser.
-- **No payments.** Amounts are illustrative records, not disbursements.
-- **Data is not durable.** `localStorage` can be cleared by the user or the
-  browser at any time.
-- **Sample data is not verified information.** Nothing about eligibility,
-  benefits or providers should be treated as accurate.
-- **No Google Fonts / Inter loading.** The font stack names `Inter` first but
-  falls back to the system UI font, to avoid a third-party network request.
+What is not built yet, and what that means in practice:
+
+- **No backend.** Everything runs in the browser; `src/lib/api.ts` is the seam
+  where a server would be connected.
+- **Authentication is local.** Sign-in is checked against seeded accounts held in
+  the browser, and passwords sit in plain text. Replace with server-side
+  verification before deploying.
+- **Authorisation is navigation-only.** `ProtectedRoute` shapes the interface; it
+  is not a security boundary and can be bypassed with developer tools. Enforce
+  every rule server-side as well.
+- **No email, SMS or push.** Notifications are in-app only.
+- **No document upload.** Requirements are recorded as text labels; no file is
+  transmitted or stored.
+- **No payments.** Grant amounts are records, not disbursements.
+- **Storage is browser-local.** Clearing site data removes everything.
+- **No Inter webfont load.** The font stack names `Inter` first and falls back to
+  the system UI font, so no third-party request is made.
+
+Next steps: replace the placeholder listings with verified provider data, connect
+a backend, move authentication and authorisation server-side, and add tests
+around the rules above.

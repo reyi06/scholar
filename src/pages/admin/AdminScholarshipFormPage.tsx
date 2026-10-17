@@ -354,15 +354,9 @@ export function AdminScholarshipFormPage() {
     <div className="space-y-6">
       <PageHeader
         title={title}
-        description="Provide clear, verified details. Listing content stays placeholder until confirmed with the provider."
+        description="Provide clear, accurate details. Students rely on this information when deciding whether to apply."
         breadcrumbs={breadcrumbs}
       />
-
-      <Alert tone="info" title="Placeholder content until verified">
-        Anything entered here is sample content for this prototype. It does not represent a real
-        partnership, benefit or eligibility rule until the provider confirms it. Verify every detail
-        before publishing.
-      </Alert>
 
       {submitAction.error ? (
         <Alert tone="danger" title="We could not save this listing">
@@ -503,7 +497,7 @@ export function AdminScholarshipFormPage() {
               label="Requirements"
               rows={4}
               value={form.requirements}
-              hint="One item per line. Document upload is not implemented in this demo."
+              hint="One item per line."
               onChange={(event) => update('requirements', event.target.value)}
             />
             <Textarea
