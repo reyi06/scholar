@@ -1,21 +1,97 @@
 @import 'tailwindcss';
 
-/* Tailwind v4 reads design tokens straight from CSS.
-   Anything declared in @theme becomes a utility, e.g.
-   --color-brand-500  ->  bg-brand-500 / text-brand-500 / border-brand-500 */
+/* ==================================================================
+   Design tokens
+   Tailwind v4 reads these from CSS: every `--color-*` becomes a
+   utility, e.g. `--color-brand-600` -> `bg-brand-600`.
+   Palette is deliberately restrained: one brand blue, slate neutrals,
+   and four status accents.
+   ================================================================== */
 @theme {
   --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
 
-  --color-brand-50: oklch(0.97 0.02 275);
-  --color-brand-100: oklch(0.94 0.04 275);
-  --color-brand-300: oklch(0.82 0.11 275);
-  --color-brand-500: oklch(0.62 0.2 275);
-  --color-brand-600: oklch(0.55 0.21 275);
-  --color-brand-700: oklch(0.47 0.19 275);
+  /* Brand — deep institutional blue */
+  --color-brand-50: oklch(0.97 0.014 264);
+  --color-brand-100: oklch(0.94 0.03 264);
+  --color-brand-200: oklch(0.89 0.055 264);
+  --color-brand-300: oklch(0.81 0.09 264);
+  --color-brand-400: oklch(0.71 0.14 264);
+  --color-brand-500: oklch(0.62 0.18 264);
+  --color-brand-600: oklch(0.54 0.19 264);
+  --color-brand-700: oklch(0.46 0.17 264);
+  --color-brand-800: oklch(0.39 0.14 264);
+  --color-brand-900: oklch(0.33 0.11 264);
+  --color-brand-950: oklch(0.24 0.08 264);
+
+  /* Accent — used sparingly for highlighted calls to action */
+  --color-accent-100: oklch(0.95 0.05 195);
+  --color-accent-500: oklch(0.65 0.13 195);
+  --color-accent-600: oklch(0.57 0.12 195);
+  --color-accent-700: oklch(0.48 0.1 195);
+
+  --radius-card: 0.75rem;
+}
+
+/* Respect users who ask for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-white text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-200;
+    @apply bg-slate-50 text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-200;
+  }
+
+  /* One consistent, always-visible focus treatment for keyboard users. */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-600;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply text-slate-900 dark:text-white;
+  }
+
+  /* Dark mode form controls default to a light background in some browsers. */
+  input,
+  select,
+  textarea {
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    input,
+    select,
+    textarea {
+      color-scheme: dark;
+    }
+  }
+}
+
+@layer utilities {
+  /* Visually hidden but available to screen readers. */
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
   }
 }
