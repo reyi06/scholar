@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
+import { ThemeToggle } from '../ThemeToggle.tsx'
 import { useAuth } from '../../context/authContext.ts'
 import { initials } from '../../lib/format.ts'
 import { Button, Icon, LinkButton } from '../ui/index.ts'
@@ -81,6 +82,7 @@ export function PublicLayout() {
           </nav>
 
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             {user ? (
               <>
                 <LinkButton to={dashboardPath} variant="outline" size="sm" className="hidden sm:inline-flex">

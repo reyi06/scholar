@@ -62,7 +62,7 @@ export function NotificationBell({ notificationsPath }: { notificationsPath?: st
         <span className="relative flex size-10 items-center justify-center text-slate-600 dark:text-slate-300">
           <Icon name="bell" className="size-5" />
           {hasUnread ? (
-            <span className="absolute top-1.5 right-1.5 flex size-4 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white">
+            <span className="absolute top-1.5 right-1.5 flex size-4 items-center justify-center rounded-full bg-brand-700 text-[10px] font-bold text-white">
               {unreadDisplay}
             </span>
           ) : null}

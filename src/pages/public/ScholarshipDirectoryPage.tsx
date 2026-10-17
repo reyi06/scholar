@@ -147,13 +147,15 @@ export function ScholarshipDirectoryPage() {
               id="directory-search"
               label="Search scholarships"
               hideLabel
-              placeholder="Search by name, provider or keyword"
+              placeholder="Search scholarships"
               value={query}
               onChange={(value) => updateFilter(() => setQuery(value))}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:w-auto">
+          {/* Fixed widths on large screens keep the selects from crowding the
+              search field out of its own row. */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-[repeat(4,11rem)]">
             <Select
               id="directory-type"
               label="Scholarship type"

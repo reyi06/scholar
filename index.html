@@ -7,8 +7,26 @@
     <title>Pampanga GrantConnect</title>
     <meta
       name="description"
-      content="Scholarship information and student grant management for the province of Pampanga. Demonstration prototype using sample data."
+      content="Scholarship information and student grant management for the province of Pampanga."
     />
+    <!--
+      Applies the stored colour theme before the first paint so the page never
+      flashes the wrong one. Keep this rule in step with readInitialTheme() in
+      src/context/ThemeProvider.tsx.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('pgc-theme')
+          var dark =
+            stored === 'dark' ||
+            (stored !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          if (dark) document.documentElement.classList.add('dark')
+        } catch (error) {
+          /* storage blocked; fall back to the light theme */
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

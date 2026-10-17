@@ -27,8 +27,8 @@ export function ScholarshipCard({ scholarship, onToggleSave, saved = false, comp
   const headlineBenefit = scholarship.benefits[0]
 
   return (
-    <article className="group relative rounded-lg border border-slate-200 bg-white transition-colors hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
-      <div className="flex flex-col gap-3 p-5">
+    <article className="group relative flex h-full flex-col rounded-lg border border-slate-200 bg-white transition-colors hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
+      <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
@@ -54,7 +54,7 @@ export function ScholarshipCard({ scholarship, onToggleSave, saved = false, comp
               aria-pressed={saved}
               aria-label={saved ? `Remove ${scholarship.name} from saved` : `Save ${scholarship.name}`}
               className={`relative z-10 -m-1 shrink-0 rounded p-1 transition-colors ${
-                saved ? 'text-brand-700 dark:text-brand-300' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500'
+                saved ? 'text-brand-700 dark:text-brand-300' : 'text-slate-500 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300'
               }`}
             >
               <svg viewBox="0 0 20 20" fill="currentColor" className="size-4">
@@ -83,7 +83,7 @@ export function ScholarshipCard({ scholarship, onToggleSave, saved = false, comp
           </p>
         ) : null}
 
-        <div className="mt-1 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 dark:border-slate-800">
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 dark:border-slate-800">
           <DeadlineBadge deadline={scholarship.deadline} open={isOpen} />
           <span className="text-sm font-medium text-brand-700 dark:text-brand-300">View details</span>
         </div>

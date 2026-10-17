@@ -45,6 +45,11 @@
   --shadow-float: 0 1px 2px rgb(28 25 23 / 0.05), 0 8px 24px -12px rgb(28 25 23 / 0.14);
 }
 
+/* Dark mode is class-based rather than tied to the OS setting, so it can be
+   toggled per user. `dark:` variants now respond to a `.dark` class on <html>,
+   which an inline script in index.html applies before first paint. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -57,12 +62,21 @@
 }
 
 @layer base {
+  /* Native UI (scrollbars, form controls, date pickers) follows the theme. */
+  :root {
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+
   body {
     @apply bg-canvas text-slate-600 antialiased dark:bg-slate-950 dark:text-slate-300;
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-brand-700;
+    @apply outline-2 outline-offset-2 outline-brand-700 dark:outline-brand-400;
   }
 
   h1,
@@ -70,20 +84,6 @@
   h3,
   h4 {
     @apply text-slate-900 dark:text-white;
-  }
-
-  input,
-  select,
-  textarea {
-    color-scheme: light;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    input,
-    select,
-    textarea {
-      color-scheme: dark;
-    }
   }
 }
 

@@ -309,21 +309,25 @@ route('GET', '/api/scholarships', async ({ res, query, user }) => {
 
   const where = buildScholarshipWhere(query, Boolean(includeDrafts)) as never
 
-  const [total, rows] = await Promise.all([
-    prisma.scholarship.count({ where }),
-    prisma.scholarship.findMany({
-      where,
-      orderBy: [{ deadline: 'asc' }],
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
-  ])
+  // Ordered in memory rather than by SQL: "soonest deadline first" has to put
+  // closed listings last, which is a computed rank SQLite cannot express
+  // without a raw query. Listing counts are small enough for this to be cheap.
+  const all = await prisma.scholarship.findMany({ where, take: 1000 })
+  const today = new Date().toISOString().slice(0, 10)
+  const rank = (row: { status: string; deadline: string }): number =>
+    row.status === 'open' && row.deadline >= today ? 0 : 1
 
+  const ordered = [...all].sort((a, b) => rank(a) - rank(b) || a.deadline.localeCompare(b.deadline))
+
+  const total = ordered.length
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const safePage = Math.min(page, totalPages)
+  const start = (safePage - 1) * pageSize
+
   send(res, 200, {
-    items: rows.map(toScholarship),
+    items: ordered.slice(start, start + pageSize).map(toScholarship),
     total,
-    page: Math.min(page, totalPages),
+    page: safePage,
     pageSize,
     totalPages,
   })

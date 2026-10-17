@@ -44,7 +44,7 @@ export function HomePage() {
   const showcase: Scholarship[] = featured.length > 0 ? featured : fallback
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
+    <div className="mx-auto max-w-6xl px-5 pt-16 pb-14 sm:px-8 sm:pt-24 sm:pb-16">
       {/* --------------------------------- Search --------------------------------- */}
       <div className="mx-auto max-w-2xl text-center">
         <p className="text-sm font-medium text-brand-800 dark:text-brand-300">

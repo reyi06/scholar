@@ -107,5 +107,8 @@ export function truncate(value: string, max = 160): string {
   if (value.length <= max) return value
   const cut = value.slice(0, max)
   const lastSpace = cut.lastIndexOf(' ')
-  return `${cut.slice(0, lastSpace > 0 ? lastSpace : max).trimEnd()}…`
+  // Drop any trailing punctuation so the ellipsis does not follow a full stop
+  // and read as "..".
+  const body = cut.slice(0, lastSpace > 0 ? lastSpace : max).replace(/[\s.,;:!?—–-]+$/, '')
+  return `${body}…`
 }

@@ -1,4 +1,5 @@
 import { MUNICIPALITIES } from './constants.ts'
+import { daysUntil } from './format.ts'
 import { createId, createReferenceNumber } from './id.ts'
 import { STORAGE_KEYS, clearAll, readJson, writeJson } from './storage.ts'
 import { DB_VERSION, createSeedDatabase, type DemoDatabase } from '../data/schema.ts'
@@ -269,7 +270,16 @@ function filterScholarships(filters: ScholarshipFilters): Scholarship[] {
   } else if (sort === 'newest') {
     sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   } else {
-    sorted.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime())
+    // Soonest deadline first, but listings that are closed or already past
+    // their deadline sink to the bottom instead of leading the list.
+    const rank = (item: Scholarship): number => {
+      const days = daysUntil(item.deadline)
+      return item.status === 'open' && (days === null || days >= 0) ? 0 : 1
+    }
+    sorted.sort(
+      (a, b) =>
+        rank(a) - rank(b) || new Date(a.deadline).getTime() - new Date(b.deadline).getTime(),
+    )
   }
   return sorted
 }

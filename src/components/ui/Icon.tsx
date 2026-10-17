@@ -38,6 +38,8 @@ export type IconName =
   | 'alert'
   | 'graduation'
   | 'inbox'
+  | 'sun'
+  | 'moon'
 
 const PATHS: Record<IconName, ReactNode> = {
   home: (
@@ -199,6 +201,13 @@ const PATHS: Record<IconName, ReactNode> = {
       <path d="M5 5h14l1 8v6H4v-6z" />
     </>
   ),
+  sun: (
+    <>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4" />
+    </>
+  ),
+  moon: <path d="M20 14.2A8 8 0 0 1 9.8 4a8 8 0 1 0 10.2 10.2z" />,
 }
 
 export interface IconProps {

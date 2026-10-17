@@ -354,7 +354,9 @@ export function ScholarshipDetailPage() {
                 </p>
               ) : null}
               {scholarship.contact.phone ? <p>{scholarship.contact.phone}</p> : null}
-              {scholarship.contact.address ? <p className="text-slate-500">{scholarship.contact.address}</p> : null}
+              {scholarship.contact.address ? (
+                <p className="text-slate-500 dark:text-slate-400">{scholarship.contact.address}</p>
+              ) : null}
               {!scholarship.contact.person &&
               !scholarship.contact.email &&
               !scholarship.contact.phone &&

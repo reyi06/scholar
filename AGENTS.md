@@ -225,13 +225,28 @@ This is **v4, not v3**.
   `npx tailwindcss init`).
 
 ### Dark mode
-`dark:` variants follow the OS/`prefers-color-scheme` setting. There is no
-theme toggle and no `.dark` class. Making it class-based is a deliberate
-behaviour change, not a pure addition:
+Class-based and user-toggleable. `@custom-variant dark` in `src/index.css`
+points `dark:` variants at a `.dark` class on `<html>` instead of the OS
+setting:
 
 ```css
 @custom-variant dark (&:where(.dark, .dark *));
 ```
+
+- `ThemeProvider` (`src/context/ThemeProvider.tsx`) owns the state, persists the
+  choice to `localStorage` under `pgc-theme`, and toggles the class.
+- `ThemeToggle` is rendered in the public header and the dashboard top bar.
+- The initial theme is a stored choice, falling back to the OS preference.
+- An inline script in `index.html` applies the class **before first paint**, so
+  there is no flash of the wrong theme. If you change `readInitialTheme()`,
+  change that script to match.
+- `:root` and `.dark` set `color-scheme`, so native UI (scrollbars, date
+  pickers, form controls) follows the theme too.
+
+**When adding a component, give every text colour its `dark:` counterpart.** A
+light-only `text-slate-500` on a dark surface measures 4.23:1 against
+`slate-950` and fails the 4.5:1 threshold — exactly the bug that shipped in the
+scholarship detail page. Decorative `aria-hidden` icons are exempt.
 
 ### Accessibility
 Lighthouse Accessibility is **100** on the audited pages; keep it there. The
@@ -337,6 +352,35 @@ Do not present the current implementation as secure.
 ## 11. Verification log
 
 Newest first. Record the command and its observed result.
+
+### 2026-10-17 — dark mode and UI refinement pass (all passing)
+
+- **Dark mode** is class-based and toggleable, with `ThemeProvider` persisting
+  the choice and an inline script in `index.html` applying it before first
+  paint. Verified: toggling sets `.dark` on `<html>`, stores `pgc-theme`, and
+  survives a reload; body computes to `slate-950`, cards to `slate-900` with
+  white headings.
+- **Lighthouse in dark mode** on home, directory, detail, login, student
+  dashboard, admin dashboard and admin grants: **Accessibility 100, Best
+  Practices 100, SEO 100, zero failures** on all seven.
+- **Four real defects found by auditing the rendered UI rather than the code:**
+  1. Every scholarship description ended with **two full stops** — my own
+     earlier bulk edit replaced the "Sample content — illustrative only."
+     sentence with `"."` instead of removing it. Fixed in the source and
+     `DB_VERSION` bumped to 3 so browsers re-seed; the database was re-seeded
+     and the API now returns 0 descriptions ending in `..`.
+  2. Section headings were **14px, identical to body text**, so hierarchy rested
+     on weight alone. Raised to 16px: h1 24 → section 16 → body 14 → meta 12.
+  3. The default "Soonest deadline" sort **led with expired listings** ("Closed
+     5 days ago" ranked first). Open listings with a future deadline now rank
+     above closed ones, in both the client and the API.
+  4. Card footers **did not line up across a row**; the card is now a flex column
+     with the footer pushed to the bottom.
+- Also fixed: the directory search input was 224px and clipped its own
+  placeholder; the dashboard top bar rendered an `h2` before the page's `h1`;
+  the notification count used the semantic danger colour; one `text-slate-500`
+  had no dark counterpart (4.23:1, below threshold).
+- `npm run lint` clean; `npm run build` clean.
 
 ### 2026-10-17 — SQLite database and API server (verified end to end)
 
@@ -481,6 +525,29 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-17 — dark mode, plus the defects the visual audit turned up
+
+- **Dark mode** (`@custom-variant dark`, `themeContext.ts`, `ThemeProvider.tsx`,
+  `ThemeToggle.tsx`): class-based instead of OS-driven, toggled from the public
+  header and the dashboard top bar, persisted to `localStorage`, with an inline
+  script in `index.html` applying it before first paint to avoid a flash.
+  `color-scheme` follows the theme so native controls match. Added `sun`/`moon`
+  icons.
+- **Defects fixed after auditing the rendered UI:**
+  - descriptions ended in `..` — my earlier bulk removal of the "Sample content"
+    sentence substituted `"."` rather than nothing; corrected in the source and
+    `DB_VERSION` bumped to 3.
+  - section headings were the same 14px as body text; raised to 16px.
+  - "Soonest deadline" led with expired listings; open listings now rank first
+    (client and API).
+  - card footers did not align across a grid row; the card is a flex column now.
+  - the directory search input clipped its own placeholder; filters now have
+    fixed widths on large screens so the search keeps its space.
+  - the dashboard top bar used an `h2` ahead of the page `h1`; it is plain text.
+  - the notification count used the semantic danger colour; now the accent.
+  - one `text-slate-500` lacked a `dark:` counterpart and failed contrast in
+    dark mode (4.23:1).
 
 ### 2026-10-17 — SQLite database, API server and deployment config
 

@@ -57,7 +57,7 @@ export function SearchInput({
           <button
             type="button"
             onClick={() => onChange('')}
-            className="absolute inset-y-0 right-2 flex items-center rounded px-1.5 text-slate-400 transition hover:text-slate-700 dark:hover:text-slate-200"
+            className="absolute inset-y-0 right-2 flex items-center rounded px-1.5 text-slate-500 transition hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"
             aria-label={`Clear ${label.toLowerCase()}`}
           >
             ✕

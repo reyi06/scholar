@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router'
+import { ThemeToggle } from '../ThemeToggle.tsx'
 import { useAuth } from '../../context/authContext.ts'
 import { initials } from '../../lib/format.ts'
 import { Button, Icon } from '../ui/index.ts'
@@ -136,12 +137,14 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
               >
                 <Icon name="menu" className="size-5" />
               </Button>
-              <h2 className="truncate text-sm font-medium text-slate-900 dark:text-white">
+              {/* Plain text, not a heading: the page itself owns the h1. */}
+              <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
                 {activeItem?.label ?? areaLabel}
-              </h2>
+              </p>
             </div>
 
             <div className="flex items-center gap-1">
+              <ThemeToggle />
               <NotificationBell notificationsPath={notificationsPath} />
               {user ? (
                 <Dropdown

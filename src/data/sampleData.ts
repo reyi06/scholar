@@ -220,7 +220,7 @@ const seeds: Seed[] = [
     municipality: 'Province-wide',
     educationLevels: ['college'],
     description:
-      'A general merit-based assistance programme for academically strong students enrolled in colleges and universities within the province..',
+      'A general merit-based assistance programme for academically strong students enrolled in colleges and universities within the province.',
     benefits: [
       'Tuition assistance per semester',
       'Fixed monthly stipend for the duration of the academic year',
@@ -262,7 +262,7 @@ const seeds: Seed[] = [
     municipality: 'Province-wide',
     educationLevels: ['college'],
     description:
-      'Assistance aimed at students in science, technology, engineering and mathematics programmes..',
+      'Assistance aimed at students in science, technology, engineering and mathematics programmes.',
     benefits: ['Full tuition coverage per semester', 'Laboratory fee subsidy', 'Research allowance'],
     eligibility: [
       'Enrolled in a STEM degree programme',
@@ -295,7 +295,7 @@ const seeds: Seed[] = [
     municipality: 'Guagua',
     educationLevels: ['senior-high', 'college'],
     description:
-      'Local education assistance for residents of the municipality, covering both senior high school and college levels..',
+      'Local education assistance for residents of the municipality, covering both senior high school and college levels.',
     benefits: ['Semestral financial assistance', 'Priority access to local review programmes'],
     eligibility: ['Resident of the municipality', 'Enrolled in a recognised institution'],
     requirements: ['Barangay certification of residency', 'Certificate of enrolment', 'Report card or grades'],
@@ -321,7 +321,7 @@ const seeds: Seed[] = [
     municipality: 'San Fernando City',
     educationLevels: ['senior-high', 'college'],
     description:
-      'Youth-focused assistance for city residents, prioritising applicants from low-income households..',
+      'Youth-focused assistance for city residents, prioritising applicants from low-income households.',
     benefits: ['Fixed semestral grant', 'Free access to city learning hubs'],
     eligibility: ['Resident of the city', 'Household income within the programme threshold'],
     requirements: ['Certificate of residency', 'Certificate of enrolment', 'Proof of household income'],
@@ -347,7 +347,7 @@ const seeds: Seed[] = [
     municipality: 'Province-wide',
     educationLevels: ['college'],
     description:
-      'A nationwide study grant administered directly by a national agency. Applications are handled on the agency website, not in this system..',
+      'A nationwide study grant administered directly by a national agency. Applications are handled on the agency website, not in this system.',
     benefits: ['Subsidised tuition', 'Book allowance', 'Graduation incentive'],
     eligibility: [
       'Filipino citizen enrolled in an accredited programme',
@@ -381,7 +381,7 @@ const seeds: Seed[] = [
     municipality: 'Province-wide',
     educationLevels: ['vocational'],
     description:
-      'Skills training vouchers for technical and vocational programmes. Applications are handled externally..',
+      'Skills training vouchers for technical and vocational programmes. Applications are handled externally.',
     benefits: ['Training fee voucher', 'Assessment fee coverage', 'Toolkit allowance'],
     eligibility: ['At least 15 years old', 'Not currently enrolled in a formal degree programme'],
     requirements: ['Valid government-issued ID', 'Completed agency registration'],
@@ -402,7 +402,7 @@ const seeds: Seed[] = [
     municipality: 'Province-wide',
     educationLevels: ['college'],
     description:
-      'An institution-level tuition discount for students with strong academic standing..',
+      'An institution-level tuition discount for students with strong academic standing.',
     benefits: ['Percentage discount on tuition per semester'],
     eligibility: ['Enrolled in the partner institution', 'Maintaining the required academic standing'],
     requirements: ['Certificate of enrolment', 'Previous semester grades'],
@@ -428,7 +428,7 @@ const seeds: Seed[] = [
     municipality: 'Mabalacat City',
     educationLevels: ['college'],
     description:
-      'Recognition award with a cash incentive for students on the academic honours list..',
+      'Recognition award with a cash incentive for students on the academic honours list.',
     benefits: ['One-time cash incentive', 'Certificate of recognition'],
     eligibility: ['Listed on the honours roll for the previous semester'],
     requirements: ['Copy of grades', 'Certificate of enrolment'],
@@ -448,7 +448,7 @@ const seeds: Seed[] = [
     municipality: 'Province-wide',
     educationLevels: ['college'],
     description:
-      'Privately funded assistance with an external application process managed by the foundation..',
+      'Privately funded assistance with an external application process managed by the foundation.',
     benefits: ['Semestral allowance', 'Mentorship programme'],
     eligibility: ['Enrolled in any recognised college programme', 'Demonstrated financial need'],
     requirements: ['Foundation application form', 'Essays', 'Certificate of enrolment'],
@@ -475,7 +475,7 @@ const seeds: Seed[] = [
     municipality: 'Apalit',
     educationLevels: ['college'],
     description:
-      'Barangay-level assistance for residents. The application window for the current cycle has already closed..',
+      'Barangay-level assistance for residents. The application window for the current cycle has already closed.',
     benefits: ['Semestral barangay allowance'],
     eligibility: ['Resident of the barangay'],
     requirements: ['Barangay certification', 'Certificate of enrolment'],
@@ -495,7 +495,7 @@ const seeds: Seed[] = [
     municipality: 'Province-wide',
     educationLevels: ['senior-high', 'college'],
     description:
-      'Education support for members of indigenous cultural communities..',
+      'Education support for members of indigenous cultural communities.',
     benefits: ['Tuition and allowance support', 'Cultural support programme'],
     eligibility: ['Member of an indigenous cultural community', 'Enrolled in a recognised institution'],
     requirements: ['Certificate of tribal membership', 'Certificate of enrolment'],
@@ -518,7 +518,7 @@ const seeds: Seed[] = [
     municipality: 'Lubao',
     educationLevels: ['college', 'vocational'],
     description:
-      'Assistance for dependents of registered solo parents residing in the municipality..',
+      'Assistance for dependents of registered solo parents residing in the municipality.',
     benefits: ['Semestral grant', 'Priority referral to welfare programmes'],
     eligibility: ['Dependent of a registered solo parent', 'Resident of the municipality'],
     requirements: ['Solo parent identification', 'Certificate of residency', 'Certificate of enrolment'],
@@ -538,7 +538,7 @@ const seeds: Seed[] = [
     municipality: 'Province-wide',
     educationLevels: ['graduate'],
     description:
-      'Fellowship support for graduate-level study and research relevant to local development..',
+      'Fellowship support for graduate-level study and research relevant to local development.',
     benefits: ['Tuition support', 'Research grant', 'Conference travel subsidy'],
     eligibility: ['Accepted into a graduate programme', 'Research topic relevant to local development'],
     requirements: ['Letter of acceptance', 'Research proposal', 'Recommendation letters'],
@@ -558,7 +558,7 @@ const seeds: Seed[] = [
     municipality: 'Angeles City',
     educationLevels: ['vocational'],
     description:
-      'Voucher programme for short technical courses delivered by a local training centre. Applications are handled externally..',
+      'Voucher programme for short technical courses delivered by a local training centre. Applications are handled externally.',
     benefits: ['Course fee voucher', 'Assessment and certification fees'],
     eligibility: ['At least 18 years old', 'Resident of the province'],
     requirements: ['Valid ID', 'Completed training centre registration'],
@@ -582,7 +582,7 @@ const seeds: Seed[] = [
     municipality: 'Province-wide',
     educationLevels: ['college'],
     description:
-      'A draft listing that is still being prepared and is not yet visible to the public..',
+      'A draft listing that is still being prepared and is not yet visible to the public.',
     benefits: ['Tuition support'],
     eligibility: ['To be finalised'],
     requirements: ['To be finalised'],

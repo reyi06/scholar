@@ -237,6 +237,9 @@ is no `tailwind.config.js`. Adding `--color-x` there immediately creates
 - **Metrics are text.** `StatCard` is a label and a value with no card chrome,
   and takes no `icon`. Group several in a bordered band or with `StatRow`.
 - **One primary action per page;** everything else is `outline` or `ghost`.
+- **Dark mode is class-based and user-toggleable** (see `AGENTS.md`). Every text
+  colour needs its `dark:` counterpart — a light-only `text-slate-500` fails
+  contrast on `slate-950`.
 - **Progressive disclosure** via `Accordion`, `Dialog`, `Tabs` and `hideLabel`
   for compact filter toolbars.
 
