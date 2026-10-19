@@ -372,6 +372,37 @@ Do not present the current implementation as secure.
 
 Newest first. Record the command and its observed result.
 
+### 2026-10-19 - Phase 2: measured interaction latency, WCAG 2.2 AA pass
+
+- `npm run lint` clean; `npx tsc -b` clean; `npm run build` clean — 22
+  prerendered pages.
+- **Interaction latency measured on the production build, not assumed.** On the
+  directory, four filter changes: median **5 ms**, worst **12 ms**, **zero long
+  tasks**. On the heaviest administrative page (applications, 9 rows): median
+  **4 ms**, worst **7 ms**, zero long tasks. Both are far inside the 200 ms INP
+  threshold, so nothing was "optimised" on the strength of a guess.
+- **The QR encoder is now a separate 20.14 kB chunk.** Before opening the share
+  dialog, no `qrcode` request is made; after opening, the chunk is fetched and
+  the code renders (442 modules in a 37×37 viewBox). The listing page bundle no
+  longer carries an encoder most readers never need.
+- **WCAG 2.2 SC 2.5.8 (Target Size)**: the `(?)` is a 16 px control with a
+  `::after` overlay of −4 px on each side, giving a measured **24 × 24 CSS px**
+  hit area without changing the visual weight.
+- **SC 3.3.7 (Redundant Entry)**: semester registration now pre-fills from the
+  stored profile. Verified against live data: school *State University —
+  Pampanga Campus*, course *BS Computer Science*, year level *3rd Year*, all
+  still editable because a student does move up.
+- **SC 3.2.6 (Consistent Help)**: a **Help** link now sits in the same place at
+  the foot of every authenticated sidebar, matching the FAQs link in the public
+  header and footer.
+- **SC 2.4.11 (Focus Not Obscured)**: `scroll-padding-top` on `html` and
+  `scroll-margin-top` on focusable elements reserve the sticky header's height,
+  so a focused control is not scrolled underneath it.
+- Responsive sweep: **81 page loads** across 390/768/1280, all clean.
+- **Fonts were checked and are not a factor**: the stack names Inter but no
+  webfont is loaded, so there is no font request to optimise and no `font-display`
+  to set. If Inter is bundled later, that changes.
+
 ### 2026-10-19 - Phase 1: audit trail, data-subject requests, retention
 
 - `npm run lint` clean; `npx tsc -b` clean; `npm run build` clean — 22
@@ -851,6 +882,28 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-19 - Phase 2: measured performance, WCAG 2.2 AA corrections
+
+- **Interaction latency was measured before anything was optimised** — median
+  4–5 ms across filter changes on the directory and the admin applications page,
+  with no long tasks. Nothing was changed on the strength of a hunch; the
+  measurement is now recorded so a future regression has a baseline.
+- **The QR encoder is loaded on demand.** `ShareScholarship` uses a dynamic
+  import inside the dialog opener, so `qrcode` becomes its own 20 kB chunk
+  instead of riding along with every listing view.
+- **Target size**: the `(?)` gained a `::after` overlay that extends its hit area
+  to 24 × 24 without changing its visual size.
+- **Redundant entry removed** from semester registration: school, course and year
+  level are pre-filled from the profile through `useAsync`'s `onSuccess`, and
+  remain editable.
+- **Consistent help**: a Help link at the foot of every authenticated sidebar,
+  in the same position for both roles.
+- **Focus not obscured**: `scroll-padding-top` and `scroll-margin-top` reserve
+  the sticky header's height.
+- Deliberately **not** done: `content-visibility` on long lists, because it can
+  interact badly with find-in-page and anchor scrolling for a gain the
+  measurements did not show a need for.
 
 ### 2026-10-19 - Phase 1: audit trail, data-subject requests, retention
 

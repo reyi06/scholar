@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import qrcode from 'qrcode-generator'
 import { Button } from './ui/Button.tsx'
 import { Dialog } from './ui/Dialog.tsx'
 import { useToast } from '../context/toastContext.ts'
@@ -30,7 +29,16 @@ interface QrCode {
   size: number
 }
 
-function buildQr(text: string): QrCode {
+/**
+ * Encode the URL into modules.
+ *
+ * The encoder is imported here rather than at module scope so it stays out of
+ * the listing page's bundle: most visitors read a listing and never open the
+ * share dialog, so the cost belongs to the interaction that needs it.
+ */
+async function buildQr(text: string): Promise<QrCode> {
+  const { default: qrcode } = await import('qrcode-generator')
+
   // 0 asks the library to choose the smallest version that fits.
   const qr = qrcode(0, 'M')
   qr.addData(text)
@@ -56,13 +64,16 @@ export function ShareScholarship({ scholarshipId, name }: { scholarshipId: strin
   // Built at click time rather than at import time: the origin depends on where
   // the page is actually served from, and prerendering has no `window`.
   const [url, setUrl] = useState('')
+  const [qr, setQr] = useState<QrCode | null>(null)
 
-  function openDialog() {
-    setUrl(`${window.location.origin}/scholarships/${scholarshipId}`)
+  async function openDialog() {
+    const next = `${window.location.origin}/scholarships/${scholarshipId}`
+    setUrl(next)
+    setQr(null)
     setOpen(true)
+    setQr(await buildQr(next))
   }
 
-  const qr = url ? buildQr(url) : null
   const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
   async function copyLink() {
@@ -104,7 +115,7 @@ export function ShareScholarship({ scholarshipId, name }: { scholarshipId: strin
 
   return (
     <>
-      <Button variant="outline" onClick={openDialog} className="w-full">
+      <Button variant="outline" onClick={() => void openDialog()} className="w-full">
         Share
       </Button>
 

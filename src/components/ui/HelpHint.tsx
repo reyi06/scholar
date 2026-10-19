@@ -64,7 +64,7 @@ export function HelpHint({ id, label = 'More information', children }: HelpHintP
         onKeyDown={(event) => {
           if (event.key === 'Escape') hide()
         }}
-        className="inline-flex size-4 items-center justify-center rounded-full border border-slate-300 text-[10px] leading-none font-semibold text-slate-500 transition-colors hover:border-slate-400 hover:text-slate-700 focus-visible:border-brand-700 focus-visible:text-brand-800 dark:border-ink-700 dark:text-slate-400 dark:hover:text-slate-200 dark:focus-visible:text-brand-300"
+        className="relative inline-flex size-4 items-center justify-center rounded-full border border-slate-300 text-[10px] leading-none font-semibold text-slate-500 transition-colors after:absolute after:-inset-1 after:content-[''] hover:border-slate-400 hover:text-slate-700 focus-visible:border-brand-700 focus-visible:text-brand-800 dark:border-ink-700 dark:text-slate-400 dark:hover:text-slate-200 dark:focus-visible:text-brand-300"
       >
         ?
       </button>

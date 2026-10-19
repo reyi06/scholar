@@ -84,13 +84,24 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
         ))}
       </nav>
 
-      <div className="mt-4 border-t border-slate-200 pt-2 dark:border-ink-800">
+      {/* Two links that appear in the same place on every authenticated page:
+          the public site, and help. WCAG 2.2 SC 3.2.6 asks for a help
+          mechanism in a consistent relative order, and a sidebar footer is the
+          one position that is genuinely consistent across roles. */}
+      <div className="mt-4 space-y-0.5 border-t border-slate-200 pt-2 dark:border-ink-800">
+        <NavLink
+          to="/faqs"
+          className="flex items-center gap-3 rounded-md px-2.5 py-1.5 text-sm text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-ink-800 dark:hover:text-white"
+        >
+          <Icon name="info" className="size-4 shrink-0 opacity-70" />
+          Help
+        </NavLink>
         <NavLink
           to="/"
           className="flex items-center gap-3 rounded-md px-2.5 py-1.5 text-sm text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-ink-800 dark:hover:text-white"
         >
           <Icon name="home" className="size-4 shrink-0 opacity-70" />
-          Public site
+          Public Site
         </NavLink>
       </div>
     </div>

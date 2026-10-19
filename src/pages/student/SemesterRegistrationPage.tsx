@@ -19,7 +19,7 @@ import { useAuth } from '../../context/authContext.ts'
 import { useToast } from '../../context/toastContext.ts'
 import { useAsync, useAsyncAction } from '../../hooks/useAsync.ts'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
-import { grantsApi, registrationsApi, type RegistrationInput } from '../../lib/api.ts'
+import { grantsApi, registrationsApi, studentsApi, type RegistrationInput } from '../../lib/api.ts'
 import { ACADEMIC_YEARS, SEMESTERS, YEAR_LEVELS } from '../../lib/constants.ts'
 import { formatDate } from '../../lib/format.ts'
 import {
@@ -123,23 +123,47 @@ export function SemesterRegistrationPage() {
   const toast = useToast()
   const userId = user?.id ?? ''
 
-  const state = useAsync(async () => {
-    if (!userId) return { registrations: [] as SemesterRegistration[], hasGrant: false }
-    const [registrations, grants] = await Promise.all([
-      registrationsApi.listForStudent(userId),
-      grantsApi.listForStudent(userId),
-    ])
-    return { registrations, hasGrant: grants.length > 0 }
-  }, [userId])
-
-  const createRegistration = useAsyncAction((input: RegistrationInput) =>
-    registrationsApi.create(userId, input),
-  )
-
   const [step, setStep] = useState<Step>('details')
   const [form, setForm] = useState<RegistrationFormValues>(EMPTY_FORM)
   const [errors, setErrors] = useState<FormErrors<RegistrationFormValues>>({})
   const [submitted, setSubmitted] = useState<SemesterRegistration | null>(null)
+
+  const state = useAsync(
+    async () => {
+      if (!userId) {
+        return { registrations: [] as SemesterRegistration[], hasGrant: false, profile: null }
+      }
+      const [registrations, grants, profile] = await Promise.all([
+        registrationsApi.listForStudent(userId),
+        grantsApi.listForStudent(userId),
+        studentsApi.profile(userId),
+      ])
+      return { registrations, hasGrant: grants.length > 0, profile }
+    },
+    [userId],
+    {
+      /**
+       * WCAG 2.2 SC 3.3.7 (Redundant Entry): the school, course and year level
+       * are already on the profile, so the student is not asked to type them
+       * again every term. The fields stay editable — a student does move up a
+       * year level.
+       */
+      onSuccess: (data) => {
+        const profile = data.profile
+        if (!profile) return
+        setForm((current) => ({
+          ...current,
+          school: current.school || profile.school,
+          course: current.course || profile.course,
+          yearLevel: current.yearLevel || profile.yearLevel,
+        }))
+      },
+    },
+  )
+
+  const createRegistration = useAsyncAction((input: RegistrationInput) =>
+    registrationsApi.create(userId, input),
+  )
 
   if (!user) {
     return (

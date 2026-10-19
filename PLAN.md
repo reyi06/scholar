@@ -172,6 +172,11 @@ These are small and each one closes a real failure mode.
 
 ### Phase 2 — Performance and accessibility hardening
 
+> **Status: complete.** Interaction latency measured (median 4–5 ms, no long
+> tasks); the QR encoder deferred to a 20 kB on-demand chunk; WCAG 2.2 AA
+> corrections for target size, redundant entry, consistent help and focus not
+> obscured. See the Verification log in `AGENTS.md`.
+
 9. **Measure INP before optimising it.** Add a lightweight reporter (or use the
    existing browser tooling) on the heaviest routes — directory with 14 cards,
    admin applications, reports — then fix what is actually slow. Likely wins:

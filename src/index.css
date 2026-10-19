@@ -116,10 +116,20 @@
 
   html {
     caret-color: var(--color-brand-700);
+    /* WCAG 2.2 SC 2.4.11: a focused element must not be hidden behind the
+       sticky header. This reserves its height when the browser scrolls
+       something into view, and also keeps in-page anchors clear. */
+    scroll-padding-top: 5rem;
   }
 
   html.dark {
     caret-color: var(--color-gold-400);
+  }
+
+  /* The same guard for programmatic focus, which uses scroll-margin rather
+     than scroll-padding. */
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    scroll-margin-top: 5rem;
   }
 
   * {
