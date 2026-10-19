@@ -1,9 +1,10 @@
 import { MUNICIPALITIES } from './constants.ts'
 import { daysUntil } from './format.ts'
+import { IS_REMOTE, httpApi } from './httpApi.ts'
 import { createId, createReferenceNumber } from './id.ts'
 import { STORAGE_KEYS, clearAll, readJson, writeJson } from './storage.ts'
+import { TEST_ACCOUNTS } from './testAccounts.ts'
 import { DB_VERSION, createSeedDatabase, type DemoDatabase } from '../data/schema.ts'
-import { DEMO_ACCOUNTS } from '../data/sampleData.ts'
 import type {
   Announcement,
   AnnouncementAudience,
@@ -137,12 +138,17 @@ function countBy<T>(items: T[], pick: (item: T) => string): Record<string, numbe
 /* Auth                                                                */
 /* ------------------------------------------------------------------ */
 
-export const authApi = {
+const localAuthApi = {
   /** Synchronous session read, used to hydrate the auth context on boot. */
   getCurrentUserSync(): User | null {
     if (!db.sessionUserId) return null
     const user = db.users.find((candidate) => candidate.id === db.sessionUserId)
     return user ? clone(user) : null
+  },
+
+  /** Same answer as `getCurrentUserSync`, for callers that can only be async. */
+  async getSession(): Promise<User | null> {
+    return localAuthApi.getCurrentUserSync()
   },
 
   async login(input: LoginInput): Promise<User> {
@@ -304,7 +310,7 @@ export interface ScholarshipInput {
   tags: string[]
 }
 
-export const scholarshipsApi = {
+const localScholarshipsApi = {
   async list(
     filters: ScholarshipFilters = {},
     page = 1,
@@ -354,7 +360,7 @@ export const scholarshipsApi = {
   },
 
   async setStatus(id: string, status: ScholarshipStatus): Promise<Scholarship> {
-    return scholarshipsApi.update(id, { status })
+    return localScholarshipsApi.update(id, { status })
   },
 
   async remove(id: string): Promise<void> {
@@ -418,7 +424,7 @@ export const scholarshipsApi = {
 /* Saved scholarships (bookmarks)                                      */
 /* ------------------------------------------------------------------ */
 
-export const savedApi = {
+const localSavedApi = {
   async ids(studentId: string): Promise<string[]> {
     await delay()
     return db.saved.filter((entry) => entry.studentId === studentId).map((e) => e.scholarshipId)
@@ -467,7 +473,7 @@ function applicationStatusLabel(status: ApplicationStatus): string {
   return status.replace(/-/g, ' ')
 }
 
-export const applicationsApi = {
+const localApplicationsApi = {
   async listForStudent(studentId: string): Promise<Application[]> {
     await delay()
     const mine = db.applications.filter((item) => item.studentId === studentId)
@@ -703,7 +709,7 @@ export interface RegistrationInput {
   gwa: number | null
 }
 
-export const registrationsApi = {
+const localRegistrationsApi = {
   async listForStudent(studentId: string): Promise<SemesterRegistration[]> {
     await delay()
     const mine = db.registrations.filter((item) => item.studentId === studentId)
@@ -838,7 +844,7 @@ export interface GrantInput {
   remarks?: string
 }
 
-export const grantsApi = {
+const localGrantsApi = {
   async listForStudent(studentId: string): Promise<Grant[]> {
     await delay()
     const mine = db.grants.filter((item) => item.studentId === studentId)
@@ -972,7 +978,7 @@ export interface AnnouncementInput {
   pinned: boolean
 }
 
-export const announcementsApi = {
+const localAnnouncementsApi = {
   /** `audience` filters to what a role should see. Omit for everything. */
   async list(audience?: AnnouncementAudience | Role): Promise<Announcement[]> {
     await delay()
@@ -1029,7 +1035,7 @@ export const announcementsApi = {
 /* Notifications                                                       */
 /* ------------------------------------------------------------------ */
 
-export const notificationsApi = {
+const localNotificationsApi = {
   /** Includes notifications targeted at the user plus broadcasts. */
   async listForUser(userId: string): Promise<Notification[]> {
     await delay()
@@ -1077,7 +1083,7 @@ function buildStudentRecord(user: User): StudentRecord {
   }
 }
 
-export const studentsApi = {
+const localStudentsApi = {
   async list(
     filters: { query?: string; municipality?: string | 'all' } = {},
     page = 1,
@@ -1185,7 +1191,7 @@ export const studentsApi = {
 /* Platform settings                                                   */
 /* ------------------------------------------------------------------ */
 
-export const settingsApi = {
+const localSettingsApi = {
   async get(): Promise<PlatformSettings> {
     await delay(90)
     return clone(db.settings)
@@ -1223,7 +1229,7 @@ export interface BreakdownRow {
   amount: number
 }
 
-export const reportsApi = {
+const localReportsApi = {
   async overview(): Promise<ReportOverview> {
     await delay()
     const scholarships = db.scholarships
@@ -1300,30 +1306,17 @@ export const reportsApi = {
 /* Demo utilities                                                      */
 /* ------------------------------------------------------------------ */
 
-export const demoApi = {
+const localDemoApi = {
   /** Wipe every stored record and re-seed from the shipped records. */
   reset: resetDemoData,
 
   /**
-   * The seeded sign-in credentials, surfaced so the login screen can offer them
-   * without importing the seed data directly.
-   * deployment has no such list.
+   * The seeded sign-in credentials, surfaced so the login screen can offer them.
+   * Defined once in src/lib/testAccounts.ts, shared with the HTTP adapter.
    */
   accounts(): { role: Role; label: string; email: string; password: string }[] {
-    return [
-      {
-        role: 'student',
-        label: 'Student',
-        email: DEMO_ACCOUNTS.student.email,
-        password: DEMO_ACCOUNTS.student.password,
-      },
-      {
-        role: 'admin',
-        label: 'Administrator',
-        email: DEMO_ACCOUNTS.admin.email,
-        password: DEMO_ACCOUNTS.admin.password,
-      },
-    ]
+    // One definition of the test credentials, shared with the HTTP adapter.
+    return TEST_ACCOUNTS.map((account) => ({ ...account }))
   },
 
   /** Remove all app-owned localStorage keys, including the session. */
@@ -1341,3 +1334,45 @@ export const demoApi = {
     }
   },
 }
+
+/* ------------------------------------------------------------------ */
+/* Which data source is active                                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * `VITE_API_BASE_URL` decides at build time whether the app talks to the API
+ * server or to its own browser store. Both implementations expose the same
+ * methods, so no page needs to know which is in play.
+ *
+ * Browser storage is per-browser and not shared: fine for previewing the
+ * interface, wrong for anything real. Set the variable to use the server.
+ *
+ * The assertions below exist because the two implementations are structurally
+ * identical but independently declared, and a union type would make every call
+ * site ambiguous. Divergence between them is caught by the end-to-end check
+ * against a running server rather than by the compiler.
+ */
+export const USING_REMOTE_API = IS_REMOTE
+
+export const authApi = (IS_REMOTE ? httpApi.authApi : localAuthApi) as typeof localAuthApi
+export const scholarshipsApi = (IS_REMOTE
+  ? httpApi.scholarshipsApi
+  : localScholarshipsApi) as typeof localScholarshipsApi
+export const savedApi = (IS_REMOTE ? httpApi.savedApi : localSavedApi) as typeof localSavedApi
+export const applicationsApi = (IS_REMOTE
+  ? httpApi.applicationsApi
+  : localApplicationsApi) as typeof localApplicationsApi
+export const registrationsApi = (IS_REMOTE
+  ? httpApi.registrationsApi
+  : localRegistrationsApi) as typeof localRegistrationsApi
+export const grantsApi = (IS_REMOTE ? httpApi.grantsApi : localGrantsApi) as typeof localGrantsApi
+export const announcementsApi = (IS_REMOTE
+  ? httpApi.announcementsApi
+  : localAnnouncementsApi) as typeof localAnnouncementsApi
+export const notificationsApi = (IS_REMOTE
+  ? httpApi.notificationsApi
+  : localNotificationsApi) as typeof localNotificationsApi
+export const studentsApi = (IS_REMOTE ? httpApi.studentsApi : localStudentsApi) as typeof localStudentsApi
+export const settingsApi = (IS_REMOTE ? httpApi.settingsApi : localSettingsApi) as typeof localSettingsApi
+export const reportsApi = (IS_REMOTE ? httpApi.reportsApi : localReportsApi) as typeof localReportsApi
+export const demoApi = (IS_REMOTE ? httpApi.demoApi : localDemoApi) as typeof localDemoApi

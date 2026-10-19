@@ -99,11 +99,20 @@ Security properties this gives you that browser storage could not:
 - login returns an identical message for a wrong password and an unknown email,
   so accounts cannot be enumerated
 
-> **Scope of the API so far.** It covers authentication, scholarships, saved
-> listings and applications. Registrations, grants, announcements,
-> notifications, students, settings and the administrator write operations are
-> not exposed yet, so the front end still runs against browser storage unless
-> `VITE_API_BASE_URL` is set. See [Current scope](#current-scope).
+> **Both sources are complete and interchangeable.** The API covers
+> authentication, scholarships, saved listings, applications, registrations,
+> grants, announcements, notifications, students, settings and reports, and the
+> client calls it whenever `VITE_API_BASE_URL` is set. Nothing in `src/pages`
+> knows which source is active — the switch lives entirely in
+> `src/lib/api.ts`.
+
+### One difference worth knowing
+
+Over HTTP the session is an httpOnly cookie, which JavaScript cannot read. It
+can therefore only be resolved by asking the server, so `AuthProvider` starts in
+an `initialising` state and `ProtectedRoute` shows a brief "Checking your
+session…" before deciding. Redirecting during that window would bounce a
+signed-in user to the login screen on every refresh.
 
 ## Test accounts
 

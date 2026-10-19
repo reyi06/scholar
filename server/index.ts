@@ -525,6 +525,16 @@ route('GET', '/api/applications', async ({ res, query, user }) => {
   if (status !== 'all') where.status = status
   if (scholarshipId !== 'all') where.scholarshipId = scholarshipId
 
+  const appSearch = (query.get('query') ?? '').trim()
+  if (appSearch) {
+    where.OR = [
+      { referenceNo: { contains: appSearch } },
+      { motivation: { contains: appSearch } },
+      { student: { OR: [{ firstName: { contains: appSearch } }, { lastName: { contains: appSearch } }] } },
+      { scholarship: { name: { contains: appSearch } } },
+    ]
+  }
+
   const page = Math.max(1, Number(query.get('page') ?? 1))
   const pageSize = Math.min(100, Math.max(1, Number(query.get('pageSize') ?? 10)))
 
@@ -881,6 +891,16 @@ route('GET', '/api/registrations', async ({ res, query, user }) => {
     if (value && value !== 'all') where[key] = value
   }
 
+  const regSearch = (query.get('query') ?? '').trim()
+  if (regSearch) {
+    where.OR = [
+      { referenceNo: { contains: regSearch } },
+      { school: { contains: regSearch } },
+      { course: { contains: regSearch } },
+      { student: { OR: [{ firstName: { contains: regSearch } }, { lastName: { contains: regSearch } }] } },
+    ]
+  }
+
   const page = Math.max(1, Number(query.get('page') ?? 1))
   const pageSize = Math.min(100, Math.max(1, Number(query.get('pageSize') ?? 50)))
 
@@ -1048,6 +1068,15 @@ route('GET', '/api/grants', async ({ res, query, user }) => {
   for (const key of ['status', 'academicYear', 'semester'] as const) {
     const value = query.get(key)
     if (value && value !== 'all') where[key] = value
+  }
+
+  const grantSearch = (query.get('query') ?? '').trim()
+  if (grantSearch) {
+    where.OR = [
+      { referenceNo: { contains: grantSearch } },
+      { student: { OR: [{ firstName: { contains: grantSearch } }, { lastName: { contains: grantSearch } }] } },
+      { scholarship: { name: { contains: grantSearch } } },
+    ]
   }
 
   const page = Math.max(1, Number(query.get('page') ?? 1))

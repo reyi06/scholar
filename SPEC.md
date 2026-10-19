@@ -196,8 +196,8 @@ Host needs an SPA fallback — `public/_redirects` (Netlify, Cloudflare Pages) a
 2. `GET /api/accounts` exposes seeded passwords.
 
 **Not built**
-- **Client is not wired to the API.** Every page still reads `localStorage`
-  unless the adapter is added; the API works but has no caller.
+- **Postgres migration.** The schema is still SQLite; the Supabase switch is
+  prepared but needs a connection string.
 - Document upload (requirements are text labels only).
 - Email of any kind — including password reset.
 - Filipino / Kapampangan translations.
@@ -206,5 +206,14 @@ Host needs an SPA fallback — `public/_redirects` (Netlify, Cloudflare Pages) a
   receipt, bulk actions, fuzzy search, sortable columns, command palette.
 - Tier 3: rate limiting, CSRF, security headers, audit log, privacy notice,
   error tracking, analytics.
-- i18n scaffolding, and the `SPEC.md`-adjacent `PRODUCT.md` / `DESIGN.md` that
-  the Impeccable skill expects.
+- i18n scaffolding, and the `PRODUCT.md` / `DESIGN.md` that the Impeccable
+  skill expects.
+
+**Resolved since the first draft**
+- The client is wired to the API (`src/lib/httpApi.ts`), with the source chosen
+  by `VITE_API_BASE_URL`. Verified across all 16 student and administrator
+  pages against a running server.
+- `GET /api/accounts` is gone; the server no longer serves passwords. Test
+  credentials live in the client bundle, which is equivalent for a demo but must
+  be deleted before deployment.
+- Supabase was chosen as the target database; see `DEPLOY.md`.

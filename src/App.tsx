@@ -87,7 +87,18 @@ const NotFoundPage = lazy(async () => ({ default: (await import('./pages/NotFoun
  * Kept here rather than in each page so login and register behave identically.
  */
 function GuestOnlyRoute({ children }: { children: ReactNode }) {
-  const { user } = useAuth()
+  const { user, initialising } = useAuth()
+
+  // Wait for the session before deciding, or a signed-in user briefly sees the
+  // login screen on every refresh.
+  if (initialising) {
+    return (
+      <div className="flex min-h-svh items-center justify-center bg-canvas dark:bg-slate-950">
+        <LoadingState label="Checking your session…" />
+      </div>
+    )
+  }
+
   if (user) {
     return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/student/dashboard'} replace />
   }

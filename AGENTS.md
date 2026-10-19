@@ -353,6 +353,38 @@ Do not present the current implementation as secure.
 
 Newest first. Record the command and its observed result.
 
+### 2026-10-19 - client wired to the API (all pages verified)
+
+- **`src/lib/httpApi.ts`** implements the whole data-layer surface over HTTP,
+  mirroring `src/lib/api.ts` method for method. `src/lib/api.ts` selects between
+  the two at module load from `VITE_API_BASE_URL`, so no page changed.
+- **Async session hydration.** An httpOnly cookie cannot be read by JavaScript,
+  so `AuthProvider` starts in `initialising` and `ProtectedRoute` /
+  `GuestOnlyRoute` wait before deciding. Verified: a refresh keeps the session
+  instead of bouncing to the login screen.
+- **Verified against a running API** as both roles: 7 student pages and 9
+  administrator pages all rendered with real data - application references
+  (PGC-APP-2026-0006, 0003, 0002, 0005), grants (PGC-GRT-2026-0001), 10
+  scholarship rows, 4 students, 25 report rows. Console empty of errors.
+- **Server gaps filled** for the client: educationLevel, deadlineWithinDays,
+  featured and sort on the scholarship query; create/update/delete for listings;
+  `query` search on applications, registrations and grants; `GET /api/stats`.
+- **Bug found and fixed:** `scholarshipQuery({})` returns an empty string, so
+  `listAll` produced `/api/scholarships&pageSize=1000` - an `&` with no `?`,
+  matching no route. The applications page depends on that call for scholarship
+  names and never resolved. Both `list` and `listAll` now build through the one
+  `queryString` helper so the separator cannot be wrong.
+- **Router fix:** static segments now win over parameters. Previously
+  `/api/applications/counts` was captured by `/api/applications/:id`.
+- **Timeout added** to the HTTP client, so a request that never settles fails
+  with a message instead of leaving the UI on a spinner indefinitely.
+- **`GET /api/accounts` removed.** The API no longer serves passwords.
+- Note for future debugging: a dev-server page load measures ~4 s because Vite
+  serves modules unbundled and re-transforms the graph after an edit. The
+  production chunk for the same page is 2-3 kB gzipped. That is a dev
+  characteristic, not a product defect - and it is what a long "Loading page…"
+  in development means.
+
 ### 2026-10-17 — Tier 1 chunk 1: prerendering, Open Graph and a PWA (all passing)
 
 **Prerendering.** `npm run build` now runs `scripts/prerender.ts` after
@@ -570,7 +602,30 @@ through a real browser. Console was empty of errors on every page visited.
 
 Newest first. One entry per meaningful change.
 
-### 2026-10-17 — prerendering, Open Graph, PWA (Tier 1, part 1)
+### 2026-10-19 - client wired to the API, spec sheet and deployment guide
+
+- **`src/lib/httpApi.ts`**: the whole data layer over HTTP, mirroring the local
+  implementation. `src/lib/api.ts` now picks between them at module load from
+  `VITE_API_BASE_URL`, which is why no page needed to change. Local
+  implementations were renamed `local*` and the twelve exports became a single
+  conditional binding at the foot of the file.
+- **Async session hydration** in `AuthProvider`, with `ProtectedRoute` and
+  `GuestOnlyRoute` waiting on `initialising`. An httpOnly cookie is invisible to
+  JavaScript, so the session has to be fetched before a route guard can decide.
+- **`src/lib/testAccounts.ts`** holds the demo credentials, replacing
+  `GET /api/accounts`. The API no longer serves passwords at all.
+- **Server additions**: scholarship mutations; educationLevel,
+  deadlineWithinDays, featured and sort filters; `query` search on
+  applications, registrations and grants; `GET /api/stats`.
+- **Router now prefers static segments over parameters**, collected and scored
+  rather than matched in registration order. This fixed static paths such as
+  `/api/applications/counts` being captured by `/api/applications/:id`.
+- **Client request timeout**: a hung request now surfaces an error rather than
+  an indefinite spinner.
+- **`SPEC.md`** and **`DEPLOY.md`** added; `vercel.json` stopped excluding only
+  `assets/`, which would have rewritten `/api/*` to `index.html`.
+
+### 2026-10-17 - prerendering, Open Graph, PWA (Tier 1, part 1)
 
 - **`scripts/prerender.ts`** runs after `vite build` (wired into `npm run
   build`). It writes one HTML file per public route with per-page `<title>`,
