@@ -7,6 +7,11 @@ import { HttpError } from './httpError.ts'
 import { deleteUpload, readMultipart, readUpload, saveUpload, storedNameFor } from './uploads.ts'
 import { googleIsAuthoritative, verifyGoogleIdToken } from './googleAuth.ts'
 import {
+  clearLoginFailures,
+  loginThrottle,
+  recordLoginFailure,
+} from './throttle.ts'
+import {
   OTP_POLICY,
   checkAddressAllowance,
   consumeCode,
@@ -32,7 +37,12 @@ import {
   toSettings,
   toUser,
 } from './mappers.ts'
-import { DOCUMENT_CLASSIFICATIONS, MUNICIPALITIES_ONLY } from '../src/lib/constants.ts'
+import {
+  APPLICATION_STATUS_LABELS,
+  DOCUMENT_CLASSIFICATIONS,
+  MUNICIPALITIES_ONLY,
+  REGISTRATION_STATUS_LABELS,
+} from '../src/lib/constants.ts'
 import {
   classifyDocument,
   suggestDocumentTitle,
@@ -57,6 +67,17 @@ import type { DocumentClassification, OtpPurpose, Role, User } from '../src/type
 const PORT = Number(process.env.API_PORT ?? 8787)
 const SESSION_COOKIE = 'pgc_session'
 const SESSION_DAYS = 30
+
+/**
+ * `Secure` is set outside development.
+ *
+ * A local demo is served over plain HTTP, where a Secure cookie would simply be
+ * discarded by the browser — the sign-in would appear to succeed and then
+ * immediately be forgotten. Rather than special-case the address, one flag says
+ * whether the deployment terminates TLS.
+ */
+const COOKIE_SECURE =
+  process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true'
 
 /* ------------------------------------------------------------------ */
 /* Small HTTP helpers                                                  */
@@ -121,12 +142,39 @@ async function startSession(res: ServerResponse, userId: string): Promise<void> 
 
   res.setHeader(
     'Set-Cookie',
-    `${SESSION_COOKIE}=${id}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${SESSION_DAYS * 86_400}`,
+    `${SESSION_COOKIE}=${id}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${SESSION_DAYS * 86_400}${COOKIE_SECURE ? '; Secure' : ''}`,
   )
 }
 
 function endSession(res: ServerResponse): void {
-  res.setHeader('Set-Cookie', `${SESSION_COOKIE}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`)
+  res.setHeader(
+    'Set-Cookie',
+    `${SESSION_COOKIE}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0${COOKIE_SECURE ? '; Secure' : ''}`,
+  )
+}
+
+/**
+ * Headers applied to every response.
+ *
+ * Kept in one place so a new route cannot accidentally omit them. This server
+ * only answers the API — the interface is served statically, and carries its own
+ * policy at the host — but an API response is still worth hardening: it should
+ * not be framed, sniffed as another type, or leak the referring page.
+ */
+function applySecurityHeaders(req: IncomingMessage, res: ServerResponse): void {
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+  res.setHeader('X-Frame-Options', 'DENY')
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()')
+
+  // HSTS only when the request already arrived over TLS: sending it over plain
+  // HTTP would lock a developer out of localhost for a year.
+  const forwarded = String(req.headers['x-forwarded-proto'] ?? '')
+    .split(',')[0]
+    .trim()
+  if (forwarded === 'https' || COOKIE_SECURE) {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -228,6 +276,16 @@ route('POST', '/api/auth/login', async ({ req, res }) => {
   const body = await readJson(req)
   const email = String(body.email ?? '').trim().toLowerCase()
   const password = String(body.password ?? '')
+  const origin = requestOrigin(req)
+
+  // Checked before the password is looked at, so a locked-out caller learns
+  // nothing about whether the account exists or the guess was close.
+  const throttle = loginThrottle(email, origin)
+  if (throttle.blocked) {
+    res.setHeader('Retry-After', String(throttle.retryAfterSeconds))
+    const minutes = Math.max(1, Math.ceil(throttle.retryAfterSeconds / 60))
+    throw new HttpError(429, `Too many failed attempts. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`)
+  }
 
   const found = await prisma.user.findUnique({ where: { email } })
   // One message for both failure modes, so the response cannot be used to
@@ -237,9 +295,13 @@ route('POST', '/api/auth/login', async ({ req, res }) => {
   // enterable with a password: verifyPassword would be asked to check against
   // nothing at all.
   if (!found || !found.passwordHash || !verifyPassword(password, found.passwordHash)) {
+    recordLoginFailure(email, origin)
     throw new HttpError(401, 'Those credentials did not match any account.')
   }
 
+  // A legitimate sign-in clears the account's counter, so earlier typos do not
+  // accumulate into a lockout.
+  clearLoginFailures(email)
   await startSession(res, found.id)
   send(res, 200, { user: toUser(found) })
 })
@@ -1495,8 +1557,10 @@ route('GET', '/api/grants', async ({ res, query, user }) => {
 })
 
 route('GET', '/api/grants/total-released', async ({ res }) => {
-  const result = await prisma.grant.aggregate({ _sum: { amount: true } })
-  send(res, 200, result._sum.amount ?? 0)
+  // Summed as integers, divided once: adding peso floats is how a total drifts
+  // from the rows that produced it.
+  const result = await prisma.grant.aggregate({ _sum: { amountCentavos: true } })
+  send(res, 200, (result._sum.amountCentavos ?? 0) / 100)
 })
 
 route('GET', '/api/grants/:id', async ({ res, params, user }) => {
@@ -1548,7 +1612,7 @@ route('POST', '/api/grants/confirm', async ({ req, res, user }) => {
       applicationId,
       academicYear,
       semester,
-      amount,
+      amountCentavos: Math.round(amount * 100),
       status: 'active',
       releasedAt: now,
       confirmedBy: `${admin.firstName} ${admin.lastName}`,
@@ -1596,7 +1660,7 @@ route('POST', '/api/grants', async ({ req, res, user }) => {
       scholarshipId,
       academicYear,
       semester,
-      amount,
+      amountCentavos: Math.round(amount * 100),
       status: (String(body.status ?? 'active') as string),
       releasedAt: body.releasedAt ? new Date(String(body.releasedAt)) : new Date(),
       confirmedBy: `${admin.firstName} ${admin.lastName}`,
@@ -1616,7 +1680,10 @@ route('PATCH', '/api/grants/:id', async ({ req, res, params, user }) => {
   const updated = await prisma.grant.update({
     where: { id: params.id },
     data: {
-      amount: body.amount === undefined ? existing.amount : Number(body.amount),
+      amountCentavos:
+        body.amount === undefined
+          ? existing.amountCentavos
+          : Math.round(Number(body.amount) * 100),
       academicYear: body.academicYear ? String(body.academicYear) : existing.academicYear,
       semester: body.semester ? String(body.semester) : existing.semester,
       status: body.status ? String(body.status) : existing.status,
@@ -2140,7 +2207,7 @@ route('GET', '/api/reports', async ({ res, user }) => {
     prisma.scholarship.findMany({ select: { id: true, status: true } }),
     prisma.application.findMany({ select: { id: true, status: true, scholarshipId: true, submittedAt: true } }),
     prisma.semesterRegistration.findMany({ select: { id: true, status: true } }),
-    prisma.grant.findMany({ select: { id: true, status: true, amount: true, studentId: true } }),
+    prisma.grant.findMany({ select: { id: true, status: true, amountCentavos: true, studentId: true } }),
     prisma.user.findMany({ where: { role: 'student' }, select: { id: true } }),
   ])
 
@@ -2162,16 +2229,23 @@ route('GET', '/api/reports', async ({ res, user }) => {
   const byMonth = tally(applications, (row) => row.submittedAt.toISOString().slice(0, 7))
   const registrationsByStatus = tally(registrations, (row) => row.status)
 
-  const grantsByMunicipality = grants.reduce<Record<string, { count: number; amount: number }>>((acc, row) => {
-    const key = municipalityByStudent.get(row.studentId) ?? 'Not provided'
-    const current = acc[key] ?? { count: 0, amount: 0 }
-    acc[key] = { count: current.count + 1, amount: current.amount + row.amount }
-    return acc
-  }, {})
+  // Accumulated in centavos and divided once, so the municipality totals add up
+  // to exactly the same figure as the overall total.
+  const grantsByMunicipality = grants.reduce<Record<string, { count: number; centavos: number }>>(
+    (acc, row) => {
+      const key = municipalityByStudent.get(row.studentId) ?? 'Not provided'
+      const current = acc[key] ?? { count: 0, centavos: 0 }
+      acc[key] = { count: current.count + 1, centavos: current.centavos + row.amountCentavos }
+      return acc
+    },
+    {},
+  )
 
-  const toRows = (record: Record<string, number>) =>
+  // Status keys are machine values; the labels come from the same maps the rest
+  // of the interface uses, so a report cannot disagree with a badge.
+  const toRows = (record: Record<string, number>, labels: Record<string, string>) =>
     Object.entries(record)
-      .map(([label, count]) => ({ label: label.replace(/-/g, ' '), count, amount: 0 }))
+      .map(([key, count]) => ({ label: labels[key] ?? key.replace(/-/g, ' '), count, amount: 0 }))
       .sort((a, b) => b.count - a.count)
 
   send(res, 200, {
@@ -2188,18 +2262,18 @@ route('GET', '/api/reports', async ({ res, user }) => {
       pendingRegistrations: registrations.filter((row) => row.status === 'pending').length,
       totalGrants: grants.length,
       activeGrants: grants.filter((row) => row.status === 'active').length,
-      totalAmountReleased: grants.reduce((sum, row) => sum + row.amount, 0),
+      totalAmountReleased: grants.reduce((sum, row) => sum + row.amountCentavos, 0) / 100,
     },
-    byStatus: toRows(byStatus),
+    byStatus: toRows(byStatus, APPLICATION_STATUS_LABELS),
     byScholarship: Object.entries(byScholarship)
       .map(([id, count]) => ({ label: scholarshipNames.get(id) ?? 'Removed listing', count, amount: 0 }))
       .sort((a, b) => b.count - a.count),
     byMonth: Object.entries(byMonth)
       .map(([label, count]) => ({ label, count, amount: 0 }))
       .sort((a, b) => a.label.localeCompare(b.label)),
-    registrationsByStatus: toRows(registrationsByStatus),
+    registrationsByStatus: toRows(registrationsByStatus, REGISTRATION_STATUS_LABELS),
     grantsByMunicipality: Object.entries(grantsByMunicipality)
-      .map(([label, value]) => ({ label, count: value.count, amount: value.amount }))
+      .map(([label, value]) => ({ label, count: value.count, amount: value.centavos / 100 }))
       .sort((a, b) => b.amount - a.amount),
   })
 })
@@ -2236,6 +2310,7 @@ export const __routes = routes
 
 const server = createServer((req, res) => {
   void (async () => {
+    applySecurityHeaders(req, res)
     try {
       const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`)
       const segments = url.pathname.split('/').filter(Boolean)

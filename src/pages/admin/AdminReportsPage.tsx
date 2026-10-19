@@ -144,21 +144,21 @@ export function AdminReportsPage() {
   const breakdowns = reportData
     ? [
         {
-          title: 'Applications by status',
+          title: 'Applications by Status',
           description: 'Where every application currently sits in the review process.',
           rows: reportData.byStatus,
           filename: 'applications-by-status',
           metric: 'count' as Metric,
         },
         {
-          title: 'Applications by scholarship',
+          title: 'Applications by Scholarship',
           description: 'Which listings receive the most applications.',
           rows: reportData.byScholarship,
           filename: 'applications-by-scholarship',
           metric: 'count' as Metric,
         },
         {
-          title: 'Applications by month',
+          title: 'Applications by Month',
           description:
             month === 'all'
               ? 'Application volume by the month each one was submitted.'
@@ -168,14 +168,14 @@ export function AdminReportsPage() {
           metric: 'count' as Metric,
         },
         {
-          title: 'Registrations by status',
+          title: 'Registrations by Status',
           description: 'Verification progress for existing-grantee registrations.',
           rows: reportData.registrationsByStatus,
           filename: 'registrations-by-status',
           metric: 'count' as Metric,
         },
         {
-          title: 'Grants by municipality',
+          title: 'Grants by Municipality',
           description: 'Confirmed grant totals and counts per student municipality.',
           rows: reportData.byMunicipality,
           filename: 'grants-by-municipality',

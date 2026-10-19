@@ -169,7 +169,7 @@ async function seed(): Promise<void> {
         registrationId: grant.registrationId ?? null,
         academicYear: grant.academicYear,
         semester: grant.semester,
-        amount: grant.amount,
+        amountCentavos: Math.round(grant.amount * 100),
         status: grant.status,
         releasedAt: new Date(grant.releasedAt),
         confirmedBy: grant.confirmedBy,

@@ -314,7 +314,8 @@ interface GrantRow {
   registrationId: string | null
   academicYear: string
   semester: string
-  amount: number
+  /** Stored as integer centavos; the domain speaks pesos. */
+  amountCentavos: number
   status: string
   releasedAt: Date
   confirmedBy: string
@@ -331,7 +332,9 @@ export function toGrant(row: GrantRow): Grant {
     registrationId: row.registrationId ?? undefined,
     academicYear: row.academicYear,
     semester: row.semester,
-    amount: row.amount,
+    // One division at the boundary, so every consumer sees a peso amount and
+    // the stored value stays exact.
+    amount: row.amountCentavos / 100,
     status: row.status as Grant['status'],
     releasedAt: row.releasedAt.toISOString(),
     confirmedBy: row.confirmedBy,

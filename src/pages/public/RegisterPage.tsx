@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { Alert, Button, Input } from '../../components/ui'
+import { Alert, Button, Checkbox, Input } from '../../components/ui'
 import { StudentDetailsFields } from '../../components/StudentDetailsFields.tsx'
 import {
   emailFormat,
@@ -40,6 +40,8 @@ interface RegisterFormValues extends StudentDetailsValues {
   email: string
   password: string
   confirmPassword: string
+  /** Required: the Data Privacy Act expects a notice at the point of collection. */
+  acceptedPrivacy: boolean
 }
 
 const EMPTY: RegisterFormValues = {
@@ -49,6 +51,7 @@ const EMPTY: RegisterFormValues = {
   email: '',
   password: '',
   confirmPassword: '',
+  acceptedPrivacy: false,
 }
 
 export function RegisterPage() {
@@ -93,13 +96,19 @@ export function RegisterPage() {
    */
   function validateStep(current: 1 | 2): FormErrors<RegisterFormValues> {
     if (current === 1) {
-      return validateForm(values, {
+      const found = validateForm(values, {
         firstName: [required('First name'), minLength(2, 'First name')],
         lastName: [required('Last name'), minLength(2, 'Last name')],
         email: [required('Email address'), emailFormat()],
         password: [required('Password'), minLength(8, 'Password')],
         confirmPassword: [required('Password confirmation')],
       })
+
+      if (!values.acceptedPrivacy) {
+        found.acceptedPrivacy = 'Read the privacy notice and confirm before continuing.'
+      }
+
+      return found
     }
 
     return validateStudentDetails(values)
@@ -216,6 +225,27 @@ export function RegisterPage() {
               value={values.confirmPassword}
               error={errors.confirmPassword}
               onChange={(event) => update('confirmPassword', event.target.value)}
+            />
+
+            {/* The notice belongs at the point of collection, not in a footer
+                link the student may never open. */}
+            <Checkbox
+              id="register-privacy"
+              label={
+                <>
+                  I have read the{' '}
+                  <Link
+                    to="/privacy"
+                    className="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-300"
+                  >
+                    Privacy Notice
+                  </Link>{' '}
+                  and understand how my details and documents will be used.
+                </>
+              }
+              checked={values.acceptedPrivacy}
+              error={errors.acceptedPrivacy}
+              onChange={(event) => update('acceptedPrivacy', event.target.checked)}
             />
 
             <Button type="submit" fullWidth>

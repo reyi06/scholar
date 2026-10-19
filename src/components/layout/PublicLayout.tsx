@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
+import { RouteErrorBoundary } from '../ErrorBoundary.tsx'
 import { ThemeToggle } from '../ThemeToggle.tsx'
 import { useAuth } from '../../context/authContext.ts'
 import { initials } from '../../lib/format.ts'
@@ -20,6 +21,7 @@ const FOOTER_LINKS = [
   { to: '/announcements', label: 'Announcements' },
   { to: '/faqs', label: 'FAQs' },
   { to: '/about', label: 'About' },
+  { to: '/privacy', label: 'Privacy' },
   { to: '/login', label: 'Sign In' },
 ]
 
@@ -167,7 +169,9 @@ export function PublicLayout() {
       </header>
 
       <main id="main" className="flex-1">
-        <Outlet />
+        <RouteErrorBoundary>
+          <Outlet />
+        </RouteErrorBoundary>
       </main>
 
       <footer className="border-t border-slate-200 bg-white dark:border-ink-800 dark:bg-ink-950">

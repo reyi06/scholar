@@ -23,6 +23,9 @@ prisma/migrations/dev.db*
 # a student's certificate is personal data.
 uploads/
 
+# Generated verification artefacts (responsive screenshots, scratch scripts).
+tmp/
+
 # Local environment files — never commit secrets.
 .env
 .env.*

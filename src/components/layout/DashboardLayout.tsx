@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router'
+import { RouteErrorBoundary } from '../ErrorBoundary.tsx'
 import { ThemeToggle } from '../ThemeToggle.tsx'
 import { useAuth } from '../../context/authContext.ts'
 import { initials } from '../../lib/format.ts'
@@ -173,7 +174,9 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
 
         <main id="dashboard-main" className="flex-1 px-5 py-8 sm:px-8">
           <div className="mx-auto max-w-6xl">
-            <Outlet />
+            <RouteErrorBoundary>
+              <Outlet />
+            </RouteErrorBoundary>
           </div>
         </main>
       </div>

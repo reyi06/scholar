@@ -234,6 +234,7 @@ async function writeSitemap(): Promise<number> {
     { loc: '/scholarships', changefreq: 'daily', priority: '0.9' },
     { loc: '/announcements', changefreq: 'daily', priority: '0.7' },
     { loc: '/about', changefreq: 'monthly', priority: '0.5' },
+    { loc: '/privacy', changefreq: 'yearly', priority: '0.3' },
     { loc: '/faqs', changefreq: 'monthly', priority: '0.5' },
     { loc: '/register', changefreq: 'monthly', priority: '0.4' },
     { loc: '/login', changefreq: 'yearly', priority: '0.2' },
@@ -386,6 +387,12 @@ writePage({
   path: '/announcements',
 })
 writePage({
+  title: 'Privacy Notice | Scholar',
+  description:
+    'What Scholar collects, why, who can see it, how long it is kept, and the rights of a data subject under the Data Privacy Act.',
+  path: '/privacy',
+})
+writePage({
   title: 'Frequently Asked Questions | Scholar',
   description:
     'How scholarships, applications, semester registration and confirmed grants work on Scholar.',
@@ -403,7 +410,7 @@ writePage({
   // Auth screens have nothing to offer a search result.
   noindex: true,
 })
-written += 7
+written += 8
 
 /**
  * Brand images are written to public/ (so the dev server serves them and they
@@ -425,7 +432,7 @@ writeRobots()
 writeServiceWorker()
 
 console.log(`Prerendered ${written} pages (${listings.length} listings)`)
-console.log(`  sitemap.xml          ${sitemapListings + 7} urls`)
+console.log(`  sitemap.xml          ${sitemapListings + 8} urls`)
 console.log('  robots.txt           regenerated')
 console.log('  og-image.png         1200x630')
 console.log('  icon-192/512, apple-touch-icon')

@@ -221,7 +221,13 @@ model Grant {
   registrationId String?
   academicYear   String
   semester       String
-  amount         Float
+  /// Released amount in **centavos**, stored as an integer.
+  ///
+  /// Money in a floating-point column accumulates rounding error the moment it
+  /// is summed, and a report that disagrees with its own rows by a centavo is
+  /// the kind of defect that discredits the rest. The API still speaks pesos;
+  /// the conversion happens at this boundary.
+  amountCentavos Int      @default(0)
   status         String // active | completed | suspended
   releasedAt     DateTime
   confirmedBy    String

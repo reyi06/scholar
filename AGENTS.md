@@ -372,6 +372,38 @@ Do not present the current implementation as secure.
 
 Newest first. Record the command and its observed result.
 
+### 2026-10-19 - Phase 0: resilience, privacy, throttling, headers, integer money
+
+- `npm run lint` clean; `npx tsc -b` clean; `npm run build` clean — **22
+  prerendered pages**, 22 sitemap URLs.
+- **Sign-in throttling.** Six attempts on one address: `401` five times, then
+  `429` with `{"error":"Too many failed attempts. Try again in 15 minutes."}`.
+  A different account still signs in `200`, so the counters are per account and
+  the lockout does not spill.
+- **Security headers on the API**: `X-Content-Type-Options: nosniff`,
+  `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`,
+  `Permissions-Policy`. HSTS is correctly **absent** over plain HTTP and is set
+  when the request arrives over TLS.
+- **CSP on the built application.** `npm run preview` serves the production build
+  with the full policy; the app rendered, its assets returned 200, the API proxy
+  worked and **no CSP violation was logged**. `upgrade-insecure-requests` is in
+  `vercel.json` but deliberately not in the preview headers, where it would
+  rewrite every request to HTTPS and break the preview.
+- **Privacy notice.** `/privacy` prerenders with eight sections. Submitting
+  registration step one without consent is refused with "Read the privacy notice
+  and confirm before continuing", and the checkbox links to the notice.
+- **Integer money.** Migration `20261019130000_grant_amount_centavos` added
+  `amountCentavos`, copied `ROUND(amount * 100)` and dropped the float column.
+  Stored values verify as `1500000` for ₱15,000. `/api/grants/total-released`
+  returns **60500**, and the per-municipality report rows (30000 + 12500 + 10000
+  + 8000) sum to exactly the same figure.
+- **Report labels fixed.** The reports endpoint was deriving labels from status
+  keys (`needs info`, `under review`). It now uses the same label maps as the
+  rest of the interface: *Needs Information*, *Under Review*.
+- Note: a stale service worker on the preview origin served an old shell and
+  made the first CSP check look blank. Unregistering it restored the page; the
+  worker is production behaviour, not a defect.
+
 ### 2026-10-19 - responsive check tooling and the announcement channel
 
 - `npm run lint` clean; `npx tsc -b` clean; `npm run build` clean — **21
@@ -795,6 +827,33 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-19 - Phase 0: error boundary, privacy notice, throttling, headers, integer money
+
+- **`src/components/ErrorBoundary.tsx`** wraps the layout outlet, so a render
+  failure is contained to the content area and the shell survives. React
+  unmounts the entire tree on an uncaught render error, which is how a single bad
+  value becomes a blank page. The boundary resets on navigation through a `key`,
+  so no state is set in a lifecycle method (and no lint suppression is needed).
+- **`/privacy`** — a Data Privacy Act notice written in plain language: what is
+  collected, why, who can see it, retention, rights and security. Registration
+  now requires an explicit consent checkbox that links to it, because the notice
+  belongs at the point of collection rather than in a footer.
+- **`server/throttle.ts`** — per-account and per-address failed-login counters
+  (5 / 15 minutes and 20 / 15 minutes), checked before the password is examined
+  and cleared on success. In memory, which is stated rather than implied.
+- **Security headers** on every API response, plus `Secure` on the session cookie
+  outside development. A full **CSP** is applied by the host: `vite preview` and
+  `vercel.json`, so the production policy is exercised by the preview build
+  rather than discovered after deployment.
+- **`Grant.amount` → `amountCentavos Int`.** Money in a float accumulates
+  rounding error the moment it is summed; a report that disagrees with its own
+  rows by a centavo undermines the rest of it. The migration converts existing
+  rows with `ROUND(amount * 100)` rather than dropping them, the API still speaks
+  pesos, and totals are summed as integers and divided once.
+- **Report status labels now come from the shared label maps**, so a report
+  cannot print `needs info` where the interface shows *Needs Information*.
+- `tmp/` is git-ignored: it holds generated screenshots and scratch scripts.
 
 ### 2026-10-19 - responsive verification tooling, announcements revamped
 

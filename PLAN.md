@@ -120,6 +120,10 @@ that merely *delight* come last.
 
 ### Phase 0 — Correctness and trust (before anything else)
 
+> **Status: complete.** Error boundary, privacy notice with consent, sign-in
+> throttling, security headers with a tested CSP, and integer money are all
+> implemented and verified. See the Verification log in `AGENTS.md`.
+
 These are small and each one closes a real failure mode.
 
 1. **Add an error boundary** around the route tree, with a recovery action rather
