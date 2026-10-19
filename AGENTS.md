@@ -60,10 +60,19 @@ administrator `admin@example.com` / `admin123`.
 | typescript    | `~6.0.2`   | 6.0.3     |
 | oxlint        | `^1.81.0`  | 1.88.0    |
 
-Runtime dependencies are **React, React DOM and React Router only**. Icons,
-dialogs, tables, CSV export and form validation are implemented in-repo to
-honour the "avoid unnecessary dependencies" requirement. Do not add a
+Runtime dependencies are **React, React DOM, React Router and
+`qrcode-generator`**. Icons, dialogs, tables, CSV export, form validation,
+multipart uploads, JWT verification and one-time codes are implemented in-repo
+to honour the "avoid unnecessary dependencies" requirement. Do not add a
 dependency for something small that already exists here.
+
+**The one exception, and why.** `qrcode-generator` encodes QR codes for the
+scholarship share dialog. QR is a standardised algorithm — Reed–Solomon error
+correction, version selection, eight mask patterns and their penalty rules —
+whose output cannot be checked by reading it: a malformed code looks exactly
+like a working one until someone points a phone at it. It is confined to
+`src/components/ShareScholarship.tsx`; the SVG is still drawn here. If it is ever
+replaced, keep the decoded output as the test, not a visual inspection.
 
 Package manager is **npm** (`package-lock.json` is committed).
 
@@ -359,6 +368,24 @@ Do not present the current implementation as secure.
 ## 11. Verification log
 
 Newest first. Record the command and its observed result.
+
+### 2026-10-19 - scholarship sharing and QR codes (decoded, not eyeballed)
+
+- `npm run lint` clean; `npx tsc -b` clean; `npm run build` clean.
+- The Share dialog opens from the listing sidebar and renders a 29x29 QR
+  (version 3, EC level M) inside a 4-module quiet zone.
+- **The code was decoded, not inspected.** The rendered SVG's modules were
+  extracted, rasterised, and read with OpenCV's `QRCodeDetector`:
+  `decoded: 'http://localhost:5173/scholarships/sch_008'` — the exact URL in the
+  field beside it. A screenshot can show a plausible-looking QR that does not
+  scan, so this is the check that matters.
+- Escape closes the dialog and returns focus.
+- `navigator.clipboard.writeText` was refused in the test browser; the
+  selection-based fallback ran and the failure was reported as a toast rather
+  than a false success. Copying therefore degrades instead of silently doing
+  nothing.
+- Note: adding the dependency triggered Vite to re-optimise and reload, so the
+  first page load after installing it was blank for a few seconds. Not a defect.
 
 ### 2026-10-19 - typography sweep, OTP and a full route sweep (all passing)
 
@@ -739,6 +766,24 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-19 - share a listing as a link or a QR code
+
+- **`src/components/ShareScholarship.tsx`** adds a Share button to the listing
+  sidebar. It opens a dialog with a QR code, the address, a Copy Link button and,
+  where the browser supports it, the native share sheet.
+- **The QR is generated in the browser**, not fetched from an image service: a
+  listing URL reveals which scholarship a student is looking at, and that is not
+  something to hand a third party for a picture.
+- **Always dark-on-white with a four-module quiet zone, in both themes.** A code
+  recoloured for dark mode does not scan reliably.
+- `qrcode-generator` is used for the encoding only; the SVG is drawn here. This
+  is the one client dependency chosen over a hand-rolled implementation — see
+  the dependency note in section 3 for the reasoning and the verification
+  requirement.
+- Copy falls back to selecting the field and `document.execCommand('copy')` when
+  the Clipboard API is unavailable or refused, and reports failure rather than
+  claiming success.
 
 ### 2026-10-19 - OTP verification, sign-up prerequisites, typography, rename
 

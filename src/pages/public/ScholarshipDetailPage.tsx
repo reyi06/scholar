@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams } from 'react-router'
 import { DeadlineBadge } from '../../components/DeadlineBadge.tsx'
+import { ShareScholarship } from '../../components/ShareScholarship.tsx'
 import { StatusBadge } from '../../components/StatusBadge.tsx'
 import {
   Alert,
@@ -308,15 +309,16 @@ export function ScholarshipDetailPage() {
                 </>
               )}
 
-              <div className="border-t border-slate-200 pt-4 dark:border-ink-800">
+              <div className="space-y-2 border-t border-slate-200 pt-4 dark:border-ink-800">
                 <Button
                   variant="outline"
                   fullWidth
                   onClick={() => toggle(scholarship)}
                   aria-pressed={saved}
                 >
-                  {saved ? 'Saved' : 'Save for later'}
+                  {saved ? 'Saved' : 'Save for Later'}
                 </Button>
+                <ShareScholarship scholarshipId={scholarship.id} name={scholarship.name} />
               </div>
             </CardBody>
           </Card>
