@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { USING_REMOTE_API, authApi } from '../lib/api.ts'
-import type { LoginInput, RegisterInput, User } from '../types/index.ts'
+import type { CompleteProfileInput, LoginInput, RegisterInput, User } from '../types/index.ts'
 import { AuthContext, type AuthContextValue } from './authContext.ts'
 
 /**
@@ -17,6 +17,8 @@ import { AuthContext, type AuthContextValue } from './authContext.ts'
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => authApi.getCurrentUserSync())
   const [initialising, setInitialising] = useState(USING_REMOTE_API)
+  const [googleEnabled, setGoogleEnabled] = useState(false)
+  const [googleClientId, setGoogleClientId] = useState('')
 
   useEffect(() => {
     if (!USING_REMOTE_API) return undefined
@@ -43,6 +45,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(() => {
     setUser(authApi.getCurrentUserSync())
+  }, [])
+
+  // Ask once whether Google sign-in is available. A deployment without a
+  // client id simply never shows the button.
+  useEffect(() => {
+    let cancelled = false
+    authApi
+      .googleConfig()
+      .then((config) => {
+        if (cancelled) return
+        setGoogleEnabled(config.configured)
+        setGoogleClientId(config.clientId)
+      })
+      .catch(() => {
+        if (!cancelled) setGoogleEnabled(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const signInWithGoogle = useCallback(async (credential: string) => {
+    const result = await authApi.googleSignIn(credential)
+    setUser(result.user)
+    return result.user
+  }, [])
+
+  const completeProfile = useCallback(async (input: CompleteProfileInput) => {
+    const updated = await authApi.completeGoogleProfile(input)
+    setUser(updated)
+    return updated
   }, [])
 
   const login = useCallback(async (input: LoginInput) => {
@@ -73,8 +106,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       logout,
       refresh,
+      googleEnabled,
+      googleClientId,
+      signInWithGoogle,
+      completeProfile,
+      needsProfile: user !== null && !user.profileComplete,
     }),
-    [user, initialising, login, register, logout, refresh],
+    [
+      user,
+      initialising,
+      login,
+      register,
+      logout,
+      refresh,
+      googleEnabled,
+      googleClientId,
+      signInWithGoogle,
+      completeProfile,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

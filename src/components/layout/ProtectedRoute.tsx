@@ -11,7 +11,7 @@ import type { Role } from '../../types/index.ts'
  * enforced on the server, which is the boundary that actually holds.
  */
 export function ProtectedRoute({ role }: { role: Role }) {
-  const { user, initialising } = useAuth()
+  const { user, initialising, needsProfile } = useAuth()
   const location = useLocation()
 
   // Over HTTP the session has to be fetched before we can tell signed-in from
@@ -28,6 +28,14 @@ export function ProtectedRoute({ role }: { role: Role }) {
   if (!user) {
     // Remember where the user was heading so login can send them back.
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  }
+
+  // A Google-created account has an email address and nothing else. Everything
+  // behind this guard assumes a student profile — matching, applying,
+  // registration — so the completion step comes first rather than rendering a
+  // shell around data that does not exist.
+  if (needsProfile && location.pathname !== '/welcome') {
+    return <Navigate to="/welcome" replace />
   }
 
   if (user.role !== role) {

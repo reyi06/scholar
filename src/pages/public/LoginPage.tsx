@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { Alert, Button, Input } from '../../components/ui'
+import { GoogleSignInButton } from '../../components/GoogleSignInButton.tsx'
 import { demoApi } from '../../lib/api.ts'
 import { emailFormat, hasErrors, required, validateForm, type FormErrors } from '../../lib/validation.ts'
 import { useAsyncAction } from '../../hooks/useAsync.ts'
@@ -11,7 +12,7 @@ import type { LoginInput } from '../../types/index.ts'
 
 export function LoginPage() {
   useDocumentTitle('Sign in')
-  const { login } = useAuth()
+  const { login, googleEnabled } = useAuth()
   const toast = useToast()
   const navigate = useNavigate()
   const location = useLocation()
@@ -83,6 +84,23 @@ export function LoginPage() {
           Sign in
         </Button>
       </form>
+
+      {/* Google sign-in is offered only when the API reports a client id, so a
+          deployment without one never shows a control that cannot work. */}
+      {googleEnabled ? (
+        <>
+          <div className="my-6 flex items-center gap-3">
+            <span className="h-px flex-1 bg-slate-200 dark:bg-ink-800" />
+            <span className="text-xs text-slate-500 dark:text-slate-400">or</span>
+            <span className="h-px flex-1 bg-slate-200 dark:bg-ink-800" />
+          </div>
+          <GoogleSignInButton
+            onError={(message) => {
+              toast.error('Google sign-in failed', message)
+            }}
+          />
+        </>
+      ) : null}
 
       <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
         No account yet?{' '}

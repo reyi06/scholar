@@ -57,6 +57,9 @@ export const sampleUsers: User[] = [
     firstName: 'Liza',
     lastName: 'Mendoza',
     createdAt: daysAgo(320),
+    profileComplete: true,
+    hasPassword: true,
+    usesGoogle: false,
   },
   {
     id: 'usr_student_1',
@@ -65,6 +68,9 @@ export const sampleUsers: User[] = [
     firstName: 'Maria',
     lastName: 'Santos',
     createdAt: daysAgo(210),
+    profileComplete: true,
+    hasPassword: true,
+    usesGoogle: false,
   },
   {
     id: 'usr_student_2',
@@ -73,6 +79,9 @@ export const sampleUsers: User[] = [
     firstName: 'Juan',
     lastName: 'Dela Cruz',
     createdAt: daysAgo(180),
+    profileComplete: true,
+    hasPassword: true,
+    usesGoogle: false,
   },
   {
     id: 'usr_student_3',
@@ -81,6 +90,9 @@ export const sampleUsers: User[] = [
     firstName: 'Ana',
     lastName: 'Reyes',
     createdAt: daysAgo(150),
+    profileComplete: true,
+    hasPassword: true,
+    usesGoogle: false,
   },
   {
     id: 'usr_student_4',
@@ -89,6 +101,9 @@ export const sampleUsers: User[] = [
     firstName: 'Paolo',
     lastName: 'Bautista',
     createdAt: daysAgo(96),
+    profileComplete: true,
+    hasPassword: true,
+    usesGoogle: false,
   },
 ]
 

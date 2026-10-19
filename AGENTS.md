@@ -360,6 +360,40 @@ Do not present the current implementation as secure.
 
 Newest first. Record the command and its observed result.
 
+### 2026-10-19 - Google sign-in and the profile-completion gate (verified)
+
+- `npm run lint` clean; `npx tsc -b` clean; `npm run build` clean — 20 pages.
+  Migration `20261019093734_google_sign_in` applied.
+- **Unconfigured behaviour is honest.** With `GOOGLE_CLIENT_ID` unset,
+  `GET /api/auth/google/config` returns `{configured:false}`, the login page
+  renders **no button and no "or" divider**, and the GIS script is never
+  fetched. `POST /api/auth/google` returns **503**. Nothing advertises a
+  capability that is not wired.
+- **The important security case:** a Google-created account stores an empty
+  `passwordHash`. Signing in with an empty password returns **401**
+  ("Those credentials did not match any account"), as does a guessed password.
+  The login route refuses any account with no hash rather than asking
+  `verifyPassword` to check against nothing.
+- **Existing password accounts are unaffected:** a normal login still returns
+  200 with `profileComplete: true, hasPassword: true, usesGoogle: false`.
+- **Token verification path exercised:** malformed credentials are rejected
+  401 with a specific message; audience, issuer and expiry checks are all
+  present in `server/googleAuth.ts`. A real Google token could not be tested
+  here because it needs a Cloud OAuth client, so the signature path is
+  exercised only by construction.
+- **Route guard, in the browser:** with a session for a `profileComplete:false`
+  account, a deep link to `/student/grants` lands on `/welcome`; the email is
+  pre-filled and disabled; submitting with an invented municipality is refused;
+  submitting a real one returns 200 and the session then reports
+  `profileComplete: true`.
+- **A real gap found and closed:** the server accepted `municipality: "Angola"`
+  (not a Pampanga LGU) in the earlier HTTP test, because only the client's
+  select constrained it. `POST /api/auth/google/complete` and
+  `POST /api/auth/register` now validate against `MUNICIPALITIES_ONLY`.
+- Note: the first browser attempt failed because a previous session was still
+  active, so `GuestOnlyRoute` never rendered the login form and the script hit
+  missing inputs. Sign out first when testing an auth screen.
+
 ### 2026-10-19 - document upload, classification and review (verified end to end)
 
 - `npm run lint` clean; `npx tsc -b` clean; `npm run build` clean — 20
@@ -667,6 +701,44 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-19 - Google sign-in, with a profile-completion step
+
+- **`server/googleAuth.ts`** verifies a Google ID token without a client
+  library: RS256 against Google's published JWKS (honouring the response's
+  `Cache-Control`, refetching once on an unknown `kid`), with `aud`, `iss` and
+  `exp` checks. The algorithm is **pinned to RS256**, so a token cannot ask to
+  be verified with `none`. Implemented on `node:crypto`, in keeping with the
+  project's habit of hand-rolling bounded, well-understood problems.
+- **Google Identity Services is the only library used**, and the flow is the
+  **ID-token** one, which is what GIS is designed for. The older
+  `gapi.auth2`/`platform.js` were retired on 31 March 2023. The token is opaque
+  to the browser: it is forwarded to the API, which verifies it. The client
+  secret never reaches the client.
+- **Identity is keyed on `sub`, never email** — Google is explicit that an
+  address can change and `sub` cannot. `User.googleSub` is unique and nullable.
+- **Linking is refused, not faked.** Signing in with Google using the address of
+  an existing password account returns 409 with a specific message, because
+  merging without proving control of the existing account would let anyone who
+  registers that address take it over. `googleIsAuthoritative()` records which
+  addresses Google actually vouches for (`@gmail.com`, or Workspace with `hd`).
+- **A Google account has no password.** `passwordHash` is an empty string, and
+  the login route refuses any account with no hash — so an empty password can
+  never authenticate one.
+- **`profileComplete`** drives a new `/welcome` step. Google returns only a name
+  and an email, while everything behind the student area assumes a profile, so
+  `ProtectedRoute` diverts an incomplete account there and releases it on
+  success. `POST /api/auth/google/complete` is separate from `PATCH /api/profile`
+  because it is the one-time step that turns a bare account into a student
+  record.
+- **`src/components/GoogleSignInButton.tsx`** loads GIS lazily and renders the
+  official button; it returns `null` when the API reports no client id, so the
+  control is never offered and then broken (rule 10).
+- `GET /api/auth/google/config` tells the browser whether sign-in is available
+  and with which client id, so one build works against any deployment and no
+  client id is baked into a `VITE_*` variable.
+- **Server-side municipality validation** added to register and profile
+  completion, closing a gap the client-only select left open.
 
 ### 2026-10-19 - document upload, classification and review
 

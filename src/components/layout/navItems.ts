@@ -20,6 +20,12 @@ export const STUDENT_NAV: NavItem[] = [
   { to: '/student/notifications', label: 'Notifications', icon: 'bell' },
 ]
 
+/**
+ * Where a Google-created account finishes its profile. Kept out of the sidebar:
+ * it is a one-time step, not a destination a student returns to.
+ */
+export const PROFILE_COMPLETION_PATH = '/welcome'
+
 /** Sidebar navigation for the administrator area. */
 export const ADMIN_NAV: NavItem[] = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: 'home' },

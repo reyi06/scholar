@@ -7,6 +7,7 @@ import type {
   Application,
   ApplicationFilters,
   ApplicationStatus,
+  CompleteProfileInput,
   DocumentClassification,
   DocumentFilters,
   DocumentRecord,
@@ -182,6 +183,28 @@ const authApi = {
     // No endpoint: changing a password without an email address to recover it is
     // a good way to lock people out. Wire this once mail exists.
     throw new Error('Changing your password is not available yet. Contact the scholarship office.')
+  },
+
+  /**
+   * Whether this deployment has a Google client id. The sign-in button is
+   * hidden unless it does, so it is never offered and then fails.
+   */
+  async googleConfig(): Promise<{ configured: boolean; clientId: string }> {
+    return request<{ configured: boolean; clientId: string }>('GET', '/auth/google/config')
+  },
+
+  /** Exchange a Google ID token for a session. */
+  async googleSignIn(credential: string): Promise<{ user: User; needsProfile: boolean }> {
+    const result = await request<{ user: User; needsProfile?: boolean }>('POST', '/auth/google', {
+      credential,
+    })
+    return { user: result.user, needsProfile: result.needsProfile === true }
+  },
+
+  /** The one-time step for an account created through Google. */
+  async completeGoogleProfile(input: CompleteProfileInput): Promise<User> {
+    const result = await request<{ user: User }>('POST', '/auth/google/complete', input)
+    return result.user
   },
 }
 

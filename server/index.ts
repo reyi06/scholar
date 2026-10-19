@@ -5,6 +5,7 @@ import { createId, nextReference } from './ids.ts'
 import { hashPassword, verifyPassword } from './passwords.ts'
 import { HttpError } from './httpError.ts'
 import { deleteUpload, readMultipart, readUpload, saveUpload, storedNameFor } from './uploads.ts'
+import { googleIsAuthoritative, verifyGoogleIdToken } from './googleAuth.ts'
 import {
   stringifyArray,
   stringifyObject,
@@ -19,7 +20,7 @@ import {
   toSettings,
   toUser,
 } from './mappers.ts'
-import { DOCUMENT_CLASSIFICATIONS } from '../src/lib/constants.ts'
+import { DOCUMENT_CLASSIFICATIONS, MUNICIPALITIES_ONLY } from '../src/lib/constants.ts'
 import {
   classifyDocument,
   suggestDocumentTitle,
@@ -138,6 +139,21 @@ function requireOwnerOrAdmin(user: User, ownerId: string): void {
   }
 }
 
+/**
+ * Google OAuth client ids this server accepts tokens for.
+ *
+ * Comma-separated so a deployment can accept more than one client (for
+ * example staging and production) without a code change. Server-side only:
+ * a client id is not a secret, but keeping it here means the browser learns it
+ * from the API rather than from a bundled `VITE_*` variable.
+ */
+function googleClientIds(): string[] {
+  return (process.env.GOOGLE_CLIENT_ID ?? '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+}
+
 /* ------------------------------------------------------------------ */
 /* Router                                                              */
 /* ------------------------------------------------------------------ */
@@ -204,12 +220,155 @@ route('POST', '/api/auth/login', async ({ req, res }) => {
   const found = await prisma.user.findUnique({ where: { email } })
   // One message for both failure modes, so the response cannot be used to
   // discover which email addresses exist.
-  if (!found || !verifyPassword(password, found.passwordHash)) {
+  //
+  // An account created through Google has an empty hash, and must never be
+  // enterable with a password: verifyPassword would be asked to check against
+  // nothing at all.
+  if (!found || !found.passwordHash || !verifyPassword(password, found.passwordHash)) {
     throw new HttpError(401, 'Those credentials did not match any account.')
   }
 
   await startSession(res, found.id)
   send(res, 200, { user: toUser(found) })
+})
+
+/* ------------------------------------------------------------------ */
+/* Google sign-in                                                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * What the browser needs to start Google sign-in, or `configured: false` so
+ * the button can stay hidden rather than fail when pressed.
+ */
+route('GET', '/api/auth/google/config', async ({ res }) => {
+  const clientId = googleClientIds()[0] ?? ''
+  send(res, 200, { configured: clientId !== '', clientId })
+})
+
+/**
+ * Exchange a Google ID token for a session.
+ *
+ * Three account states, as Google's own guide sets out:
+ *  - a returning Google account → sign in
+ *  - an existing password account with the same address → refuse, and say so;
+ *    linking an existing account must prove ownership of it, which is a
+ *    separate flow and not something to shortcut here
+ *  - no account → create one, marked incomplete, and send the student to the
+ *    profile step Google cannot fill in
+ *
+ * A new account is created with `profileComplete: false`. Everything that
+ * depends on a student profile — matching, applying, semester registration —
+ * is therefore behind the completion step, rather than rendering half a
+ * dashboard for an account that has only an email address.
+ */
+route('POST', '/api/auth/google', async ({ req, res }) => {
+  const clientIds = googleClientIds()
+  if (clientIds.length === 0) {
+    throw new HttpError(503, 'Google sign-in has not been configured on this server.')
+  }
+
+  const body = await readJson(req)
+  const credential = String(body.credential ?? '')
+  if (!credential) throw new HttpError(400, 'No Google credential was supplied.')
+
+  let identity
+  try {
+    identity = await verifyGoogleIdToken(credential, clientIds)
+  } catch (cause: unknown) {
+    const message = cause instanceof Error ? cause.message : 'That Google sign-in could not be verified.'
+    throw new HttpError(401, message)
+  }
+
+  // `sub` is the identity. Email is only used to find an account to refuse.
+  const bySub = await prisma.user.findUnique({ where: { googleSub: identity.sub } })
+  if (bySub) {
+    await startSession(res, bySub.id)
+    send(res, 200, { user: toUser(bySub) })
+    return
+  }
+
+  const byEmail = await prisma.user.findUnique({ where: { email: identity.email } })
+  if (byEmail) {
+    // Deliberately not an automatic merge. Linking Google to an existing
+    // password account without proving control of it would let anyone who
+    // creates a Google account with that address take the account over.
+    throw new HttpError(
+      409,
+      googleIsAuthoritative(identity)
+        ? 'An account already exists for this email address. Sign in with your password, then connect Google from your profile.'
+        : 'An account already exists for this email address. Sign in with your password to continue.',
+    )
+  }
+
+  const id = createId('usr')
+  const created = await prisma.user.create({
+    data: {
+      id,
+      email: identity.email,
+      // No password: this account can only be entered through Google.
+      passwordHash: '',
+      googleSub: identity.sub,
+      role: 'student',
+      firstName: identity.givenName || 'Student',
+      lastName: identity.familyName || '',
+      profileComplete: false,
+    },
+  })
+
+  await prisma.studentProfile.create({ data: { userId: id } })
+
+  await startSession(res, created.id)
+  send(res, 201, { user: toUser(created), needsProfile: true })
+})
+
+/**
+ * Complete the profile of a Google-created account.
+ *
+ * Separate from `PATCH /api/profile` because that route edits an existing
+ * student's details, whereas this is the one-time step that turns a bare
+ * Google account into a student record. It accepts the details Google cannot
+ * supply and flips `profileComplete` so the route guard releases the student.
+ */
+route('POST', '/api/auth/google/complete', async ({ req, res, user }) => {
+  const signedIn = requireUser(user)
+  const body = await readJson(req)
+
+  const firstName = String(body.firstName ?? '').trim()
+  const lastName = String(body.lastName ?? '').trim()
+  const municipality = String(body.municipality ?? '').trim()
+  const phone = String(body.phone ?? '').trim()
+
+  if (!firstName || !lastName) throw new HttpError(400, 'Enter your first and last name.')
+  if (!MUNICIPALITIES_ONLY.includes(municipality)) {
+    throw new HttpError(400, 'Choose the municipality you live in.')
+  }
+  if (phone && !/^[\d\s+()-]{7,20}$/.test(phone)) {
+    throw new HttpError(400, 'Enter a valid contact number.')
+  }
+
+  const updated = await prisma.user.update({
+    where: { id: signedIn.id },
+    data: { firstName, lastName, profileComplete: true },
+  })
+
+  await prisma.studentProfile.upsert({
+    where: { userId: signedIn.id },
+    update: { municipality, phone },
+    create: { userId: signedIn.id, municipality, phone },
+  })
+
+  await prisma.notification.create({
+    data: {
+      id: createId('ntf'),
+      userId: signedIn.id,
+      title: 'Profile complete',
+      body: 'Add your school, course and year level so listings can be matched to you.',
+      createdAt: new Date(),
+      link: '/student/profile',
+    },
+  })
+
+  send(res, 200, { user: toUser(updated) })
 })
 
 route('POST', '/api/auth/logout', async ({ req, res }) => {
@@ -232,6 +391,13 @@ route('POST', '/api/auth/register', async ({ req, res }) => {
     throw new HttpError(400, 'Please complete every required field.')
   }
 
+  // The form offers a list; the server must not accept anything outside it, or
+  // a hand-made request could store a municipality that does not exist.
+  const municipality = String(body.municipality ?? '').trim()
+  if (!MUNICIPALITIES_ONLY.includes(municipality)) {
+    throw new HttpError(400, 'Choose the municipality you live in.')
+  }
+
   const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } })
   if (existing) throw new HttpError(409, 'An account with that email address already exists.')
 
@@ -251,7 +417,7 @@ route('POST', '/api/auth/register', async ({ req, res }) => {
     data: {
       userId: id,
       phone: String(body.phone ?? '').trim(),
-      municipality: String(body.municipality ?? '').trim(),
+      municipality,
     },
   })
 

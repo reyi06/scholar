@@ -25,7 +25,18 @@ model User {
 
   email        String @unique
   /// scrypt hash, never the plain password. See server/passwords.ts.
+  ///
+  /// Accounts created through Google sign-in have no password: an empty string
+  /// here means "no password set", and the login route refuses to verify it.
   passwordHash String
+  /// Google's stable account identifier (`sub`). Null for password accounts.
+  ///
+  /// Keyed on `sub` rather than email because an email address can change and
+  /// `sub` cannot — Google is explicit about this.
+  googleSub    String? @unique
+  /// True until the student has supplied the profile details Google does not
+  /// provide. Route guards send an incomplete account to /welcome.
+  profileComplete Boolean @default(true)
   role         String // student | admin
   firstName    String
   lastName     String

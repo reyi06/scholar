@@ -61,6 +61,9 @@ interface UserRow {
   firstName: string
   lastName: string
   createdAt: Date
+  profileComplete: boolean
+  passwordHash: string
+  googleSub: string | null
 }
 
 export function toUser(row: UserRow): User {
@@ -71,6 +74,9 @@ export function toUser(row: UserRow): User {
     firstName: row.firstName,
     lastName: row.lastName,
     createdAt: row.createdAt.toISOString(),
+    profileComplete: row.profileComplete,
+    hasPassword: row.passwordHash.length > 0,
+    usesGoogle: row.googleSub !== null,
   }
 }
 

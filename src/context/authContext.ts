@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import type { LoginInput, RegisterInput, User } from '../types/index.ts'
+import type { CompleteProfileInput, LoginInput, RegisterInput, User } from '../types/index.ts'
 
 export interface AuthContextValue {
   /** The signed-in user, or null when signed out. */
@@ -14,6 +14,23 @@ export interface AuthContextValue {
   logout: () => Promise<void>
   /** Re-read the user after a profile edit. */
   refresh: () => void
+
+  /**
+   * True when this deployment has a Google client id. The sign-in button is
+   * hidden until it does, so it is never offered and then fails.
+   */
+  googleEnabled: boolean
+  /**
+   * The client id to hand to Google Identity Services. Served by the API rather
+   * than bundled, so the same build works against any deployment.
+   */
+  googleClientId: string
+  /** Exchange a Google ID token for a session. */
+  signInWithGoogle: (credential: string) => Promise<User>
+  /** The one-time profile step for an account created through Google. */
+  completeProfile: (input: CompleteProfileInput) => Promise<User>
+  /** True when the signed-in account still owes us its profile details. */
+  needsProfile: boolean
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)

@@ -12,6 +12,7 @@ import type {
   Application,
   ApplicationFilters,
   ApplicationStatus,
+  CompleteProfileInput,
   DocumentClassification,
   DocumentFilters,
   DocumentRecord,
@@ -186,6 +187,9 @@ const localAuthApi = {
       firstName: input.firstName.trim(),
       lastName: input.lastName.trim(),
       createdAt: new Date().toISOString(),
+      profileComplete: true,
+      hasPassword: true,
+      usesGoogle: false,
     }
     db.users.push(user)
     // The password is held in plain text because there is no backend yet.
@@ -236,6 +240,29 @@ const localAuthApi = {
     if (credential.password !== currentPassword) throw new Error('The current password is incorrect.')
     credential.password = nextPassword
     persist()
+  },
+
+  /**
+   * Google sign-in is not available in the browser-storage build.
+   *
+   * It cannot be faked: verifying a Google token needs the client secret and
+   * Google's public keys, and neither belongs in the browser. Reporting
+   * `configured: false` hides the button, so the option is never offered and
+   * then broken.
+   */
+  async googleConfig(): Promise<{ configured: boolean; clientId: string }> {
+    await delay(80)
+    return { configured: false, clientId: '' }
+  },
+
+  async googleSignIn(_credential: string): Promise<{ user: User; needsProfile: boolean }> {
+    throw new Error(
+      'Google sign-in needs the API server. Start it with "npm run server" and set GOOGLE_CLIENT_ID.',
+    )
+  },
+
+  async completeGoogleProfile(_input: CompleteProfileInput): Promise<User> {
+    throw new Error('Google sign-in needs the API server.')
   },
 }
 

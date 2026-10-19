@@ -19,6 +19,16 @@ export interface User {
   firstName: string
   lastName: string
   createdAt: string
+  /**
+   * False for an account created through Google sign-in that has not yet
+   * supplied the details Google cannot provide. Route guards send these
+   * accounts to the profile step before anything else.
+   */
+  profileComplete: boolean
+  /** Whether a password is set. False for Google-only accounts. */
+  hasPassword: boolean
+  /** Whether this account can be entered with Google. */
+  usesGoogle: boolean
 }
 
 export interface StudentProfile {
@@ -406,4 +416,12 @@ export interface RegisterInput {
 export interface LoginInput {
   email: string
   password: string
+}
+
+/** Details Google cannot supply, collected once for a Google-created account. */
+export interface CompleteProfileInput {
+  firstName: string
+  lastName: string
+  municipality: string
+  phone: string
 }
