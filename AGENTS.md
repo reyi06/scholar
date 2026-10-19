@@ -35,6 +35,7 @@ npm run build      # type-check (tsc -b) then build to dist/
 npm run preview    # serve the production build locally
 npm run lint       # oxlint
 npm run check:responsive   # drive Chrome at 390/768/1280; needs dev + server
+npm run rehearse           # walk the demo script and time each step
 ```
 
 There is **no unit-test runner configured**. Verification is manual and
@@ -371,6 +372,32 @@ Do not present the current implementation as secure.
 ## 11. Verification log
 
 Newest first. Record the command and its observed result.
+
+### 2026-10-19 - demo rehearsal (11 steps, 5.6 s, all passing)
+
+- `npm run rehearse` walks the demonstration script against the **production
+  preview** on :4173 and times each step. Final run: **11 steps, 5.6 s**, all
+  passing, no console errors.
+- Steps exercised through the interface: home; directory filter; listing detail
+  with the share dialog (QR rendered, 406 modules); two-step registration
+  including the privacy consent; profile with the verification prompt and
+  record actions; submitting an application; an administrator approving it
+  (grants remained at 5, proving approval creates none); grant confirmation
+  (₱9,500, `SCH-APP-2026-0001`); the student then seeing the grant and semester
+  registration unlocking; reports with breakdowns and CSV; and the activity
+  trail showing both `application.decided` and `grant.confirmed`.
+- **Two initial failures were faults in the harness, not the product**, and are
+  worth recording because they are easy to misread as defects:
+  1. The detail page **does not navigate** after submitting; it closes the dialog
+     and updates in place. The rehearsal asserted a URL change and timed out —
+     while the application had in fact been created.
+  2. The reports breakdowns render **after** the report request resolves; reading
+     the body immediately after the heading found nothing.
+- The harness was corrected to assert the outcome rather than the URL, and to
+  wait for the breakdowns. A second run passed end to end.
+- `prisma/dev.db` was backed up before the run and restored afterwards, so the
+  demonstration data is unchanged (4 users, 9 applications, 5 grants, and no
+  `rehearsal.*` accounts).
 
 ### 2026-10-19 - Phase 2: measured interaction latency, WCAG 2.2 AA pass
 
@@ -882,6 +909,21 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-19 - demo rehearsal harness
+
+- **`scripts/rehearse-demo.ts` + `npm run rehearse`** — walks the demonstration
+  in order against a running build, timing each step and asserting the outcome.
+  It creates a throwaway student, submits an application, approves it, confirms
+  the grant and verifies the student then sees it, which is the sequence a panel
+  is shown.
+- Deliberately asserts **outcomes rather than URLs**, after two false failures
+  proved that a submission updates the page in place and that report tables
+  arrive after their request.
+- Run against the production preview, so the timings reflect what the audience
+  sees rather than a dev server's unbundled modules.
+- Requires a running API and preview; back up `prisma/dev.db` first if the
+  demonstration data matters.
 
 ### 2026-10-19 - Phase 2: measured performance, WCAG 2.2 AA corrections
 
