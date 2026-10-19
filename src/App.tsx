@@ -46,6 +46,9 @@ const SemesterRegistrationPage = lazy(async () => ({
   default: (await import('./pages/student/SemesterRegistrationPage.tsx')).SemesterRegistrationPage,
 }))
 const MyGrantsPage = lazy(async () => ({ default: (await import('./pages/student/MyGrantsPage.tsx')).MyGrantsPage }))
+const DocumentsPage = lazy(async () => ({
+  default: (await import('./pages/student/DocumentsPage.tsx')).DocumentsPage,
+}))
 const NotificationsPage = lazy(async () => ({
   default: (await import('./pages/student/NotificationsPage.tsx')).NotificationsPage,
 }))
@@ -70,6 +73,9 @@ const AdminRegistrationsPage = lazy(async () => ({
 }))
 const AdminGrantsPage = lazy(async () => ({
   default: (await import('./pages/admin/AdminGrantsPage.tsx')).AdminGrantsPage,
+}))
+const AdminDocumentsPage = lazy(async () => ({
+  default: (await import('./pages/admin/AdminDocumentsPage.tsx')).AdminDocumentsPage,
 }))
 const AdminAnnouncementsPage = lazy(async () => ({
   default: (await import('./pages/admin/AdminAnnouncementsPage.tsx')).AdminAnnouncementsPage,
@@ -154,6 +160,7 @@ export default function App() {
               <Route path="/student/applications/:id" element={<ApplicationDetailPage />} />
               <Route path="/student/semester-registration" element={<SemesterRegistrationPage />} />
               <Route path="/student/grants" element={<MyGrantsPage />} />
+              <Route path="/student/documents" element={<DocumentsPage />} />
               <Route path="/student/notifications" element={<NotificationsPage />} />
             </Route>
           </Route>
@@ -169,6 +176,7 @@ export default function App() {
               <Route path="/admin/applications" element={<AdminApplicationsPage />} />
               <Route path="/admin/registrations" element={<AdminRegistrationsPage />} />
               <Route path="/admin/grants" element={<AdminGrantsPage />} />
+              <Route path="/admin/documents" element={<AdminDocumentsPage />} />
               <Route path="/admin/announcements" element={<AdminAnnouncementsPage />} />
               <Route path="/admin/reports" element={<AdminReportsPage />} />
               <Route path="/admin/settings" element={<AdminSettingsPage />} />

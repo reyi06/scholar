@@ -174,8 +174,10 @@ export interface Application {
   motivation: string
   responses: ApplicationResponse[]
   /**
-   * File names the student indicates they will submit. Document upload is NOT
-   * implemented; these are text labels only (business rule 10).
+   * File names the student indicates they will submit, ticked from the
+   * listing's requirements. These are labels, not uploads — the actual files
+   * live in `StudentDocument`, which is why uploading is separate from
+   * answering the checklist.
    */
   documentNames: string[]
   reviewNotes?: string
@@ -262,6 +264,82 @@ export interface GrantFilters {
   academicYear?: string | 'all'
   semester?: string | 'all'
   studentId?: string
+}
+
+/* ------------------------------------------------------------------ */
+/* Documents                                                           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * How a submitted document is filed.
+ *
+ * This is the "classification" the student picks (or accepts from the
+ * suggestion) and an administrator can correct. It decides which group the
+ * document sits in on the student's profile, and which requirement on a
+ * listing it is evidence for.
+ */
+export type DocumentClassification =
+  | 'enrollment'
+  | 'grades'
+  | 'indigency'
+  | 'identification'
+  | 'residency'
+  | 'good-moral'
+  | 'other'
+
+export type DocumentStatus = 'submitted' | 'verified' | 'rejected'
+
+/**
+ * A file held against a student's profile.
+ *
+ * Documents belong to the student, not to a single application, because the
+ * same certificate of enrolment is evidence for every listing the student
+ * applies to. `applicationId` is set only when the student attached it to one
+ * particular application.
+ */
+export interface StudentDocument {
+  id: string
+  studentId: string
+  /** Set when uploaded against a specific application rather than the profile. */
+  applicationId: string | null
+  /** Human label, defaulted from the file name and editable by the student. */
+  title: string
+  classification: DocumentClassification
+  fileName: string
+  mimeType: string
+  /** Size in bytes. */
+  size: number
+  uploadedAt: string
+  status: DocumentStatus
+  /** Administrator note. Required in practice when `status` is `rejected`. */
+  note: string | null
+}
+
+/**
+ * One file as it arrives from a file input, before the API stores it. The
+ * local data layer keeps the bytes as a data URL; the HTTP layer sends them
+ * as multipart form data.
+ */
+export interface DocumentUpload {
+  file: File
+  title: string
+  classification: DocumentClassification
+  /** Set when the file is attached to one application rather than the profile. */
+  applicationId?: string | null
+}
+
+export interface DocumentFilters {
+  query?: string
+  classification?: DocumentClassification | 'all'
+  status?: DocumentStatus | 'all'
+  studentId?: string
+  applicationId?: string
+}
+
+/** A document plus the student it belongs to, for administrator list views. */
+export interface DocumentRecord {
+  document: StudentDocument
+  student: User
 }
 
 /* ------------------------------------------------------------------ */

@@ -6,6 +6,7 @@ import type {
   PlatformSettings,
   Scholarship,
   SemesterRegistration,
+  StudentDocument,
   StudentProfile,
   User,
 } from '../types/index.ts'
@@ -23,7 +24,7 @@ import {
 } from './sampleData.ts'
 
 /** Bump when the shape below changes so stale localStorage is discarded. */
-export const DB_VERSION = 3
+export const DB_VERSION = 4
 
 export interface DemoCredential {
   userId: string
@@ -60,6 +61,14 @@ export interface DemoDatabase {
   notifications: Notification[]
   saved: SavedEntry[]
   settings: PlatformSettings
+  documents: StudentDocument[]
+  /**
+   * File bytes for the documents above, keyed by document id, held as data
+   * URLs. The HTTP layer streams a real file to disk instead; this exists only
+   * so the local data layer can hand back something a browser can open.
+   * Kept out of `StudentDocument` because it is storage, not domain data.
+   */
+  documentData: Record<string, string>
 }
 
 function seedSettings(): PlatformSettings {
@@ -93,5 +102,9 @@ export function createSeedDatabase(): DemoDatabase {
     notifications: structuredClone(sampleNotifications),
     saved: structuredClone(sampleSaved),
     settings: seedSettings(),
+    // No seeded files: a document is something a student supplies, and a
+    // fabricated one would be a download that cannot open.
+    documents: [],
+    documentData: {},
   }
 }

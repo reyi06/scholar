@@ -19,6 +19,10 @@ prisma/dev.db-wal
 prisma/dev.db-shm
 prisma/migrations/dev.db*
 
+# Uploaded documents. Files live beside the database, never in the repository:
+# a student's certificate is personal data.
+uploads/
+
 # Local environment files — never commit secrets.
 .env
 .env.*

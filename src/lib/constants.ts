@@ -1,6 +1,8 @@
 import type {
   AnnouncementAudience,
   ApplicationStatus,
+  DocumentClassification,
+  DocumentStatus,
   EducationLevel,
   GrantStatus,
   RegistrationStatus,
@@ -103,6 +105,31 @@ export const ANNOUNCEMENT_AUDIENCES: Option<AnnouncementAudience>[] = [
 ]
 
 /* ------------------------------------------------------------------ */
+/* Documents                                                           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The filing categories a document can be saved under. These follow the
+ * requirements listings actually ask for, so a student uploads a file once and
+ * it answers that requirement everywhere.
+ */
+export const DOCUMENT_CLASSIFICATIONS: Option<DocumentClassification>[] = [
+  { value: 'enrollment', label: 'Certificate of enrolment' },
+  { value: 'grades', label: 'Grades or transcript' },
+  { value: 'indigency', label: 'Certificate of indigency' },
+  { value: 'identification', label: 'Valid identification' },
+  { value: 'residency', label: 'Proof of residency' },
+  { value: 'good-moral', label: 'Good moral character' },
+  { value: 'other', label: 'Other supporting document' },
+]
+
+export const DOCUMENT_STATUSES: Option<DocumentStatus>[] = [
+  { value: 'submitted', label: 'Submitted' },
+  { value: 'verified', label: 'Verified' },
+  { value: 'rejected', label: 'Needs attention' },
+]
+
+/* ------------------------------------------------------------------ */
 /* Academic terms                                                      */
 /* ------------------------------------------------------------------ */
 
@@ -146,3 +173,5 @@ export const APPLICATION_STATUS_LABELS = labelMap(APPLICATION_STATUSES)
 export const REGISTRATION_STATUS_LABELS = labelMap(REGISTRATION_STATUSES)
 export const GRANT_STATUS_LABELS = labelMap(GRANT_STATUSES)
 export const ANNOUNCEMENT_AUDIENCE_LABELS = labelMap(ANNOUNCEMENT_AUDIENCES)
+export const DOCUMENT_CLASSIFICATION_LABELS = labelMap(DOCUMENT_CLASSIFICATIONS)
+export const DOCUMENT_STATUS_LABELS = labelMap(DOCUMENT_STATUSES)

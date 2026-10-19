@@ -9,6 +9,7 @@ import type {
   Scholarship,
   ScholarshipContact,
   SemesterRegistration,
+  StudentDocument,
   StudentProfile,
   User,
 } from '../src/types/index.ts'
@@ -212,6 +213,45 @@ export function toApplication(row: ApplicationRow): Application {
       note: entry.note ?? undefined,
       actor: entry.actor ?? undefined,
     })),
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Documents                                                           */
+/* ------------------------------------------------------------------ */
+
+interface DocumentRow {
+  id: string
+  studentId: string
+  applicationId: string | null
+  title: string
+  classification: string
+  fileName: string
+  mimeType: string
+  size: number
+  uploadedAt: Date
+  status: string
+  note: string | null
+}
+
+/**
+ * Note what is deliberately absent: `storedName`. Where a file sits on disk is
+ * not the browser's business, and a client that never learns it cannot ask for
+ * a file by path. Downloads go through the ownership check on the document id.
+ */
+export function toDocument(row: DocumentRow): StudentDocument {
+  return {
+    id: row.id,
+    studentId: row.studentId,
+    applicationId: row.applicationId,
+    title: row.title,
+    classification: row.classification as StudentDocument['classification'],
+    fileName: row.fileName,
+    mimeType: row.mimeType,
+    size: row.size,
+    uploadedAt: row.uploadedAt.toISOString(),
+    status: row.status as StudentDocument['status'],
+    note: row.note,
   }
 }
 

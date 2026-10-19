@@ -1,4 +1,5 @@
-import { MUNICIPALITIES } from './constants.ts'
+import { DOCUMENT_CLASSIFICATIONS, MUNICIPALITIES } from './constants.ts'
+import { suggestDocumentTitle, validateDocumentFile } from './documents.ts'
 import { daysUntil } from './format.ts'
 import { IS_REMOTE, httpApi } from './httpApi.ts'
 import { createId, createReferenceNumber } from './id.ts'
@@ -11,6 +12,11 @@ import type {
   Application,
   ApplicationFilters,
   ApplicationStatus,
+  DocumentClassification,
+  DocumentFilters,
+  DocumentRecord,
+  DocumentStatus,
+  DocumentUpload,
   Grant,
   GrantFilters,
   LoginInput,
@@ -25,6 +31,7 @@ import type {
   ScholarshipFilters,
   ScholarshipStatus,
   SemesterRegistration,
+  StudentDocument,
   StudentProfile,
   StudentRecord,
   User,
@@ -1032,6 +1039,181 @@ const localAnnouncementsApi = {
 }
 
 /* ------------------------------------------------------------------ */
+/* Documents                                                           */
+/* ------------------------------------------------------------------ */
+
+/** Role of the signed-in account in the demo store. */
+function currentRole(): Role {
+  return db.users.find((user) => user.id === db.sessionUserId)?.role ?? 'student'
+}
+
+function filterDocuments(filters: DocumentFilters): StudentDocument[] {
+  let items = [...db.documents]
+
+  // The same ownership rule as the server: a student only ever sees their own.
+  if (currentRole() !== 'admin') {
+    items = items.filter((item) => item.studentId === db.sessionUserId)
+  } else if (filters.studentId) {
+    items = items.filter((item) => item.studentId === filters.studentId)
+  }
+
+  if (filters.classification && filters.classification !== 'all') {
+    items = items.filter((item) => item.classification === filters.classification)
+  }
+  if (filters.status && filters.status !== 'all') {
+    items = items.filter((item) => item.status === filters.status)
+  }
+  if (filters.applicationId) {
+    items = items.filter((item) => item.applicationId === filters.applicationId)
+  }
+
+  const search = (filters.query ?? '').trim().toLowerCase()
+  if (search) {
+    items = items.filter(
+      (item) =>
+        item.title.toLowerCase().includes(search) || item.fileName.toLowerCase().includes(search),
+    )
+  }
+
+  return items.sort(
+    (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime(),
+  )
+}
+
+/** Read a browser `File` into a data URL, so the demo store can hand it back. */
+function readAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(new Error('That file could not be read.'))
+    reader.readAsDataURL(file)
+  })
+}
+
+const localDocumentsApi = {
+  async list(filters: DocumentFilters = {}): Promise<StudentDocument[]> {
+    await delay()
+    return clone(filterDocuments(filters))
+  },
+
+  async listRecords(filters: DocumentFilters = {}): Promise<DocumentRecord[]> {
+    await delay()
+    return filterDocuments(filters)
+      .map((document) => {
+        const student = db.users.find((user) => user.id === document.studentId)
+        return student ? { document: clone(document), student: clone(student) } : null
+      })
+      .filter((record): record is DocumentRecord => record !== null)
+  },
+
+  async upload(input: DocumentUpload): Promise<StudentDocument> {
+    await delay()
+    const problem = validateDocumentFile(input.file)
+    if (problem) throw new Error(problem)
+
+    const id = createId('doc')
+    const document: StudentDocument = {
+      id,
+      studentId: db.sessionUserId ?? '',
+      applicationId: input.applicationId ?? null,
+      title: input.title.trim() || suggestDocumentTitle(input.file.name),
+      classification: input.classification,
+      fileName: input.file.name,
+      mimeType: input.file.type,
+      size: input.file.size,
+      uploadedAt: new Date().toISOString(),
+      status: 'submitted',
+      note: null,
+    }
+
+    db.documents.unshift(document)
+    db.documentData[id] = await readAsDataUrl(input.file)
+    persist()
+    return clone(document)
+  },
+
+  async update(
+    id: string,
+    changes: {
+      title?: string
+      classification?: DocumentClassification
+      status?: DocumentStatus
+      note?: string
+    },
+  ): Promise<StudentDocument> {
+    await delay()
+    const index = db.documents.findIndex((item) => item.id === id)
+    if (index === -1) throw new Error('That document no longer exists.')
+
+    const existing = db.documents[index]
+    const isAdmin = currentRole() === 'admin'
+    if (!isAdmin && existing.studentId !== db.sessionUserId) {
+      throw new Error('You do not have access to this resource.')
+    }
+
+    const updated: StudentDocument = { ...existing }
+
+    // Filing is the student's to correct; accepting a file is the office's.
+    if (changes.title !== undefined) {
+      const title = changes.title.trim()
+      if (!title) throw new Error('Give the document a title.')
+      updated.title = title
+    }
+
+    if (changes.classification !== undefined) {
+      if (!DOCUMENT_CLASSIFICATIONS.some((option) => option.value === changes.classification)) {
+        throw new Error('That is not a valid classification.')
+      }
+      updated.classification = changes.classification
+    }
+
+    if (changes.status !== undefined || changes.note !== undefined) {
+      if (!isAdmin) throw new Error('You do not have access to this resource.')
+      const status = changes.status ?? existing.status
+      const note = (changes.note ?? existing.note ?? '').trim()
+      if (status === 'rejected' && !note) {
+        throw new Error('Give a reason for rejecting the document.')
+      }
+      updated.status = status
+      updated.note = note || null
+    }
+
+    db.documents[index] = updated
+    persist()
+    return clone(updated)
+  },
+
+  async remove(id: string): Promise<void> {
+    await delay()
+    const existing = db.documents.find((item) => item.id === id)
+    if (!existing) throw new Error('That document no longer exists.')
+
+    const isAdmin = currentRole() === 'admin'
+    if (!isAdmin && existing.studentId !== db.sessionUserId) {
+      throw new Error('You do not have access to this resource.')
+    }
+    // Verified files are the evidence a decision rested on.
+    if (!isAdmin && existing.status === 'verified') {
+      throw new Error(
+        'A verified document cannot be removed. Ask the scholarship office if it is wrong.',
+      )
+    }
+
+    db.documents = db.documents.filter((item) => item.id !== id)
+    delete db.documentData[id]
+    persist()
+  },
+
+  /**
+   * A data URL here, where the HTTP layer returns an endpoint. Both work as the
+   * `href` of a download link, which is all the UI does with it.
+   */
+  fileUrl(id: string): string {
+    return db.documentData[id] ?? ''
+  },
+}
+
+/* ------------------------------------------------------------------ */
 /* Notifications                                                       */
 /* ------------------------------------------------------------------ */
 
@@ -1366,6 +1548,9 @@ export const registrationsApi = (IS_REMOTE
   ? httpApi.registrationsApi
   : localRegistrationsApi) as typeof localRegistrationsApi
 export const grantsApi = (IS_REMOTE ? httpApi.grantsApi : localGrantsApi) as typeof localGrantsApi
+export const documentsApi = (IS_REMOTE
+  ? httpApi.documentsApi
+  : localDocumentsApi) as typeof localDocumentsApi
 export const announcementsApi = (IS_REMOTE
   ? httpApi.announcementsApi
   : localAnnouncementsApi) as typeof localAnnouncementsApi

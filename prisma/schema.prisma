@@ -38,6 +38,7 @@ model User {
   grants        Grant[]
   notifications Notification[]
   saved         SavedScholarship[]
+  documents     StudentDocument[]
 
   @@index([role])
 }
@@ -136,6 +137,7 @@ model Application {
   student     User        @relation(fields: [studentId], references: [id], onDelete: Cascade)
   timeline    ApplicationTimelineEntry[]
   grant       Grant?
+  documents   StudentDocument[]
 
   @@index([studentId])
   @@index([scholarshipId])
@@ -213,6 +215,48 @@ model Grant {
 
   @@index([studentId])
   @@index([status])
+}
+
+/* ------------------------------------------------------------------ */
+/* Documents                                                           */
+/* ------------------------------------------------------------------ */
+
+/// A file held against a student's profile.
+///
+/// Documents belong to the student rather than to one application, because the
+/// same certificate of enrolment is evidence for every listing the student
+/// applies to. `applicationId` is set only when the student attached the file
+/// to one particular application.
+model StudentDocument {
+  id String @id
+
+  studentId      String
+  applicationId  String?
+  title          String
+  /// enrollment | grades | indigency | identification | residency |
+  /// good-moral | other
+  classification String
+  /// The name as uploaded, shown back to the student so they recognise it.
+  fileName       String
+  mimeType       String
+  /// Size in bytes.
+  size           Int
+  /// On-disk file name under the upload directory. Derived from the content
+  /// type and the document id, never from the uploaded name, which is the one
+  /// part of an upload an attacker controls.
+  storedName     String
+  uploadedAt     DateTime @default(now())
+  /// submitted | verified | rejected
+  status         String   @default("submitted")
+  note           String?
+
+  student     User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  application Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
+  @@index([applicationId])
+  @@index([status])
+  @@index([classification])
 }
 
 /* ------------------------------------------------------------------ */

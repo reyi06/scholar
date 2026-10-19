@@ -1,4 +1,5 @@
 import { MUNICIPALITIES } from './constants.ts'
+import { validateDocumentFile } from './documents.ts'
 import { TEST_ACCOUNTS } from './testAccounts.ts'
 import type {
   Announcement,
@@ -6,6 +7,11 @@ import type {
   Application,
   ApplicationFilters,
   ApplicationStatus,
+  DocumentClassification,
+  DocumentFilters,
+  DocumentRecord,
+  DocumentStatus,
+  DocumentUpload,
   Grant,
   GrantFilters,
   LoginInput,
@@ -20,6 +26,7 @@ import type {
   ScholarshipFilters,
   ScholarshipStatus,
   SemesterRegistration,
+  StudentDocument,
   StudentProfile,
   StudentRecord,
   User,
@@ -50,6 +57,9 @@ const BASE = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 /** How long to wait before treating a request as failed rather than pending. */
 const REQUEST_TIMEOUT_MS = 20_000
 
+/** A file takes longer to move than a JSON body, so it gets its own budget. */
+const UPLOAD_TIMEOUT_MS = 60_000
+
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   let response: Response
   try {
@@ -71,6 +81,14 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     throw new Error('Could not reach the server. Check your connection and try again.')
   }
 
+  return parseResponse<T>(response)
+}
+
+/**
+ * Turn a response into a value, or throw the server's message. Shared by the
+ * JSON and multipart paths so both report failures the same way.
+ */
+async function parseResponse<T>(response: Response): Promise<T> {
   const text = await response.text()
   let payload: unknown = null
   if (text) {
@@ -90,6 +108,31 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   }
 
   return payload as T
+}
+
+/**
+ * Send a multipart body.
+ *
+ * Deliberately sets no Content-Type: the browser has to append the multipart
+ * boundary, and setting the header by hand would drop it.
+ */
+async function uploadRequest<T>(path: string, form: FormData): Promise<T> {
+  let response: Response
+  try {
+    response = await fetch(`${BASE}${path}`, {
+      method: 'POST',
+      credentials: 'include',
+      body: form,
+      signal: AbortSignal.timeout(UPLOAD_TIMEOUT_MS),
+    })
+  } catch (cause: unknown) {
+    if (cause instanceof DOMException && cause.name === 'TimeoutError') {
+      throw new Error('The upload took too long. Please try again.')
+    }
+    throw new Error('Could not reach the server. Check your connection and try again.')
+  }
+
+  return parseResponse<T>(response)
 }
 
 function queryString(values: Record<string, string | number | boolean | undefined | null>): string {
@@ -614,6 +657,63 @@ const demoApi = {
   },
 }
 
+/* ------------------------------------------------------------------ */
+/* Documents                                                           */
+/* ------------------------------------------------------------------ */
+
+const documentsApi = {
+  /** The signed-in student's own files, or an administrator's filtered list. */
+  async list(filters: DocumentFilters = {}): Promise<StudentDocument[]> {
+    return request<StudentDocument[]>('GET', `/documents${queryString({ ...filters })}`)
+  },
+
+  /** The same list with each owner attached. Administrator screens only. */
+  async listRecords(filters: DocumentFilters = {}): Promise<DocumentRecord[]> {
+    return request<DocumentRecord[]>('GET', `/documents/records${queryString({ ...filters })}`)
+  },
+
+  /**
+   * Multipart, not JSON. The bytes travel as a file part rather than a base64
+   * string, which would inflate a 5 MB certificate by a third.
+   */
+  async upload(input: DocumentUpload): Promise<StudentDocument> {
+    const problem = validateDocumentFile(input.file)
+    if (problem) throw new Error(problem)
+
+    const form = new FormData()
+    form.set('file', input.file, input.file.name)
+    form.set('title', input.title)
+    form.set('classification', input.classification)
+    if (input.applicationId) form.set('applicationId', input.applicationId)
+
+    return uploadRequest<StudentDocument>('/documents', form)
+  },
+
+  async update(
+    id: string,
+    changes: {
+      title?: string
+      classification?: DocumentClassification
+      status?: DocumentStatus
+      note?: string
+    },
+  ): Promise<StudentDocument> {
+    return request<StudentDocument>('PATCH', `/documents/${id}`, changes)
+  },
+
+  async remove(id: string): Promise<void> {
+    await request<{ ok: true }>('DELETE', `/documents/${id}`)
+  },
+
+  /**
+   * Where the browser should fetch the bytes from. Opening this directly works
+   * because the session is a same-origin cookie and the route is owner-checked.
+   */
+  fileUrl(id: string): string {
+    return `${BASE}/documents/${id}/file`
+  },
+}
+
 export const httpApi = {
   authApi,
   scholarshipsApi,
@@ -621,6 +721,7 @@ export const httpApi = {
   applicationsApi,
   registrationsApi,
   grantsApi,
+  documentsApi,
   announcementsApi,
   notificationsApi,
   studentsApi,

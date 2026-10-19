@@ -360,6 +360,43 @@ Do not present the current implementation as secure.
 
 Newest first. Record the command and its observed result.
 
+### 2026-10-19 - document upload, classification and review (verified end to end)
+
+- `npm run lint` clean; `npx tsc -b` clean; `npm run build` clean — 20
+  prerendered pages.
+- **Migration applied:** `20261019085257_student_documents` created the
+  `StudentDocument` table against SQLite. `npx prisma generate` run first.
+- **Verified over real HTTP** with the API on :8787 and curl cookie jars:
+  - upload with an explicit classification → 201, `enrollment`
+  - upload with the classification left empty → the server classified
+    `my-transcript-2026.pdf` as `grades` and titled it "My transcript 2026"
+  - a `text/plain` upload → `400 Upload a PDF, JPEG or PNG file.`
+  - download → 200, `application/pdf`, `Content-Disposition: attachment`,
+    **809 bytes out for 809 in** (byte-exact)
+- **Authorisation matrix, all as intended:** signed out 401 · owner 200 ·
+  admin 200 · student verifying their own document **403** · rejecting without
+  a note 400 · rejecting with one 200 · verifying 200 · invalid classification
+  400 · student deleting a verified document **409** · admin deleting 200, row
+  gone, file gone.
+- **Browser run, student:** a real `File` dropped into the input pre-filled the
+  title and classification from the name (`barangay-residency-certificate.pdf`
+  → "Proof of residency"), upload succeeded, the toast named the saved title,
+  the input and title cleared, and the list regrouped under a new heading.
+- **Browser run, administrator:** the queue showed "2 awaiting review", Review
+  opened with classification and note fields, "Return to student" was disabled
+  until a note existed, verifying moved the count to "1 awaiting review", and
+  the student's view then showed the Verified badge.
+- **Two defects found by looking at the rendered page and fixed:** the section
+  heading read "All documents reviewed" while the list was still loading, and
+  the dialog wrapped `Select` in a `Field`, producing two labels for one
+  control. A third was fixed on the student side: Remove was offered on a
+  verified document the server would refuse to delete.
+- **Note on a false failure:** the first HTTP run returned
+  `No route for POST /api/documents` because a server started at 15:32 was
+  still holding port 8787, so requests reached pre-document code. The second
+  run, after killing it, passed. Check `Get-NetTCPConnection -LocalPort 8787`
+  before concluding a route is missing.
+
 ### 2026-10-19 - FAQ, diagrams and a retuned dark theme (all passing)
 
 - `npm run lint` clean; `npx tsc -b` clean; `npm run build` clean — **20
@@ -630,6 +667,42 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-19 - document upload, classification and review
+
+- **`StudentDocument`** (Prisma + `src/types/index.ts`) files a document against
+  the **student profile**, not an application, because one certificate of
+  enrolment is evidence for every listing a student applies to. `applicationId`
+  is set only when a file was attached to one particular application.
+- **Classification is shared code.** `src/lib/documents.ts` holds the keyword
+  classifier, the accepted types (PDF/JPEG/PNG), the 5 MB cap and the title
+  guess. It works on strings rather than `File` or `fs`, so the browser and the
+  server run the *same* function — the suggestion a student sees is the one the
+  server would have made, so correcting it is a real choice rather than two
+  implementations disagreeing.
+- **`server/uploads.ts`** — a narrow hand-rolled `multipart/form-data` reader
+  (one file plus text fields), and a file store under `uploads/` beside the
+  database. The stored name is the document id plus an extension derived from
+  the **content type**, never from the uploaded name, which is the one part of
+  an upload the sender controls and which ends up in a filesystem path.
+- **Endpoints:** `GET /api/documents`, `GET /api/documents/records` (admin, with
+  owner), `POST /api/documents`, `GET /api/documents/:id/file`,
+  `PATCH /api/documents/:id`, `DELETE /api/documents/:id`.
+- **The split of authority is the point.** A student may rename and reclassify
+  their own file; only an administrator may mark it verified or rejected, and a
+  rejection must carry a note. A verified document cannot be deleted by the
+  student — it is the evidence a decision rested on — and the UI does not offer
+  the control, so the rule is not discovered as an error.
+- **Downloads are always `Content-Disposition: attachment`.** An uploaded file is
+  untrusted content and must never be rendered inline on this origin.
+- **`src/pages/student/DocumentsPage.tsx`** — upload with the classification
+  pre-filled from the file name and editable, then the library grouped by
+  classification.
+- **`src/pages/admin/AdminDocumentsPage.tsx`** — a review queue filtered to
+  `submitted` by default, with a dialog to reclassify, verify, or return with a
+  note.
+- `DB_VERSION` bumped to 4; the local data layer stores bytes as data URLs so
+  the demo build can still open a file. `uploads/` is git-ignored.
 
 ### 2026-10-19 - dark theme retuned, FAQ page, site diagrams, hero illustrations
 
