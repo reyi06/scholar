@@ -6,8 +6,14 @@ import { hashPassword, verifyPassword } from './passwords.ts'
 import {
   stringifyArray,
   stringifyObject,
+  toAnnouncement,
   toApplication,
+  toGrant,
+  toNotification,
+  toProfile,
+  toRegistration,
   toScholarship,
+  toSettings,
   toUser,
 } from './mappers.ts'
 import type { Role, User } from '../src/types/index.ts'
@@ -263,16 +269,8 @@ route('POST', '/api/auth/register', async ({ req, res }) => {
   send(res, 201, { user: toUser(created) })
 })
 
-/**
- * The seeded sign-in credentials, so the login screen can offer them.
- * Remove this endpoint (and the buttons it feeds) before any real deployment.
- */
-route('GET', '/api/accounts', async ({ res }) => {
-  send(res, 200, [
-    { role: 'student', label: 'Student', email: 'maria.santos@example.com', password: 'student123' },
-    { role: 'admin', label: 'Administrator', email: 'admin@example.com', password: 'admin123' },
-  ])
-})
+/* Test credentials live in the client (src/lib/testAccounts.ts) rather than
+   behind an endpoint, so the server never serves passwords. */
 
 /* ================================================================== */
 /* Scholarships                                                        */
@@ -282,6 +280,7 @@ function buildScholarshipWhere(query: URLSearchParams, includeDrafts: boolean) {
   const type = query.get('type') ?? 'all'
   const municipality = query.get('municipality') ?? 'all'
   const status = query.get('status') ?? 'all'
+  const level = query.get('level') ?? 'all'
   const search = (query.get('query') ?? '').trim()
 
   const where: Record<string, unknown> = {}
@@ -290,6 +289,24 @@ function buildScholarshipWhere(query: URLSearchParams, includeDrafts: boolean) {
   if (includeDrafts && status !== 'all') where.status = status
   if (type !== 'all') where.type = type
   if (municipality !== 'all') where.municipality = municipality
+
+  // NOTE: educationLevels is a JSON-encoded string on SQLite, so this is a
+  // substring match on the serialised array. After migrating to Postgres it
+  // becomes `{ has: level }` against a real text[] column.
+  if (level !== 'all') where.educationLevels = { contains: `"${level}"` }
+
+  if (query.get('featured') === 'true') where.featured = true
+
+  const withinDays = Number(query.get('deadlineWithinDays') ?? '')
+  if (Number.isFinite(withinDays) && withinDays > 0) {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const limit = new Date(today.getTime() + withinDays * 86_400_000)
+    where.deadline = {
+      gte: today.toISOString().slice(0, 10),
+      lte: limit.toISOString().slice(0, 10),
+    }
+  }
 
   if (search) {
     where.OR = [
@@ -317,7 +334,15 @@ route('GET', '/api/scholarships', async ({ res, query, user }) => {
   const rank = (row: { status: string; deadline: string }): number =>
     row.status === 'open' && row.deadline >= today ? 0 : 1
 
-  const ordered = [...all].sort((a, b) => rank(a) - rank(b) || a.deadline.localeCompare(b.deadline))
+  const sort = query.get('sort') ?? 'deadline'
+  const ordered = [...all]
+  if (sort === 'name') {
+    ordered.sort((a, b) => a.name.localeCompare(b.name))
+  } else if (sort === 'newest') {
+    ordered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+  } else {
+    ordered.sort((a, b) => rank(a) - rank(b) || a.deadline.localeCompare(b.deadline))
+  }
 
   const total = ordered.length
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
@@ -345,6 +370,109 @@ route('GET', '/api/scholarships/options', async ({ res, user }) => {
 route('GET', '/api/scholarships/:id', async ({ res, params }) => {
   const row = await prisma.scholarship.findUnique({ where: { id: params.id } })
   send(res, 200, row ? toScholarship(row) : null)
+})
+
+route('GET', '/api/scholarships/counts-by-type', async ({ res }) => {
+  const grouped = await prisma.scholarship.groupBy({
+    by: ['type'],
+    where: { status: { not: 'draft' } },
+    _count: { _all: true },
+  })
+  send(res, 200, grouped.map((row) => ({ type: row.type, count: row._count._all })))
+})
+
+/** Shape a request body into the columns of a Scholarship row. */
+function scholarshipData(body: Record<string, unknown>) {
+  const list = (key: string): string[] | undefined =>
+    Array.isArray(body[key]) ? (body[key] as unknown[]).map(String) : undefined
+  const text = (key: string): string | undefined =>
+    typeof body[key] === 'string' ? (body[key] as string) : undefined
+
+  return {
+    name: text('name'),
+    provider: text('provider'),
+    type: text('type'),
+    municipality: text('municipality'),
+    educationLevels: list('educationLevels') ? stringifyArray(body.educationLevels as string[]) : undefined,
+    description: text('description'),
+    benefits: list('benefits') ? stringifyArray(body.benefits as string[]) : undefined,
+    eligibility: list('eligibility') ? stringifyArray(body.eligibility as string[]) : undefined,
+    requirements: list('requirements') ? stringifyArray(body.requirements as string[]) : undefined,
+    deadline: text('deadline'),
+    applicationMode: text('applicationMode'),
+    externalUrl: body.externalUrl === undefined ? undefined : (text('externalUrl') || null),
+    contact: body.contact ? stringifyObject(body.contact) : undefined,
+    instructions: list('instructions') ? stringifyArray(body.instructions as string[]) : undefined,
+    status: text('status'),
+    featured: typeof body.featured === 'boolean' ? body.featured : undefined,
+    tags: list('tags') ? stringifyArray(body.tags as string[]) : undefined,
+  }
+}
+
+route('POST', '/api/scholarships', async ({ req, res, user }) => {
+  requireRole(user, 'admin')
+  const body = await readJson(req)
+  const data = scholarshipData(body)
+
+  if (!data.name || !data.provider || !data.type || !data.deadline) {
+    throw new HttpError(400, 'Name, provider, type and deadline are required.')
+  }
+  if (data.applicationMode === 'external' && !data.externalUrl) {
+    throw new HttpError(400, 'An external application link is required for external listings.')
+  }
+
+  const created = await prisma.scholarship.create({
+    data: {
+      id: createId('sch'),
+      name: data.name,
+      provider: data.provider,
+      type: data.type,
+      municipality: data.municipality ?? 'Province-wide',
+      educationLevels: data.educationLevels ?? '[]',
+      description: data.description ?? '',
+      benefits: data.benefits ?? '[]',
+      eligibility: data.eligibility ?? '[]',
+      requirements: data.requirements ?? '[]',
+      deadline: data.deadline,
+      applicationMode: data.applicationMode ?? 'internal',
+      externalUrl: data.externalUrl ?? null,
+      contact: data.contact ?? '{}',
+      instructions: data.instructions ?? '[]',
+      status: data.status ?? 'draft',
+      featured: data.featured ?? false,
+      tags: data.tags ?? '[]',
+    },
+  })
+
+  send(res, 201, toScholarship(created))
+})
+
+route('PATCH', '/api/scholarships/:id', async ({ req, res, params, user }) => {
+  requireRole(user, 'admin')
+  const existing = await prisma.scholarship.findUnique({ where: { id: params.id } })
+  if (!existing) throw new HttpError(404, 'That scholarship listing no longer exists.')
+
+  const body = await readJson(req)
+  const data = Object.fromEntries(
+    Object.entries(scholarshipData(body)).filter(([, value]) => value !== undefined),
+  )
+
+  const mode = (data.applicationMode as string | undefined) ?? existing.applicationMode
+  const externalUrl = (data.externalUrl as string | null | undefined) ?? existing.externalUrl
+  if (mode === 'external' && !externalUrl) {
+    throw new HttpError(400, 'An external application link is required for external listings.')
+  }
+
+  const updated = await prisma.scholarship.update({ where: { id: params.id }, data: data as never })
+  send(res, 200, toScholarship(updated))
+})
+
+route('DELETE', '/api/scholarships/:id', async ({ res, params, user }) => {
+  requireRole(user, 'admin')
+  const existing = await prisma.scholarship.findUnique({ where: { id: params.id } })
+  if (!existing) throw new HttpError(404, 'That scholarship listing no longer exists.')
+  await prisma.scholarship.delete({ where: { id: params.id } })
+  send(res, 200, { ok: true })
 })
 
 /* ================================================================== */
@@ -503,6 +631,953 @@ route('POST', '/api/applications', async ({ req, res, user }) => {
   send(res, 201, toApplication(created))
 })
 
+/* ================================================================== */
+/* Saved — ids only                                                    */
+/* ================================================================== */
+
+route('GET', '/api/saved/ids', async ({ res, user }) => {
+  const student = requireRole(user, 'student')
+  const rows = await prisma.savedScholarship.findMany({
+    where: { studentId: student.id },
+    select: { scholarshipId: true },
+  })
+  send(res, 200, rows.map((row) => row.scholarshipId))
+})
+
+/* ================================================================== */
+/* Applications — mutations and derived views                          */
+/* ================================================================== */
+
+const DECISIONS = ['under-review', 'needs-info', 'approved', 'rejected'] as const
+
+route('PATCH', '/api/applications/:id', async ({ req, res, params, user }) => {
+  const student = requireRole(user, 'student')
+  const existing = await prisma.application.findUnique({ where: { id: params.id } })
+  if (!existing) throw new HttpError(404, 'That application no longer exists.')
+  requireOwnerOrAdmin(student, existing.studentId)
+  if (existing.status !== 'draft') throw new HttpError(409, 'Only draft applications can be edited.')
+
+  const body = await readJson(req)
+  const asDraft = Boolean(body.asDraft)
+  const now = new Date()
+
+  const updated = await prisma.application.update({
+    where: { id: params.id },
+    data: {
+      motivation: typeof body.motivation === 'string' ? body.motivation : existing.motivation,
+      responses: body.responses ? stringifyObject(body.responses) : existing.responses,
+      documentNames: Array.isArray(body.documentNames)
+        ? stringifyArray(body.documentNames as string[])
+        : existing.documentNames,
+      status: asDraft ? 'draft' : 'submitted',
+      submittedAt: asDraft ? existing.submittedAt : now,
+      updatedAt: now,
+      ...(asDraft
+        ? {}
+        : {
+            timeline: {
+              create: [
+                {
+                  id: createId('tle'),
+                  status: 'submitted',
+                  at: now,
+                  note: 'Application submitted through the portal.',
+                },
+              ],
+            },
+          }),
+    },
+    include: { timeline: { orderBy: { at: 'asc' } } },
+  })
+
+  send(res, 200, toApplication(updated))
+})
+
+/**
+ * Administrator decision.
+ * Records the review outcome only — approving here deliberately does NOT create
+ * a grant. That happens solely through POST /api/grants/confirm.
+ */
+route('POST', '/api/applications/:id/status', async ({ req, res, params, user }) => {
+  const admin = requireRole(user, 'admin')
+  const body = await readJson(req)
+  const status = String(body.status ?? '')
+
+  if (!DECISIONS.includes(status as (typeof DECISIONS)[number])) {
+    throw new HttpError(400, 'That is not a valid decision.')
+  }
+  const note = String(body.note ?? '').trim()
+  if (note.length < 5) throw new HttpError(400, 'Add a short note explaining the decision.')
+
+  const existing = await prisma.application.findUnique({ where: { id: params.id } })
+  if (!existing) throw new HttpError(404, 'That application no longer exists.')
+
+  const actor = `${admin.firstName} ${admin.lastName}`
+  const now = new Date()
+  const label = status.replace(/-/g, ' ')
+
+  const updated = await prisma.application.update({
+    where: { id: params.id },
+    data: {
+      status,
+      reviewNotes: note,
+      reviewedBy: actor,
+      updatedAt: now,
+      timeline: { create: [{ id: createId('tle'), status, at: now, note, actor }] },
+    },
+    include: { timeline: { orderBy: { at: 'asc' } } },
+  })
+
+  await prisma.notification.create({
+    data: {
+      id: createId('ntf'),
+      userId: existing.studentId,
+      title: `Application ${label}`,
+      body: `Your application ${existing.referenceNo} is now marked as ${label}.`,
+      createdAt: now,
+      link: `/student/applications/${existing.id}`,
+    },
+  })
+
+  send(res, 200, toApplication(updated))
+})
+
+route('POST', '/api/applications/:id/withdraw', async ({ res, params, user }) => {
+  const student = requireRole(user, 'student')
+  const existing = await prisma.application.findUnique({ where: { id: params.id } })
+  if (!existing) throw new HttpError(404, 'That application no longer exists.')
+  if (existing.studentId !== student.id) {
+    throw new HttpError(403, 'You can only withdraw your own application.')
+  }
+  if (existing.status !== 'draft' && existing.status !== 'submitted') {
+    throw new HttpError(409, 'Only draft or submitted applications can be withdrawn.')
+  }
+
+  const now = new Date()
+  const updated = await prisma.application.update({
+    where: { id: params.id },
+    data: {
+      status: 'rejected',
+      updatedAt: now,
+      reviewNotes: 'Withdrawn by the applicant.',
+      timeline: {
+        create: [
+          {
+            id: createId('tle'),
+            status: 'rejected',
+            at: now,
+            note: 'Withdrawn by the applicant.',
+            actor: 'Applicant',
+          },
+        ],
+      },
+    },
+    include: { timeline: { orderBy: { at: 'asc' } } },
+  })
+
+  send(res, 200, toApplication(updated))
+})
+
+route('DELETE', '/api/applications/:id', async ({ res, params, user }) => {
+  requireRole(user, 'admin')
+  const existing = await prisma.application.findUnique({ where: { id: params.id } })
+  if (!existing) throw new HttpError(404, 'That application no longer exists.')
+  await prisma.application.delete({ where: { id: params.id } })
+  send(res, 200, { ok: true })
+})
+
+/** Approved applications that have no confirmed grant yet. */
+route('GET', '/api/applications/awaiting-grant', async ({ res, user }) => {
+  requireRole(user, 'admin')
+  const rows = await prisma.application.findMany({
+    where: { status: 'approved', grant: null },
+    include: { timeline: { orderBy: { at: 'asc' } } },
+    orderBy: { submittedAt: 'desc' },
+  })
+  send(res, 200, rows.map(toApplication))
+})
+
+route('GET', '/api/applications/counts', async ({ res, user }) => {
+  requireRole(user, 'admin')
+  const grouped = await prisma.application.groupBy({ by: ['status'], _count: { _all: true } })
+  const counts: Record<string, number> = {
+    draft: 0,
+    submitted: 0,
+    'under-review': 0,
+    'needs-info': 0,
+    approved: 0,
+    rejected: 0,
+  }
+  for (const row of grouped) {
+    counts[row.status] = row._count._all
+  }
+  send(res, 200, counts)
+})
+
+/* ================================================================== */
+/* Student profile                                                     */
+/* ================================================================== */
+
+route('GET', '/api/profile', async ({ res, user }) => {
+  const signedIn = requireUser(user)
+  const row = await prisma.studentProfile.findUnique({ where: { userId: signedIn.id } })
+  send(res, 200, row ? toProfile(row) : null)
+})
+
+route('PATCH', '/api/profile', async ({ req, res, user }) => {
+  const signedIn = requireRole(user, 'student')
+  const body = await readJson(req)
+
+  const text = (key: string): string | undefined =>
+    typeof body[key] === 'string' ? (body[key] as string).trim() : undefined
+  const number = (key: string): number | null | undefined => {
+    if (body[key] === null) return null
+    if (body[key] === undefined) return undefined
+    const parsed = Number(body[key])
+    return Number.isNaN(parsed) ? undefined : parsed
+  }
+
+  const patch = {
+    studentNumber: text('studentNumber'),
+    phone: text('phone'),
+    municipality: text('municipality'),
+    barangay: text('barangay'),
+    address: text('address'),
+    birthDate: text('birthDate'),
+    educationLevel: text('educationLevel'),
+    school: text('school'),
+    course: text('course'),
+    yearLevel: text('yearLevel'),
+    gwa: number('gwa'),
+    householdIncome: number('householdIncome'),
+    guardianName: text('guardianName'),
+    guardianContact: text('guardianContact'),
+  }
+
+  // Drop undefined so Prisma leaves those columns alone.
+  const data = Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined))
+
+  const row = await prisma.studentProfile.upsert({
+    where: { userId: signedIn.id },
+    create: { userId: signedIn.id, ...data },
+    update: { ...data, updatedAt: new Date() },
+  })
+
+  send(res, 200, toProfile(row))
+})
+
+/* ================================================================== */
+/* Semester registrations                                              */
+/* ================================================================== */
+
+route('GET', '/api/registrations', async ({ res, query, user }) => {
+  const signedIn = requireUser(user)
+  const isAdmin = signedIn.role === 'admin'
+
+  const where: Record<string, unknown> = {}
+  if (!isAdmin) where.studentId = signedIn.id
+  for (const key of ['status', 'academicYear', 'semester'] as const) {
+    const value = query.get(key)
+    if (value && value !== 'all') where[key] = value
+  }
+
+  const page = Math.max(1, Number(query.get('page') ?? 1))
+  const pageSize = Math.min(100, Math.max(1, Number(query.get('pageSize') ?? 50)))
+
+  const [total, rows] = await Promise.all([
+    prisma.semesterRegistration.count({ where: where as never }),
+    prisma.semesterRegistration.findMany({
+      where: where as never,
+      orderBy: { submittedAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+  ])
+
+  send(res, 200, {
+    items: rows.map(toRegistration),
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+  })
+})
+
+route('GET', '/api/registrations/counts', async ({ res, user }) => {
+  requireRole(user, 'admin')
+  const grouped = await prisma.semesterRegistration.groupBy({ by: ['status'], _count: { _all: true } })
+  const counts: Record<string, number> = { pending: 0, verified: 0, rejected: 0 }
+  for (const row of grouped) counts[row.status] = row._count._all
+  send(res, 200, counts)
+})
+
+route('GET', '/api/registrations/:id', async ({ res, params, user }) => {
+  const signedIn = requireUser(user)
+  const row = await prisma.semesterRegistration.findUnique({ where: { id: params.id } })
+  if (!row) {
+    send(res, 200, null)
+    return
+  }
+  requireOwnerOrAdmin(signedIn, row.studentId)
+  send(res, 200, toRegistration(row))
+})
+
+route('POST', '/api/registrations', async ({ req, res, user }) => {
+  const student = requireRole(user, 'student')
+  const body = await readJson(req)
+
+  const academicYear = String(body.academicYear ?? '').trim()
+  const semester = String(body.semester ?? '').trim()
+  const school = String(body.school ?? '').trim()
+  const course = String(body.course ?? '').trim()
+  const yearLevel = String(body.yearLevel ?? '').trim()
+  const unitsEnrolled = Number(body.unitsEnrolled)
+  const gwa = body.gwa === null || body.gwa === undefined || body.gwa === '' ? null : Number(body.gwa)
+
+  if (!academicYear || !semester || !school || !course || !yearLevel) {
+    throw new HttpError(400, 'Please complete every required field.')
+  }
+  if (!Number.isFinite(unitsEnrolled) || unitsEnrolled < 1 || unitsEnrolled > 40) {
+    throw new HttpError(400, 'Units enrolled must be between 1 and 40.')
+  }
+  if (gwa !== null && (Number.isNaN(gwa) || gwa < 1 || gwa > 5)) {
+    throw new HttpError(400, 'General weighted average must be between 1.00 and 5.00.')
+  }
+
+  // Registration is for existing grantees only.
+  const grantCount = await prisma.grant.count({ where: { studentId: student.id } })
+  if (grantCount === 0) {
+    throw new HttpError(403, 'Semester registration is only available to students with a confirmed grant.')
+  }
+
+  const duplicate = await prisma.semesterRegistration.findFirst({
+    where: { studentId: student.id, academicYear, semester },
+  })
+  if (duplicate) {
+    throw new HttpError(409, `You already have a registration for ${semester}, AY ${academicYear}.`)
+  }
+
+  const existingRefs = (
+    await prisma.semesterRegistration.findMany({ select: { referenceNo: true } })
+  ).map((row) => row.referenceNo)
+
+  const now = new Date()
+  const created = await prisma.semesterRegistration.create({
+    data: {
+      id: createId('reg'),
+      referenceNo: nextReference('REG', existingRefs),
+      studentId: student.id,
+      academicYear,
+      semester,
+      school,
+      course,
+      yearLevel,
+      unitsEnrolled,
+      gwa,
+      status: 'pending',
+      submittedAt: now,
+      updatedAt: now,
+    },
+  })
+
+  await prisma.notification.create({
+    data: {
+      id: createId('ntf'),
+      userId: student.id,
+      title: 'Semester registration submitted',
+      body: `Registration ${created.referenceNo} is pending verification.`,
+      createdAt: now,
+      link: '/student/semester-registration',
+    },
+  })
+
+  send(res, 201, toRegistration(created))
+})
+
+route('POST', '/api/registrations/:id/status', async ({ req, res, params, user }) => {
+  const admin = requireRole(user, 'admin')
+  const body = await readJson(req)
+  const status = String(body.status ?? '')
+  if (status !== 'verified' && status !== 'rejected') {
+    throw new HttpError(400, 'That is not a valid decision.')
+  }
+
+  const remarks = typeof body.remarks === 'string' ? body.remarks.trim() : ''
+  if (status === 'rejected' && remarks.length < 5) {
+    throw new HttpError(400, 'Give a reason for rejecting the registration.')
+  }
+
+  const existing = await prisma.semesterRegistration.findUnique({ where: { id: params.id } })
+  if (!existing) throw new HttpError(404, 'That registration no longer exists.')
+
+  const now = new Date()
+  const updated = await prisma.semesterRegistration.update({
+    where: { id: params.id },
+    data: {
+      status,
+      remarks: remarks || existing.remarks,
+      verifiedBy: `${admin.firstName} ${admin.lastName}`,
+      updatedAt: now,
+    },
+  })
+
+  await prisma.notification.create({
+    data: {
+      id: createId('ntf'),
+      userId: updated.studentId,
+      title: `Semester registration ${status}`,
+      body: `Registration ${updated.referenceNo} is now marked as ${status}.`,
+      createdAt: now,
+      link: '/student/semester-registration',
+    },
+  })
+
+  send(res, 200, toRegistration(updated))
+})
+
+/* ================================================================== */
+/* Confirmed grants                                                    */
+/* ================================================================== */
+
+route('GET', '/api/grants', async ({ res, query, user }) => {
+  const signedIn = requireUser(user)
+  const isAdmin = signedIn.role === 'admin'
+
+  const where: Record<string, unknown> = {}
+  if (!isAdmin) where.studentId = signedIn.id
+  for (const key of ['status', 'academicYear', 'semester'] as const) {
+    const value = query.get(key)
+    if (value && value !== 'all') where[key] = value
+  }
+
+  const page = Math.max(1, Number(query.get('page') ?? 1))
+  const pageSize = Math.min(100, Math.max(1, Number(query.get('pageSize') ?? 50)))
+
+  const [total, rows] = await Promise.all([
+    prisma.grant.count({ where: where as never }),
+    prisma.grant.findMany({
+      where: where as never,
+      orderBy: { releasedAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+  ])
+
+  send(res, 200, {
+    items: rows.map(toGrant),
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+  })
+})
+
+route('GET', '/api/grants/total-released', async ({ res }) => {
+  const result = await prisma.grant.aggregate({ _sum: { amount: true } })
+  send(res, 200, result._sum.amount ?? 0)
+})
+
+route('GET', '/api/grants/:id', async ({ res, params, user }) => {
+  const signedIn = requireUser(user)
+  const row = await prisma.grant.findUnique({ where: { id: params.id } })
+  if (!row) {
+    send(res, 200, null)
+    return
+  }
+  requireOwnerOrAdmin(signedIn, row.studentId)
+  send(res, 200, toGrant(row))
+})
+
+/**
+ * The only path that turns an approved application into a confirmed grant.
+ */
+route('POST', '/api/grants/confirm', async ({ req, res, user }) => {
+  const admin = requireRole(user, 'admin')
+  const body = await readJson(req)
+  const applicationId = String(body.applicationId ?? '')
+  const amount = Number(body.amount)
+  const academicYear = String(body.academicYear ?? '').trim()
+  const semester = String(body.semester ?? '').trim()
+
+  if (!applicationId) throw new HttpError(400, 'Choose an application to confirm.')
+  if (!Number.isFinite(amount) || amount <= 0) throw new HttpError(400, 'Enter the amount to release.')
+  if (!academicYear || !semester) throw new HttpError(400, 'Choose the academic year and semester.')
+
+  const application = await prisma.application.findUnique({ where: { id: applicationId } })
+  if (!application) throw new HttpError(404, 'That application no longer exists.')
+  if (application.status !== 'approved') {
+    throw new HttpError(409, 'Only approved applications can be confirmed as grants.')
+  }
+
+  const already = await prisma.grant.findUnique({ where: { applicationId } })
+  if (already) throw new HttpError(409, 'A grant record has already been confirmed for this application.')
+
+  const existingRefs = (await prisma.grant.findMany({ select: { referenceNo: true } })).map(
+    (row) => row.referenceNo,
+  )
+
+  const now = new Date()
+  const created = await prisma.grant.create({
+    data: {
+      id: createId('grt'),
+      referenceNo: nextReference('GRT', existingRefs),
+      studentId: application.studentId,
+      scholarshipId: application.scholarshipId,
+      applicationId,
+      academicYear,
+      semester,
+      amount,
+      status: 'active',
+      releasedAt: now,
+      confirmedBy: `${admin.firstName} ${admin.lastName}`,
+      remarks: typeof body.remarks === 'string' && body.remarks.trim() ? body.remarks.trim() : null,
+    },
+  })
+
+  await prisma.notification.create({
+    data: {
+      id: createId('ntf'),
+      userId: application.studentId,
+      title: 'Grant record confirmed',
+      body: `A grant of ${amount.toLocaleString('en-PH')} was confirmed for ${semester}, AY ${academicYear}.`,
+      createdAt: now,
+      link: '/student/grants',
+    },
+  })
+
+  send(res, 201, toGrant(created))
+})
+
+route('POST', '/api/grants', async ({ req, res, user }) => {
+  const admin = requireRole(user, 'admin')
+  const body = await readJson(req)
+
+  const studentId = String(body.studentId ?? '')
+  const scholarshipId = String(body.scholarshipId ?? '')
+  const amount = Number(body.amount)
+  const academicYear = String(body.academicYear ?? '').trim()
+  const semester = String(body.semester ?? '').trim()
+
+  if (!studentId || !scholarshipId) throw new HttpError(400, 'Choose a student and a scholarship.')
+  if (!Number.isFinite(amount) || amount <= 0) throw new HttpError(400, 'Enter the amount to release.')
+  if (!academicYear || !semester) throw new HttpError(400, 'Choose the academic year and semester.')
+
+  const existingRefs = (await prisma.grant.findMany({ select: { referenceNo: true } })).map(
+    (row) => row.referenceNo,
+  )
+
+  const created = await prisma.grant.create({
+    data: {
+      id: createId('grt'),
+      referenceNo: nextReference('GRT', existingRefs),
+      studentId,
+      scholarshipId,
+      academicYear,
+      semester,
+      amount,
+      status: (String(body.status ?? 'active') as string),
+      releasedAt: body.releasedAt ? new Date(String(body.releasedAt)) : new Date(),
+      confirmedBy: `${admin.firstName} ${admin.lastName}`,
+      remarks: typeof body.remarks === 'string' && body.remarks.trim() ? body.remarks.trim() : null,
+    },
+  })
+
+  send(res, 201, toGrant(created))
+})
+
+route('PATCH', '/api/grants/:id', async ({ req, res, params, user }) => {
+  requireRole(user, 'admin')
+  const body = await readJson(req)
+  const existing = await prisma.grant.findUnique({ where: { id: params.id } })
+  if (!existing) throw new HttpError(404, 'That grant record no longer exists.')
+
+  const updated = await prisma.grant.update({
+    where: { id: params.id },
+    data: {
+      amount: body.amount === undefined ? existing.amount : Number(body.amount),
+      academicYear: body.academicYear ? String(body.academicYear) : existing.academicYear,
+      semester: body.semester ? String(body.semester) : existing.semester,
+      status: body.status ? String(body.status) : existing.status,
+      remarks: body.remarks === undefined ? existing.remarks : String(body.remarks),
+    },
+  })
+
+  send(res, 200, toGrant(updated))
+})
+
+route('DELETE', '/api/grants/:id', async ({ res, params, user }) => {
+  requireRole(user, 'admin')
+  const existing = await prisma.grant.findUnique({ where: { id: params.id } })
+  if (!existing) throw new HttpError(404, 'That grant record no longer exists.')
+  await prisma.grant.delete({ where: { id: params.id } })
+  send(res, 200, { ok: true })
+})
+
+/* ================================================================== */
+/* Announcements                                                       */
+/* ================================================================== */
+
+route('GET', '/api/announcements', async ({ res, query, user }) => {
+  const audience = query.get('audience')
+  const where: Record<string, unknown> = {}
+
+  if (audience === 'students') where.audience = { in: ['all', 'students'] }
+  else if (audience === 'admins') where.audience = { in: ['all', 'admins'] }
+  else if (!user) where.audience = 'all'
+
+  const rows = await prisma.announcement.findMany({
+    where: where as never,
+    orderBy: [{ pinned: 'desc' }, { publishedAt: 'desc' }],
+  })
+
+  send(res, 200, rows.map(toAnnouncement))
+})
+
+route('POST', '/api/announcements', async ({ req, res, user }) => {
+  const admin = requireRole(user, 'admin')
+  const body = await readJson(req)
+  const title = String(body.title ?? '').trim()
+  const text = String(body.body ?? '').trim()
+
+  if (title.length < 5) throw new HttpError(400, 'Give the announcement a longer title.')
+  if (text.length < 10) throw new HttpError(400, 'Give the announcement a longer body.')
+
+  const created = await prisma.announcement.create({
+    data: {
+      id: createId('ann'),
+      title,
+      body: text,
+      audience: String(body.audience ?? 'all'),
+      pinned: Boolean(body.pinned),
+      publishedAt: new Date(),
+      author: `${admin.firstName} ${admin.lastName}`,
+    },
+  })
+
+  send(res, 201, toAnnouncement(created))
+})
+
+route('PATCH', '/api/announcements/:id', async ({ req, res, params, user }) => {
+  requireRole(user, 'admin')
+  const body = await readJson(req)
+  const existing = await prisma.announcement.findUnique({ where: { id: params.id } })
+  if (!existing) throw new HttpError(404, 'That announcement no longer exists.')
+
+  const title = body.title === undefined ? existing.title : String(body.title).trim()
+  const text = body.body === undefined ? existing.body : String(body.body).trim()
+  if (title.length < 5) throw new HttpError(400, 'Give the announcement a longer title.')
+  if (text.length < 10) throw new HttpError(400, 'Give the announcement a longer body.')
+
+  const updated = await prisma.announcement.update({
+    where: { id: params.id },
+    data: {
+      title,
+      body: text,
+      audience: body.audience ? String(body.audience) : existing.audience,
+      pinned: body.pinned === undefined ? existing.pinned : Boolean(body.pinned),
+    },
+  })
+
+  send(res, 200, toAnnouncement(updated))
+})
+
+route('DELETE', '/api/announcements/:id', async ({ res, params, user }) => {
+  requireRole(user, 'admin')
+  const existing = await prisma.announcement.findUnique({ where: { id: params.id } })
+  if (!existing) throw new HttpError(404, 'That announcement no longer exists.')
+  await prisma.announcement.delete({ where: { id: params.id } })
+  send(res, 200, { ok: true })
+})
+
+/* ================================================================== */
+/* Notifications                                                       */
+/* ================================================================== */
+
+route('GET', '/api/notifications', async ({ res, user }) => {
+  const signedIn = requireUser(user)
+  const rows = await prisma.notification.findMany({
+    where: { OR: [{ userId: signedIn.id }, { userId: null }] },
+    orderBy: { createdAt: 'desc' },
+    take: 100,
+  })
+  send(res, 200, rows.map(toNotification))
+})
+
+route('GET', '/api/notifications/unread-count', async ({ res, user }) => {
+  const signedIn = requireUser(user)
+  const count = await prisma.notification.count({
+    where: { OR: [{ userId: signedIn.id }, { userId: null }], read: false },
+  })
+  send(res, 200, count)
+})
+
+route('POST', '/api/notifications/read-all', async ({ res, user }) => {
+  const signedIn = requireUser(user)
+  await prisma.notification.updateMany({
+    where: { OR: [{ userId: signedIn.id }, { userId: null }] },
+    data: { read: true },
+  })
+  send(res, 200, { ok: true })
+})
+
+route('POST', '/api/notifications/:id/read', async ({ res, params, user }) => {
+  requireUser(user)
+  await prisma.notification.update({ where: { id: params.id }, data: { read: true } }).catch(() => undefined)
+  send(res, 200, { ok: true })
+})
+
+/* ================================================================== */
+/* Students (administrator)                                            */
+/* ================================================================== */
+
+route('GET', '/api/students', async ({ res, query, user }) => {
+  requireRole(user, 'admin')
+
+  const search = (query.get('query') ?? '').trim()
+  const municipality = query.get('municipality') ?? 'all'
+  const page = Math.max(1, Number(query.get('page') ?? 1))
+  const pageSize = Math.min(200, Math.max(1, Number(query.get('pageSize') ?? 20)))
+
+  const where: Record<string, unknown> = { role: 'student' }
+  if (search) {
+    where.OR = [
+      { firstName: { contains: search } },
+      { lastName: { contains: search } },
+      { email: { contains: search } },
+    ]
+  }
+  if (municipality !== 'all') where.profile = { municipality }
+
+  const [total, users] = await Promise.all([
+    prisma.user.count({ where: where as never }),
+    prisma.user.findMany({
+      where: where as never,
+      include: { profile: true },
+      orderBy: { lastName: 'asc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+  ])
+
+  const ids = users.map((row) => row.id)
+  const [applicationCounts, grantCounts] = await Promise.all([
+    prisma.application.groupBy({ by: ['studentId'], where: { studentId: { in: ids } }, _count: { _all: true } }),
+    prisma.grant.groupBy({ by: ['studentId'], where: { studentId: { in: ids } }, _count: { _all: true } }),
+  ])
+  const appMap = new Map(applicationCounts.map((row) => [row.studentId, row._count._all]))
+  const grantMap = new Map(grantCounts.map((row) => [row.studentId, row._count._all]))
+
+  send(res, 200, {
+    items: users.map((row) => ({
+      user: toUser(row),
+      profile: row.profile ? toProfile(row.profile) : null,
+      applicationCount: appMap.get(row.id) ?? 0,
+      grantCount: grantMap.get(row.id) ?? 0,
+    })),
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+  })
+})
+
+route('GET', '/api/students/count', async ({ res, user }) => {
+  requireRole(user, 'admin')
+  send(res, 200, await prisma.user.count({ where: { role: 'student' } }))
+})
+
+route('GET', '/api/students/:id', async ({ res, params, user }) => {
+  requireRole(user, 'admin')
+  const row = await prisma.user.findFirst({
+    where: { id: params.id, role: 'student' },
+    include: { profile: true },
+  })
+  if (!row) {
+    send(res, 200, null)
+    return
+  }
+
+  const [applicationCount, grantCount] = await Promise.all([
+    prisma.application.count({ where: { studentId: row.id } }),
+    prisma.grant.count({ where: { studentId: row.id } }),
+  ])
+
+  send(res, 200, {
+    user: toUser(row),
+    profile: row.profile ? toProfile(row.profile) : null,
+    applicationCount,
+    grantCount,
+  })
+})
+
+route('PATCH', '/api/students/:id', async ({ req, res, params, user }) => {
+  requireRole(user, 'admin')
+  const body = await readJson(req)
+  const existing = await prisma.user.findFirst({ where: { id: params.id, role: 'student' } })
+  if (!existing) throw new HttpError(404, 'That student record no longer exists.')
+
+  const email = body.email === undefined ? existing.email : String(body.email).trim()
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    throw new HttpError(400, 'Enter a valid email address.')
+  }
+  const clash = await prisma.user.findFirst({ where: { email, NOT: { id: existing.id } } })
+  if (clash) throw new HttpError(409, 'Another account already uses that email address.')
+
+  const updated = await prisma.user.update({
+    where: { id: existing.id },
+    data: {
+      firstName: body.firstName ? String(body.firstName).trim() : existing.firstName,
+      lastName: body.lastName ? String(body.lastName).trim() : existing.lastName,
+      email,
+    },
+  })
+
+  send(res, 200, toUser(updated))
+})
+
+route('DELETE', '/api/students/:id', async ({ res, params, user }) => {
+  requireRole(user, 'admin')
+  const existing = await prisma.user.findFirst({ where: { id: params.id, role: 'student' } })
+  if (!existing) throw new HttpError(404, 'That student record no longer exists.')
+  // Related rows cascade via the schema's onDelete: Cascade.
+  await prisma.user.delete({ where: { id: existing.id } })
+  send(res, 200, { ok: true })
+})
+
+/* ================================================================== */
+/* Platform settings                                                   */
+/* ================================================================== */
+
+route('GET', '/api/settings', async ({ res }) => {
+  const row = await prisma.platformSettings.findUnique({ where: { id: 'singleton' } })
+  if (!row) throw new HttpError(500, 'Platform settings have not been initialised.')
+  send(res, 200, toSettings(row))
+})
+
+route('PATCH', '/api/settings', async ({ req, res, user }) => {
+  requireRole(user, 'admin')
+  const body = await readJson(req)
+  const existing = await prisma.platformSettings.findUnique({ where: { id: 'singleton' } })
+  if (!existing) throw new HttpError(500, 'Platform settings have not been initialised.')
+
+  const contactEmail = body.contactEmail ? String(body.contactEmail).trim() : existing.contactEmail
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contactEmail)) {
+    throw new HttpError(400, 'Enter a valid contact email address.')
+  }
+
+  const updated = await prisma.platformSettings.update({
+    where: { id: 'singleton' },
+    data: {
+      currentAcademicYear: body.currentAcademicYear ? String(body.currentAcademicYear) : existing.currentAcademicYear,
+      currentSemester: body.currentSemester ? String(body.currentSemester) : existing.currentSemester,
+      applicationsOpen: body.applicationsOpen === undefined ? existing.applicationsOpen : Boolean(body.applicationsOpen),
+      maintenanceMessage: body.maintenanceMessage === undefined ? existing.maintenanceMessage : String(body.maintenanceMessage),
+      contactEmail,
+    },
+  })
+
+  send(res, 200, toSettings(updated))
+})
+
+/* ================================================================== */
+/* Reports                                                             */
+/* ================================================================== */
+
+route('GET', '/api/reports', async ({ res, user }) => {
+  requireRole(user, 'admin')
+
+  const [scholarships, applications, registrations, grants, students] = await Promise.all([
+    prisma.scholarship.findMany({ select: { id: true, status: true } }),
+    prisma.application.findMany({ select: { id: true, status: true, scholarshipId: true, submittedAt: true } }),
+    prisma.semesterRegistration.findMany({ select: { id: true, status: true } }),
+    prisma.grant.findMany({ select: { id: true, status: true, amount: true, studentId: true } }),
+    prisma.user.findMany({ where: { role: 'student' }, select: { id: true } }),
+  ])
+
+  const profiles = await prisma.studentProfile.findMany({ select: { userId: true, municipality: true } })
+  const municipalityByStudent = new Map(profiles.map((row) => [row.userId, row.municipality || 'Not provided']))
+  const scholarshipNames = new Map(
+    (await prisma.scholarship.findMany({ select: { id: true, name: true } })).map((row) => [row.id, row.name]),
+  )
+
+  const tally = <T>(rows: T[], key: (row: T) => string) =>
+    rows.reduce<Record<string, number>>((acc, row) => {
+      const k = key(row)
+      acc[k] = (acc[k] ?? 0) + 1
+      return acc
+    }, {})
+
+  const byStatus = tally(applications, (row) => row.status)
+  const byScholarship = tally(applications, (row) => row.scholarshipId)
+  const byMonth = tally(applications, (row) => row.submittedAt.toISOString().slice(0, 7))
+  const registrationsByStatus = tally(registrations, (row) => row.status)
+
+  const grantsByMunicipality = grants.reduce<Record<string, { count: number; amount: number }>>((acc, row) => {
+    const key = municipalityByStudent.get(row.studentId) ?? 'Not provided'
+    const current = acc[key] ?? { count: 0, amount: 0 }
+    acc[key] = { count: current.count + 1, amount: current.amount + row.amount }
+    return acc
+  }, {})
+
+  const toRows = (record: Record<string, number>) =>
+    Object.entries(record)
+      .map(([label, count]) => ({ label: label.replace(/-/g, ' '), count, amount: 0 }))
+      .sort((a, b) => b.count - a.count)
+
+  send(res, 200, {
+    overview: {
+      totalScholarships: scholarships.length,
+      openScholarships: scholarships.filter((row) => row.status === 'open').length,
+      draftScholarships: scholarships.filter((row) => row.status === 'draft').length,
+      totalStudents: students.length,
+      totalApplications: applications.length,
+      pendingApplications: applications.filter((row) =>
+        ['submitted', 'under-review', 'needs-info'].includes(row.status),
+      ).length,
+      totalRegistrations: registrations.length,
+      pendingRegistrations: registrations.filter((row) => row.status === 'pending').length,
+      totalGrants: grants.length,
+      activeGrants: grants.filter((row) => row.status === 'active').length,
+      totalAmountReleased: grants.reduce((sum, row) => sum + row.amount, 0),
+    },
+    byStatus: toRows(byStatus),
+    byScholarship: Object.entries(byScholarship)
+      .map(([id, count]) => ({ label: scholarshipNames.get(id) ?? 'Removed listing', count, amount: 0 }))
+      .sort((a, b) => b.count - a.count),
+    byMonth: Object.entries(byMonth)
+      .map(([label, count]) => ({ label, count, amount: 0 }))
+      .sort((a, b) => a.label.localeCompare(b.label)),
+    registrationsByStatus: toRows(registrationsByStatus),
+    grantsByMunicipality: Object.entries(grantsByMunicipality)
+      .map(([label, value]) => ({ label, count: value.count, amount: value.amount }))
+      .sort((a, b) => b.amount - a.amount),
+  })
+})
+
+/* ================================================================== */
+/* Maintenance                                                         */
+/* ================================================================== */
+
+route('POST', '/api/reset', async ({ user }) => {
+  requireRole(user, 'admin')
+  // Delegated to the seed script so there is one definition of the shipped data.
+  throw new HttpError(501, 'Restore the shipped records with "npm run db:seed".')
+})
+
+/**
+ * Lightweight counts for the administrator settings screen.
+ */
+route('GET', '/api/stats', async ({ res, user }) => {
+  requireRole(user, 'admin')
+  const [scholarships, applications, students, grants] = await Promise.all([
+    prisma.scholarship.count(),
+    prisma.application.count(),
+    prisma.user.count({ where: { role: 'student' } }),
+    prisma.grant.count(),
+  ])
+  send(res, 200, { scholarships, applications, students, grants })
+})
+
 export const __routes = routes
 
 /* ------------------------------------------------------------------ */
@@ -516,16 +1591,28 @@ const server = createServer((req, res) => {
       const segments = url.pathname.split('/').filter(Boolean)
       const method = req.method ?? 'GET'
 
+      // Collect every match, then prefer the one with the fewest parameter
+      // segments. Without this, registration order decides, and a static path
+      // such as /api/applications/counts gets swallowed by /api/applications/:id.
+      const candidates: { params: Record<string, string>; score: number; handler: Route['handler'] }[] = []
+
       for (const candidate of routes) {
         const params = match(candidate, method, segments)
-        if (!params) continue
+        if (params) {
+          candidates.push({ params, score: Object.keys(params).length, handler: candidate.handler })
+        }
+      }
 
-        const user = await currentUser(req)
-        await candidate.handler({ req, res, params, query: url.searchParams, user })
+      if (candidates.length === 0) {
+        send(res, 404, { error: `No route for ${method} ${url.pathname}` })
         return
       }
 
-      send(res, 404, { error: `No route for ${method} ${url.pathname}` })
+      candidates.sort((a, b) => a.score - b.score)
+      const chosen = candidates[0]
+
+      const user = await currentUser(req)
+      await chosen.handler({ req, res, params: chosen.params, query: url.searchParams, user })
     } catch (error: unknown) {
       if (error instanceof HttpError) {
         send(res, error.status, { error: error.message })
