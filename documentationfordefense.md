@@ -629,9 +629,13 @@ npm run dev             # interface on :5173
 npm run check:responsive                  # public routes at 390/768/1280
 npm run check:responsive -- --role=student
 npm run check:responsive -- --role=admin
+
+npm run rehearse                          # walk the demonstration, timed
 ```
 
 `check:responsive` writes full-page screenshots to `tmp/responsive/`.
+`rehearse` walks the demonstration sequence against a running preview and reports
+the time each step takes; the scripted sequence completes in about six seconds.
 
 ---
 

@@ -162,6 +162,11 @@ than walking the menus.
 If time is short, steps 6–8 carry the argument: the separation between an
 application, an approval and a confirmed grant is the system's central claim.
 
+**This sequence has been rehearsed end to end against the production build:
+eleven steps, 5.6 seconds, all passing.** Re-run it before the defense with
+`npm run rehearse`, with `npm run preview` and `npm run server` already running.
+Back up `prisma/dev.db` first — the rehearsal creates and confirms a real grant.
+
 ---
 
 ## 7. Limitations to state plainly
