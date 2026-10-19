@@ -6,6 +6,7 @@ import { hashPassword, verifyPassword } from './passwords.ts'
 import { HttpError } from './httpError.ts'
 import { deleteUpload, readMultipart, readUpload, saveUpload, storedNameFor } from './uploads.ts'
 import { googleIsAuthoritative, verifyGoogleIdToken } from './googleAuth.ts'
+import { recordAudit } from './audit.ts'
 import {
   clearLoginFailures,
   loginThrottle,
@@ -28,6 +29,7 @@ import {
   stringifyObject,
   toAnnouncement,
   toApplication,
+  toAuditEntry,
   toDocument,
   toGrant,
   toNotification,
@@ -1204,6 +1206,15 @@ route('POST', '/api/applications/:id/status', async ({ req, res, params, user })
     },
   })
 
+  await recordAudit({
+    actor: admin,
+    action: 'application.decided',
+    entityType: 'application',
+    entityId: existing.id,
+    summary: `Marked ${existing.referenceNo} as ${label}`,
+    detail: { from: existing.status, to: status, studentId: existing.studentId, note },
+  })
+
   send(res, 200, toApplication(updated))
 })
 
@@ -1628,6 +1639,21 @@ route('POST', '/api/grants/confirm', async ({ req, res, user }) => {
       body: `A grant of ${amount.toLocaleString('en-PH')} was confirmed for ${semester}, AY ${academicYear}.`,
       createdAt: now,
       link: '/student/grants',
+    },
+  })
+
+  // The act that releases funds. This is the entry an audit is really for.
+  await recordAudit({
+    actor: admin,
+    action: 'grant.confirmed',
+    entityType: 'grant',
+    entityId: created.id,
+    summary: `Confirmed ${created.referenceNo} for ${amount.toLocaleString('en-PH')} (${semester}, AY ${academicYear})`,
+    detail: {
+      amount,
+      applicationId,
+      studentId: application.studentId,
+      scholarshipId: application.scholarshipId,
     },
   })
 
@@ -2077,6 +2103,20 @@ route('GET', '/api/documents/:id/file', async ({ res, params, user }) => {
   if (!row) throw new HttpError(404, 'That document no longer exists.')
   requireOwnerOrAdmin(signedIn, row.studentId)
 
+  // Disclosing a student's file is precisely the act an audit trail exists for.
+  // A student opening their own file is not an administrative disclosure, so
+  // only staff access is recorded.
+  if (signedIn.role === 'admin') {
+    await recordAudit({
+      actor: signedIn,
+      action: 'document.downloaded',
+      entityType: 'document',
+      entityId: row.id,
+      summary: `Opened “${row.title}”`,
+      detail: { studentId: row.studentId, fileName: row.fileName, classification: row.classification },
+    })
+  }
+
   const data = await readUpload(row.storedName)
   if (!data) throw new HttpError(410, 'The stored copy of this file is no longer available.')
 
@@ -2137,6 +2177,23 @@ route('PATCH', '/api/documents/:id', async ({ req, res, params, user }) => {
     where: { id: existing.id },
     data: update as never,
   })
+
+  // Only a decision changes the evidentiary state of a document, so only a
+  // decision is worth a trail entry — not a student renaming their own file.
+  if (update.status !== undefined) {
+    await recordAudit({
+      actor: signedIn,
+      action: updated.status === 'verified' ? 'document.verified' : 'document.rejected',
+      entityType: 'document',
+      entityId: updated.id,
+      summary:
+        updated.status === 'verified'
+          ? `Verified “${updated.title}”`
+          : `Returned “${updated.title}” to the student`,
+      detail: { studentId: updated.studentId, from: existing.status, to: updated.status, note: updated.note },
+    })
+  }
+
   send(res, 200, toDocument(updated))
 })
 
@@ -2159,6 +2216,156 @@ route('DELETE', '/api/documents/:id', async ({ res, params, user }) => {
   await prisma.studentDocument.delete({ where: { id: existing.id } })
   await deleteUpload(existing.storedName)
   send(res, 200, { ok: true })
+})
+
+/* ================================================================== */
+/* Audit trail                                                         */
+/* ================================================================== */
+
+route('GET', '/api/audit', async ({ res, query, user }) => {
+  requireRole(user, 'admin')
+
+  const action = (query.get('action') ?? '').trim()
+  const actorId = (query.get('actorId') ?? '').trim()
+  const entityId = (query.get('entityId') ?? '').trim()
+  const page = Math.max(1, Number(query.get('page') ?? 1))
+  const pageSize = Math.min(100, Math.max(1, Number(query.get('pageSize') ?? 25)))
+
+  const where: Record<string, unknown> = {}
+  if (action) where.action = { startsWith: action }
+  if (actorId) where.actorId = actorId
+  if (entityId) where.entityId = entityId
+
+  const [total, rows] = await Promise.all([
+    prisma.auditEntry.count({ where: where as never }),
+    prisma.auditEntry.findMany({
+      where: where as never,
+      orderBy: { at: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+  ])
+
+  send(res, 200, {
+    items: rows.map(toAuditEntry),
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+  })
+})
+
+/* ------------------------------------------------------------------ */
+/* Data-subject requests                                               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Everything the system holds about the signed-in user, as one JSON document.
+ *
+ * The Data Privacy Act gives a data subject the right of access. The most
+ * useful form of that here is a file the student can keep, so this returns the
+ * whole record rather than a summary of it.
+ *
+ * The export itself is audited: bulk access to a student's own file is still
+ * access worth being able to account for.
+ */
+route('GET', '/api/me/export', async ({ res, user }) => {
+  const signedIn = requireUser(user)
+  const me = await prisma.user.findUnique({ where: { id: signedIn.id } })
+
+  const [profile, applications, registrations, grants, documents, saved] = await Promise.all([
+    prisma.studentProfile.findUnique({ where: { userId: signedIn.id } }),
+    prisma.application.findMany({
+      where: { studentId: signedIn.id },
+      include: { timeline: { orderBy: { at: 'asc' } } },
+      orderBy: { submittedAt: 'desc' },
+    }),
+    prisma.semesterRegistration.findMany({
+      where: { studentId: signedIn.id },
+      orderBy: { submittedAt: 'desc' },
+    }),
+    prisma.grant.findMany({ where: { studentId: signedIn.id }, orderBy: { releasedAt: 'desc' } }),
+    prisma.studentDocument.findMany({
+      where: { studentId: signedIn.id },
+      orderBy: { uploadedAt: 'desc' },
+    }),
+    prisma.savedScholarship.count({ where: { studentId: signedIn.id } }),
+  ])
+
+  await recordAudit({
+    actor: signedIn,
+    action: 'data.exported',
+    entityType: 'user',
+    entityId: signedIn.id,
+    summary: 'Downloaded a copy of their own records',
+    detail: { applications: applications.length, documents: documents.length },
+  })
+
+  send(res, 200, {
+    exportedAt: new Date().toISOString(),
+    note:
+      'A copy of the records held about you by Scholar. Uploaded files themselves are not included, only their descriptions; download those from My Documents.',
+    account: me
+      ? {
+          id: me.id,
+          email: me.email,
+          firstName: me.firstName,
+          lastName: me.lastName,
+          createdAt: me.createdAt,
+          emailVerified: me.emailVerified,
+        }
+      : null,
+    profile: profile ? toProfile(profile) : null,
+    applications: applications.map(toApplication),
+    registrations: registrations.map(toRegistration),
+    grants: grants.map(toGrant),
+    documents: documents.map(toDocument),
+    savedScholarships: saved,
+  })
+})
+
+/**
+ * Ask the office to erase your records.
+ *
+ * Deliberately a request rather than an immediate delete. A confirmed grant is
+ * evidence of the use of public funds and of a decision made about a person;
+ * erasing it on a button press would destroy the record that explains it. The
+ * request is recorded and the administrators are notified, so a human decides
+ * scope against the office's retention obligations.
+ */
+route('POST', '/api/me/erasure-request', async ({ req, res, user }) => {
+  const signedIn = requireUser(user)
+  const body = await readJson(req)
+  const reason = String(body.reason ?? '').trim()
+
+  const name = `${signedIn.firstName} ${signedIn.lastName}`.trim()
+
+  await recordAudit({
+    actor: signedIn,
+    action: 'data.erasure_requested',
+    entityType: 'user',
+    entityId: signedIn.id,
+    summary: `${name} requested erasure of their records`,
+    detail: { reason: reason || null, email: signedIn.email },
+  })
+
+  const admins = await prisma.user.findMany({ where: { role: 'admin' }, select: { id: true } })
+  await Promise.all(
+    admins.map((admin) =>
+      prisma.notification.create({
+        data: {
+          id: createId('ntf'),
+          userId: admin.id,
+          title: 'Erasure request received',
+          body: `${name} has asked for their records to be erased. Review the request before acting.`,
+          createdAt: new Date(),
+          link: '/admin/activity',
+        },
+      }),
+    ),
+  )
+
+  send(res, 201, { requested: true })
 })
 
 /* ================================================================== */

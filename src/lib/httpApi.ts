@@ -8,6 +8,8 @@ import type {
   Application,
   ApplicationFilters,
   ApplicationStatus,
+  AuditEntry,
+  AuditFilters,
   CompleteProfileInput,
   DocumentClassification,
   DocumentFilters,
@@ -779,6 +781,29 @@ const documentsApi = {
   },
 }
 
+/* ------------------------------------------------------------------ */
+/* Audit trail and data-subject requests                               */
+/* ------------------------------------------------------------------ */
+
+const auditApi = {
+  /** Administrator only. `action` matches the start of the verb, e.g. `document.`. */
+  async list(filters: AuditFilters = {}): Promise<Paginated<AuditEntry>> {
+    return request<Paginated<AuditEntry>>('GET', `/audit${queryString({ ...filters })}`)
+  },
+}
+
+const meApi = {
+  /** The signed-in account's own records, as a portable document. */
+  async exportRecords(): Promise<Record<string, unknown>> {
+    return request<Record<string, unknown>>('GET', '/me/export')
+  },
+
+  /** Asks the office to erase records; a human decides the scope. */
+  async requestErasure(reason: string): Promise<void> {
+    await request<{ requested: boolean }>('POST', '/me/erasure-request', { reason })
+  },
+}
+
 export const httpApi = {
   authApi,
   scholarshipsApi,
@@ -792,6 +817,8 @@ export const httpApi = {
   studentsApi,
   settingsApi,
   reportsApi,
+  auditApi,
+  meApi,
   demoApi,
 }
 

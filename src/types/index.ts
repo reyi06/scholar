@@ -361,6 +361,40 @@ export interface DocumentRecord {
 }
 
 /* ------------------------------------------------------------------ */
+/* Audit trail                                                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * One administrative act, as recorded by the server.
+ *
+ * Read-only in the interface: the trail is append-only, and nothing in the
+ * application can edit or delete an entry.
+ */
+export interface AuditEntry {
+  id: string
+  at: string
+  actorId: string
+  /** Snapshot of the actor's name at the time of the action. */
+  actorName: string
+  actorRole: Role
+  /** Dotted verb, e.g. `document.viewed`, `grant.confirmed`. */
+  action: string
+  entityType: string
+  entityId: string | null
+  summary: string
+  detail: Record<string, unknown>
+}
+
+export interface AuditFilters {
+  /** Matches the start of the action, e.g. `document.` */
+  action?: string
+  actorId?: string
+  entityId?: string
+  page?: number
+  pageSize?: number
+}
+
+/* ------------------------------------------------------------------ */
 /* Announcements & notifications                                       */
 /* ------------------------------------------------------------------ */
 

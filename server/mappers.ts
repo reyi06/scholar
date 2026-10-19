@@ -3,6 +3,7 @@ import type {
   Application,
   ApplicationResponse,
   ApplicationTimelineEntry,
+  AuditEntry,
   Grant,
   Notification,
   PlatformSettings,
@@ -260,6 +261,46 @@ export function toDocument(row: DocumentRow): StudentDocument {
     uploadedAt: row.uploadedAt.toISOString(),
     status: row.status as StudentDocument['status'],
     note: row.note,
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Audit trail                                                         */
+/* ------------------------------------------------------------------ */
+
+interface AuditRow {
+  id: string
+  at: Date
+  actorId: string
+  actorName: string
+  actorRole: string
+  action: string
+  entityType: string
+  entityId: string | null
+  summary: string
+  detail: string
+}
+
+export function toAuditEntry(row: AuditRow): AuditEntry {
+  let detail: Record<string, unknown> = {}
+  try {
+    const parsed: unknown = JSON.parse(row.detail)
+    if (parsed && typeof parsed === 'object') detail = parsed as Record<string, unknown>
+  } catch {
+    // A malformed detail blob must not hide the entry itself.
+  }
+
+  return {
+    id: row.id,
+    at: row.at.toISOString(),
+    actorId: row.actorId,
+    actorName: row.actorName,
+    actorRole: row.actorRole === 'admin' ? 'admin' : 'student',
+    action: row.action,
+    entityType: row.entityType,
+    entityId: row.entityId,
+    summary: row.summary,
+    detail,
   }
 }
 

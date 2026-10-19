@@ -153,6 +153,11 @@ These are small and each one closes a real failure mode.
 
 ### Phase 1 — Accountability (what a scholarship office actually needs)
 
+> **Status: complete.** Audit trail with an append-only `AuditEntry` and an
+> `/admin/activity` viewer; student export and erasure request;
+> `npm run db:prune-documents` enforcing retention (dry run by default). See the
+> Verification log in `AGENTS.md`.
+
 6. **Audit log.** Append-only rows for: admin viewing or downloading a student
    document, reviewing an application, confirming a grant, editing or deleting a
    listing, and role changes. Show it to administrators, not students.

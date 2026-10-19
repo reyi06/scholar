@@ -89,6 +89,9 @@ const AdminGrantsPage = lazy(async () => ({
 const AdminDocumentsPage = lazy(async () => ({
   default: (await import('./pages/admin/AdminDocumentsPage.tsx')).AdminDocumentsPage,
 }))
+const AdminActivityPage = lazy(async () => ({
+  default: (await import('./pages/admin/AdminActivityPage.tsx')).AdminActivityPage,
+}))
 const AdminAnnouncementsPage = lazy(async () => ({
   default: (await import('./pages/admin/AdminAnnouncementsPage.tsx')).AdminAnnouncementsPage,
 }))
@@ -197,6 +200,7 @@ export default function App() {
               <Route path="/admin/registrations" element={<AdminRegistrationsPage />} />
               <Route path="/admin/grants" element={<AdminGrantsPage />} />
               <Route path="/admin/documents" element={<AdminDocumentsPage />} />
+              <Route path="/admin/activity" element={<AdminActivityPage />} />
               <Route path="/admin/announcements" element={<AdminAnnouncementsPage />} />
               <Route path="/admin/reports" element={<AdminReportsPage />} />
               <Route path="/admin/settings" element={<AdminSettingsPage />} />

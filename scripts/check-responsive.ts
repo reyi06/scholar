@@ -60,6 +60,7 @@ const ADMIN_ROUTES = [
   '/admin/registrations',
   '/admin/grants',
   '/admin/documents',
+  '/admin/activity',
   '/admin/announcements',
   '/admin/reports',
   '/admin/settings',

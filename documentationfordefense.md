@@ -25,7 +25,7 @@ data model, the status machine and the administrator interface are all built so
 that this distinction cannot be lost.
 
 The system is implemented as a React single-page application over a Node HTTP
-API and a relational database, with fourteen data entities, sixty-seven API
+API and a relational database, with fifteen data entities, sixty-seven API
 routes and thirty-one client routes. It was verified through route sweeps across
 three viewport sizes, HTTP-level tests of every authentication and upload rule,
 and a decoded check of the generated QR codes.
@@ -148,7 +148,7 @@ The system is composed of three separately deployable parts:
 2. **A Node HTTP API** — owns the database connection, authenticates every
    request, and decides every authorisation question. It exposes sixty-seven
    routes.
-3. **A relational database** — fourteen entities, defined once in a Prisma schema
+3. **A relational database** — fifteen entities, defined once in a Prisma schema
    that also serves as the data dictionary.
 
 ```
@@ -166,7 +166,7 @@ enforced again on the server for every request.
 
 ### 3.2 Data Model
 
-Fourteen entities, grouped by concern:
+Fifteen entities, grouped by concern:
 
 **Accounts and access**
 
@@ -201,6 +201,7 @@ Fourteen entities, grouped by concern:
 |---|---|
 | `EmailVerification` | A one-time code, stored only as a hash, with expiry and attempt count |
 | `PlatformSettings` | Academic year, semester, whether applications are open, contact address |
+| `AuditEntry` | An append-only record of an administrative act, with **no foreign key** to the actor so that it outlives the account that produced it |
 
 ### 3.3 User Roles
 
@@ -271,6 +272,7 @@ and routed to a completion step before any other student page opens.
 | **My grants** | Confirmed grants with amount, term and release date, and a total released. |
 | **Saved scholarships** | A shortlist carried across sessions. |
 | **Notifications** | In-app messages, with an unread count in the header. |
+| **Your records** | Download everything held about the account as one file, and request erasure of records the office no longer needs to keep. |
 
 ### 4.3 Administrator Features
 
@@ -283,6 +285,7 @@ and routed to a completion step before any other student page opens.
 | **Registrations** | Verify or reject semester registrations, with a reason on rejection. |
 | **Grant records** | Confirm grants from approved applications; record amount, term and remarks; see totals released. |
 | **Documents** | Review the document queue by status; reclassify, verify, or return a document with a note. |
+| **Activity** | An append-only trail of administrative acts: documents opened, decisions taken, grants released, data requests received. Filterable by family; nothing in the interface can edit or remove an entry. |
 | **Announcements** | Publish notices with category, audience and pin state; edit and delete. |
 | **Reports** | Applications by status, listing and month; registrations by status; grants by municipality; each exportable to CSV. |
 | **Settings** | Academic year, semester, whether applications are open, the maintenance message and the contact address. |
@@ -489,6 +492,15 @@ practices and search metadata. The checks that produced that result are the
 conventions listed in section 5.6; they are maintained as the interface changes,
 and the responsive tooling catches layout regressions before they reach a user.
 
+### 7.8 Accountability
+
+The audit trail was verified against the distinction that matters: an
+administrator opening a student's document produced exactly one
+`document.downloaded` entry, while the student opening the same file produced
+none. A student calling the audit endpoint received `403`. Exporting records
+wrote a `data.exported` entry, and an erasure request wrote
+`data.erasure_requested` and delivered a notification to the administrator.
+
 ---
 
 ## 8. Limitations
@@ -511,8 +523,10 @@ to ask.
    identity.
 7. **Administrator accounts are provisioned outside the interface.** There is
    deliberately no self-service path to the administrator role.
-8. **No audit log yet.** Administrative access to student documents is
-   authorised but not recorded, which is a gap for a production deployment.
+8. **Retention is enforced by a scheduled job, not automatically.** Documents for
+   declined applications are removed by `npm run db:prune-documents`, which
+   defaults to a dry run. Until it is scheduled, removal depends on staff
+   running it.
 
 ---
 
@@ -598,6 +612,8 @@ found)
 | Students | `GET /api/students`, `/:id`, `/count`; `PATCH`, `DELETE` |
 | Profile | `GET /api/profile`, `PATCH /api/profile` |
 | Settings and reports | `GET/PATCH /api/settings`, `GET /api/reports`, `GET /api/stats` |
+| Audit trail | `GET /api/audit` (administrator only; filterable by action family) |
+| Data-subject requests | `GET /api/me/export`, `POST /api/me/erasure-request` |
 
 ---
 

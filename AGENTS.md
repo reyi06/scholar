@@ -372,6 +372,30 @@ Do not present the current implementation as secure.
 
 Newest first. Record the command and its observed result.
 
+### 2026-10-19 - Phase 1: audit trail, data-subject requests, retention
+
+- `npm run lint` clean; `npx tsc -b` clean; `npm run build` clean — 22
+  prerendered pages. Migration `20261019133548_audit_trail` applied.
+- **The trail records staff disclosure, not a student's own access.** An
+  administrator downloading a student's document produced exactly one entry —
+  `document.downloaded · Liza Mendoza · "Opened 'Barangay residency
+  certificate'"` — while the student downloading the same file added none.
+- **A student cannot read the trail**: `GET /api/audit` returns `403` for a
+  student and `200` for an administrator.
+- **Export** returned the whole record: account, profile, 6 applications, 2
+  documents, 2 grants (₱15,000 each), and the saved count. Downloading it wrote
+  a `data.exported` entry, which is deliberate — bulk access is worth recording
+  even when it is the student's own file.
+- **Erasure request**: `201` for a signed-in student, `401` signed out, a
+  `data.erasure_requested` entry in the trail, and one notification delivered to
+  the administrator. It requests rather than deletes, because a confirmed grant
+  is evidence of a decision.
+- **Retention job**: dry run reports `2 document(s) held; 0 eligible for removal;
+  3 student(s) exempt (holding a confirmed grant)`. Nothing was deleted, which is
+  correct for this data and is why the job defaults to a dry run.
+- Responsive sweep extended to the new route: **81 page loads** across
+  390/768/1280, all clean.
+
 ### 2026-10-19 - Phase 0: resilience, privacy, throttling, headers, integer money
 
 - `npm run lint` clean; `npx tsc -b` clean; `npm run build` clean — **22
@@ -827,6 +851,31 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-19 - Phase 1: audit trail, data-subject requests, retention
+
+- **`AuditEntry`** — an append-only record of administrative acts, with a
+  deliberate **absence of a foreign key to `User`**: an audit entry must outlive
+  the account that produced it, and a cascade delete would erase the record that
+  explains what happened. The actor's name is snapshotted for the same reason.
+- **`server/audit.ts`** records document disclosure, document decisions,
+  application decisions, grant confirmation, data export and erasure requests.
+  A failed write is logged loudly but never rolls back the user's action.
+- **`GET /api/audit`** (administrator only) filters by action family using a
+  prefix match, so `document.` covers every document action without an
+  enumeration that drifts as actions are added.
+- **`/admin/activity`** shows the trail, read-only by construction.
+- **`GET /api/me/export`** returns everything held about the signed-in student as
+  one portable document; **`POST /api/me/erasure-request`** records a request and
+  notifies the administrators rather than deleting, because a confirmed grant is
+  evidence of the use of public funds.
+- **`DataRightsSection`** on the profile exposes both, with the download built
+  and revoked in the browser so the record does not pass through a third party.
+- **`scripts/prune-documents.ts`** enforces retention: documents attached to a
+  declined application, or returned by the office and never replaced, past the
+  period. Students holding a confirmed grant are exempt entirely, because their
+  documents are still serving their purpose. **Dry run by default** — a retention
+  job that deletes on its first run is one nobody will dare schedule.
 
 ### 2026-10-19 - Phase 0: error boundary, privacy notice, throttling, headers, integer money
 

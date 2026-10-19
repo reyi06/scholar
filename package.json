@@ -14,7 +14,8 @@
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset --force",
     "prerender": "node --env-file=.env scripts/prerender.ts",
-    "check:responsive": "node scripts/check-responsive.ts"
+    "check:responsive": "node scripts/check-responsive.ts",
+    "db:prune-documents": "node --env-file=.env scripts/prune-documents.ts"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.1",

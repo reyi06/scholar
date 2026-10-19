@@ -320,6 +320,46 @@ model EmailVerification {
 }
 
 /* ------------------------------------------------------------------ */
+/* Audit trail                                                         */
+/* ------------------------------------------------------------------ */
+
+/// An append-only record of an administrative act.
+///
+/// The Data Privacy Act's accountability principle expects an organisation to
+/// be able to show who did what with personal data. For a scholarship office the
+/// concrete question is "who opened this student's certificate, and who
+/// released this grant" — and a system that cannot answer it is trusting staff
+/// rather than evidencing them.
+///
+/// Deliberately has **no foreign key** to `User`. An audit entry must outlive
+/// the account that produced it, and a cascade delete would erase the very
+/// record that explains what happened. The actor's name is snapshotted for the
+/// same reason.
+model AuditEntry {
+  id String @id
+
+  at        DateTime @default(now())
+  actorId   String
+  /// Snapshot, so the entry still reads correctly if the account is renamed.
+  actorName String
+  actorRole String
+
+  /// Dotted verb, e.g. document.viewed, grant.confirmed, student.deleted.
+  action     String
+  entityType String
+  entityId   String?
+  /// Human sentence shown in the activity list.
+  summary    String
+  /// Extra context as JSON: amounts, previous status, and so on.
+  detail     String @default("{}")
+
+  @@index([at])
+  @@index([actorId])
+  @@index([action])
+  @@index([entityType, entityId])
+}
+
+/* ------------------------------------------------------------------ */
 /* Announcements, notifications, bookmarks, settings                   */
 /* ------------------------------------------------------------------ */
 

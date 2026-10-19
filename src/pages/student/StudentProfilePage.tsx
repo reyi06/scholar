@@ -14,6 +14,7 @@ import {
 } from '../../components/ui'
 import { useAuth } from '../../context/authContext.ts'
 import { EmailVerificationSection } from '../../components/EmailVerificationSection.tsx'
+import { DataRightsSection } from '../../components/DataRightsSection.tsx'
 import { useToast } from '../../context/toastContext.ts'
 import { useAsync, useAsyncAction } from '../../hooks/useAsync.ts'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
@@ -436,6 +437,8 @@ export function StudentProfilePage() {
           </Section>
 
           <EmailVerificationSection />
+
+          <DataRightsSection />
 
           <Section title="Enrolment">
             <DefinitionList

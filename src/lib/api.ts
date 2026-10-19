@@ -13,6 +13,8 @@ import type {
   Application,
   ApplicationFilters,
   ApplicationStatus,
+  AuditEntry,
+  AuditFilters,
   CompleteProfileInput,
   DocumentClassification,
   DocumentFilters,
@@ -1287,6 +1289,36 @@ const localDocumentsApi = {
 }
 
 /* ------------------------------------------------------------------ */
+/* Audit trail and data-subject requests                               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The audit trail lives on the server, because its whole purpose is to record
+ * what the server did. A browser-storage build has no server to audit, so these
+ * report that plainly rather than pretending to keep a trail.
+ */
+const localAuditApi = {
+  async list(_filters: AuditFilters = {}): Promise<Paginated<AuditEntry>> {
+    await delay()
+    return { items: [], total: 0, page: 1, pageSize: 25, totalPages: 1 }
+  },
+}
+
+const localMeApi = {
+  async exportRecords(): Promise<Record<string, unknown>> {
+    throw new Error(
+      'Exporting your records needs the API server. Start it with "npm run server".',
+    )
+  },
+
+  async requestErasure(_reason: string): Promise<void> {
+    throw new Error(
+      'Requesting erasure needs the API server. Start it with "npm run server".',
+    )
+  },
+}
+
+/* ------------------------------------------------------------------ */
 /* Notifications                                                       */
 /* ------------------------------------------------------------------ */
 
@@ -1633,4 +1665,6 @@ export const notificationsApi = (IS_REMOTE
 export const studentsApi = (IS_REMOTE ? httpApi.studentsApi : localStudentsApi) as typeof localStudentsApi
 export const settingsApi = (IS_REMOTE ? httpApi.settingsApi : localSettingsApi) as typeof localSettingsApi
 export const reportsApi = (IS_REMOTE ? httpApi.reportsApi : localReportsApi) as typeof localReportsApi
+export const auditApi = (IS_REMOTE ? httpApi.auditApi : localAuditApi) as typeof localAuditApi
+export const meApi = (IS_REMOTE ? httpApi.meApi : localMeApi) as typeof localMeApi
 export const demoApi = (IS_REMOTE ? httpApi.demoApi : localDemoApi) as typeof localDemoApi
