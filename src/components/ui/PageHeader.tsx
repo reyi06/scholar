@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
+import { HelpHint } from './HelpHint.tsx'
 
 export interface Breadcrumb {
   label: string
@@ -8,6 +9,7 @@ export interface Breadcrumb {
 
 export interface PageHeaderProps {
   title: string
+  /** Folded into a `(?)` beside the title rather than shown as a paragraph. */
   description?: ReactNode
   actions?: ReactNode
   breadcrumbs?: Breadcrumb[]
@@ -15,8 +17,8 @@ export interface PageHeaderProps {
 }
 
 /**
- * Page title block. Restrained by design: one `h1`, an optional short
- * description, and room for a single primary action plus secondary ones.
+ * Page title block. Restrained by design: one `h1`, an optional explanation
+ * behind a `(?)`, and room for a single primary action plus secondary ones.
  */
 export function PageHeader({ title, description, actions, breadcrumbs, className = '' }: PageHeaderProps) {
   return (
@@ -53,12 +55,12 @@ export function PageHeader({ title, description, actions, breadcrumbs, className
       ) : null}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0 space-y-1">
+        <div className="flex min-w-0 items-center gap-2">
           <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl dark:text-slate-100">
             {title}
           </h1>
           {description ? (
-            <div className="max-w-2xl text-sm text-slate-500 dark:text-slate-400">{description}</div>
+            <HelpHint label={`About ${title.toLowerCase()}`}>{description}</HelpHint>
           ) : null}
         </div>
         {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}

@@ -78,7 +78,7 @@ const STEPS: { id: Step; label: string }[] = [
 /** Numbered progress row. Static labels only — no motion, no iconography. */
 function StepIndicator({ current }: { current: Step }) {
   return (
-    <ol className="flex flex-wrap items-center gap-x-6 gap-y-2" aria-label="Registration progress">
+    <ol className="flex flex-wrap items-center gap-x-6 gap-y-2" aria-label="Registration Progress">
       {STEPS.map((step, index) => {
         const isCurrent = step.id === current
         return (
@@ -118,7 +118,7 @@ function StepIndicator({ current }: { current: Step }) {
  * review step's submit button is pressed.
  */
 export function SemesterRegistrationPage() {
-  useDocumentTitle('Semester registration')
+  useDocumentTitle('Semester Registration')
   const { user } = useAuth()
   const toast = useToast()
   const userId = user?.id ?? ''
@@ -144,9 +144,9 @@ export function SemesterRegistrationPage() {
   if (!user) {
     return (
       <EmptyState
-        title="You are not signed in"
+        title="You Are Not Signed In"
         description="Sign in with a student account to register for a semester."
-        action={<LinkButton to="/login">Sign in</LinkButton>}
+        action={<LinkButton to="/login">Sign In</LinkButton>}
       />
     )
   }
@@ -198,7 +198,7 @@ export function SemesterRegistrationPage() {
   return (
     <div className="space-y-10">
       <PageHeader
-        title="Semester registration"
+        title="Semester Registration"
         description="Re-register each semester to keep an existing grant active."
       />
 
@@ -219,7 +219,7 @@ export function SemesterRegistrationPage() {
               registration here.
               <div className="mt-3">
                 <LinkButton to="/student/applications" variant="outline" size="sm">
-                  View my applications
+                  View My Applications
                 </LinkButton>
               </div>
             </Alert>
@@ -232,7 +232,7 @@ export function SemesterRegistrationPage() {
               {step === 'details' ? (
                 <Card>
                   <CardHeader
-                    title="Submit a semester registration"
+                    title="Submit a Semester Registration"
                     description="One registration is allowed per academic year and semester."
                   />
                   <form onSubmit={handleReview} noValidate>
@@ -242,7 +242,7 @@ export function SemesterRegistrationPage() {
                         <div className="mt-4 grid gap-4 sm:grid-cols-2">
                           <Select
                             id="registration-academicYear"
-                            label="Academic year"
+                            label="Academic Year"
                             placeholder="Select an academic year"
                             options={ACADEMIC_YEAR_OPTIONS}
                             value={form.academicYear}
@@ -264,9 +264,7 @@ export function SemesterRegistrationPage() {
                       </div>
 
                       <div className="border-t border-slate-200 px-5 py-4 dark:border-ink-800">
-                        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                          Enrolment
-                        </h3>
+                        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Enrolment</h3>
                         <div className="mt-4 grid gap-4 sm:grid-cols-2">
                           <Input
                             id="registration-school"
@@ -278,7 +276,7 @@ export function SemesterRegistrationPage() {
                           />
                           <Input
                             id="registration-course"
-                            label="Course or strand"
+                            label="Course or Strand"
                             value={form.course}
                             error={errors.course}
                             required
@@ -286,7 +284,7 @@ export function SemesterRegistrationPage() {
                           />
                           <Select
                             id="registration-yearLevel"
-                            label="Year level"
+                            label="Year Level"
                             placeholder="Select a year level"
                             options={YEAR_LEVEL_OPTIONS}
                             value={form.yearLevel}
@@ -298,13 +296,11 @@ export function SemesterRegistrationPage() {
                       </div>
 
                       <div className="border-t border-slate-200 px-5 py-4 dark:border-ink-800">
-                        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                          Academic performance
-                        </h3>
+                        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Academic Performance</h3>
                         <div className="mt-4 grid gap-4 sm:grid-cols-2">
                           <Input
                             id="registration-unitsEnrolled"
-                            label="Units enrolled"
+                            label="Units Enrolled"
                             type="number"
                             min="1"
                             max="40"
@@ -315,7 +311,7 @@ export function SemesterRegistrationPage() {
                           />
                           <Input
                             id="registration-gwa"
-                            label="GWA for the semester"
+                            label="GWA for the Semester"
                             type="number"
                             step="0.01"
                             min="1"
@@ -330,14 +326,14 @@ export function SemesterRegistrationPage() {
                     </fieldset>
 
                     <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 px-5 py-4 dark:border-ink-800">
-                      <Button type="submit">Review registration</Button>
+                      <Button type="submit">Review Registration</Button>
                     </div>
                   </form>
                 </Card>
               ) : step === 'review' ? (
                 <Card>
                   <CardHeader
-                    title="Review your registration"
+                    title="Review Your Registration"
                     description="Check these details before submitting. Nothing is recorded until you submit."
                   />
                   <div className="px-5 py-4">
@@ -352,14 +348,14 @@ export function SemesterRegistrationPage() {
                     ) : null}
                     <DefinitionList
                       items={[
-                        { label: 'Academic year', value: form.academicYear },
+                        { label: 'Academic Year', value: form.academicYear },
                         { label: 'Semester', value: form.semester },
                         { label: 'School', value: form.school },
-                        { label: 'Course or strand', value: form.course },
-                        { label: 'Year level', value: form.yearLevel },
-                        { label: 'Units enrolled', value: form.unitsEnrolled },
+                        { label: 'Course or Strand', value: form.course },
+                        { label: 'Year Level', value: form.yearLevel },
+                        { label: 'Units Enrolled', value: form.unitsEnrolled },
                         {
-                          label: 'GWA for the semester',
+                          label: 'GWA for the Semester',
                           value: form.gwa.trim() === '' ? 'Not provided' : form.gwa,
                         },
                       ]}
@@ -381,7 +377,7 @@ export function SemesterRegistrationPage() {
               ) : (
                 <Card>
                   <CardHeader
-                    title="Registration submitted"
+                    title="Registration Submitted"
                     description="Your registration is now pending verification."
                   />
                   <div className="space-y-3 px-5 py-4">
@@ -398,7 +394,7 @@ export function SemesterRegistrationPage() {
                       once that happens.
                     </p>
                     <Button variant="outline" onClick={handleStartAnother}>
-                      Submit another registration
+                      Submit Another Registration
                     </Button>
                   </div>
                 </Card>
@@ -407,12 +403,12 @@ export function SemesterRegistrationPage() {
           ) : null}
 
           <Section
-            title="Past registrations"
+            title="Past Registrations"
             description="Registrations you have submitted, most recent first."
           >
             {registrations.length === 0 ? (
               <EmptyState
-                title="No semester registrations yet"
+                title="No Semester Registrations Yet"
                 description="Once you are a confirmed grantee, submit a registration each semester to keep your grant active."
               />
             ) : (

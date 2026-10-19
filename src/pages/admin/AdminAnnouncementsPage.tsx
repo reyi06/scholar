@@ -164,9 +164,9 @@ export function AdminAnnouncementsPage() {
 
       {!list.error && list.data && announcements.length === 0 ? (
         <EmptyState
-          title="No announcements yet"
+          title="No Announcements Yet"
           description="Publish the first announcement to keep students informed about deadlines and requirements."
-          action={<Button onClick={openCreate}>New announcement</Button>}
+          action={<Button onClick={openCreate}>New Announcement</Button>}
         />
       ) : null}
 
@@ -264,7 +264,7 @@ export function AdminAnnouncementsPage() {
           />
           <Checkbox
             id="announcement-pinned"
-            label="Pin this announcement to the top of every list"
+            label="Pin This Announcement to the Top of Every List"
             checked={form.pinned}
             onChange={(event) => setForm({ ...form, pinned: event.target.checked })}
           />
@@ -282,7 +282,7 @@ export function AdminAnnouncementsPage() {
         onClose={() => setDeleting(null)}
         onConfirm={handleDelete}
         title="Delete announcement"
-        confirmLabel="Delete announcement"
+        confirmLabel="Delete Announcement"
         tone="danger"
         loading={deleteAction.loading}
         description={

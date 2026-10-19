@@ -44,7 +44,7 @@ const STATUS_TONES: Record<DocumentStatus, BadgeTone> = {
 }
 
 export function DocumentsPage() {
-  useDocumentTitle('My documents')
+  useDocumentTitle('My Documents')
   const toast = useToast()
 
   const state = useAsync(() => documentsApi.list(), [])
@@ -104,11 +104,11 @@ export function DocumentsPage() {
   return (
     <div className="space-y-10">
       <PageHeader
-        title="My documents"
+        title="My Documents"
         description="Keep the certificates and records your applications depend on in one place. Upload a file once and it stays on your profile for every listing that asks for it."
       />
 
-      <Section title="Add a document">
+      <Section title="Add a Document">
         <form
           className="grid max-w-2xl gap-4 sm:grid-cols-2"
           onSubmit={(event) => {
@@ -175,7 +175,7 @@ export function DocumentsPage() {
         </form>
       </Section>
 
-      <Section title="Your documents">
+      <Section title="Your Documents">
         {state.loading ? <LoadingState label="Loading your documents…" /> : null}
         {state.error ? (
           <ErrorState message={state.error} onRetry={state.reload} />
@@ -183,7 +183,7 @@ export function DocumentsPage() {
 
         {!state.loading && !state.error && documents.length === 0 ? (
           <EmptyState
-            title="No documents yet"
+            title="No Documents Yet"
             description="Add a certificate of enrolment, your grades, or proof of residency. They stay on your profile and can be reused across applications."
           />
         ) : null}
@@ -263,7 +263,7 @@ export function DocumentsPage() {
             ? `“${pendingDelete.title}” will be deleted from your profile. This cannot be undone.`
             : ''
         }
-        confirmLabel="Remove document"
+        confirmLabel="Remove Document"
         tone="danger"
         onClose={() => setPendingDelete(null)}
         onConfirm={() => {

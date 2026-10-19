@@ -29,6 +29,9 @@ const FaqPage = lazy(async () => ({ default: (await import('./pages/public/FaqPa
 const WelcomePage = lazy(async () => ({
   default: (await import('./pages/public/WelcomePage.tsx')).WelcomePage,
 }))
+const ForgotPasswordPage = lazy(async () => ({
+  default: (await import('./pages/public/ForgotPasswordPage.tsx')).ForgotPasswordPage,
+}))
 
 const StudentDashboardPage = lazy(async () => ({
   default: (await import('./pages/student/StudentDashboardPage.tsx')).StudentDashboardPage,
@@ -156,6 +159,7 @@ export default function App() {
                 </GuestOnlyRoute>
               }
             />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           </Route>
 
           {/* ---------------- Student ---------------- */}

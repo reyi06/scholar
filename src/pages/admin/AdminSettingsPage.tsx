@@ -144,14 +144,14 @@ export function AdminSettingsPage() {
       {!settings.error && form ? (
         <Section
           divider={false}
-          title="Platform settings"
+          title="Platform Settings"
           description="These values drive which academic term is treated as current and whether applications are open."
         >
           <div className="max-w-2xl space-y-5">
             <div className="grid gap-4 sm:grid-cols-2">
               <Select
                 id="settings-year"
-                label="Current academic year"
+                label="Current Academic Year"
                 options={YEAR_OPTIONS}
                 value={form.currentAcademicYear}
                 onChange={(event) => setForm({ ...form, currentAcademicYear: event.target.value })}
@@ -159,7 +159,7 @@ export function AdminSettingsPage() {
               />
               <Select
                 id="settings-semester"
-                label="Current semester"
+                label="Current Semester"
                 options={SEMESTER_OPTIONS}
                 value={form.currentSemester}
                 onChange={(event) => setForm({ ...form, currentSemester: event.target.value })}
@@ -169,7 +169,7 @@ export function AdminSettingsPage() {
 
             <Checkbox
               id="settings-applications-open"
-              label="Accept new scholarship applications"
+              label="Accept New Scholarship Applications"
               checked={form.applicationsOpen}
               onChange={(event) => setForm({ ...form, applicationsOpen: event.target.checked })}
               hint="When unchecked, students cannot submit new applications."
@@ -177,7 +177,7 @@ export function AdminSettingsPage() {
 
             <Input
               id="settings-contact-email"
-              label="Contact email"
+              label="Contact Email"
               type="email"
               value={form.contactEmail}
               onChange={(event) => setForm({ ...form, contactEmail: event.target.value })}
@@ -187,7 +187,7 @@ export function AdminSettingsPage() {
 
             <Textarea
               id="settings-maintenance-message"
-              label="Maintenance message"
+              label="Maintenance Message"
               rows={3}
               value={form.maintenanceMessage}
               onChange={(event) => setForm({ ...form, maintenanceMessage: event.target.value })}
@@ -202,7 +202,7 @@ export function AdminSettingsPage() {
 
             <div className="flex flex-wrap items-center gap-3">
               <Button onClick={handleSave} loading={saveAction.loading}>
-                Save settings
+                Save Settings
               </Button>
               {settings.data ? (
                 <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -215,7 +215,7 @@ export function AdminSettingsPage() {
       ) : null}
 
       <Section
-        title="Stored records"
+        title="Stored Records"
         description="Records currently held by this deployment. Restoring replaces them with the set the application ships with."
       >
         <div className="max-w-2xl space-y-5">
@@ -230,7 +230,7 @@ export function AdminSettingsPage() {
                 { label: 'Scholarships', value: formatNumber(stats?.scholarships ?? 0) },
                 { label: 'Applications', value: formatNumber(stats?.applications ?? 0) },
                 { label: 'Students', value: formatNumber(stats?.students ?? 0) },
-                { label: 'Grant records', value: formatNumber(stats?.grants ?? 0) },
+                { label: 'Grant Records', value: formatNumber(stats?.grants ?? 0) },
               ]}
             />
           )}
@@ -254,7 +254,7 @@ export function AdminSettingsPage() {
         onClose={() => setResetOpen(false)}
         onConfirm={handleReset}
         title="Restore shipped records"
-        confirmLabel="Restore everything"
+        confirmLabel="Restore Everything"
         tone="danger"
         loading={resetAction.loading}
         description="This puts back the records the application ships with and permanently discards everything currently held. It cannot be undone."

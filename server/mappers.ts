@@ -64,6 +64,7 @@ interface UserRow {
   profileComplete: boolean
   passwordHash: string
   googleSub: string | null
+  emailVerified: boolean
 }
 
 export function toUser(row: UserRow): User {
@@ -77,6 +78,7 @@ export function toUser(row: UserRow): User {
     profileComplete: row.profileComplete,
     hasPassword: row.passwordHash.length > 0,
     usesGoogle: row.googleSub !== null,
+    emailVerified: row.emailVerified,
   }
 }
 

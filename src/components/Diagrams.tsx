@@ -26,10 +26,10 @@ const ROLES: RoleColumn[] = [
     note: 'Searching and reading listings is open to everyone.',
     pages: [
       { to: '/', label: 'Home' },
-      { to: '/scholarships', label: 'Scholarship directory' },
-      { to: '/faqs', label: 'Frequently asked questions' },
+      { to: '/scholarships', label: 'Scholarship Directory' },
+      { to: '/faqs', label: 'Frequently Asked Questions' },
       { to: '/about', label: 'About' },
-      { to: '/register', label: 'Create an account' },
+      { to: '/register', label: 'Create an Account' },
     ],
   },
   {
@@ -38,11 +38,11 @@ const ROLES: RoleColumn[] = [
     note: 'Only ever shows the signed-in student their own records.',
     pages: [
       { to: '/student/dashboard', label: 'Dashboard' },
-      { to: '/student/profile', label: 'My profile' },
-      { to: '/student/saved', label: 'Saved scholarships' },
-      { to: '/student/applications', label: 'My applications' },
-      { to: '/student/semester-registration', label: 'Semester registration' },
-      { to: '/student/grants', label: 'My grants' },
+      { to: '/student/profile', label: 'My Profile' },
+      { to: '/student/saved', label: 'Saved Scholarships' },
+      { to: '/student/applications', label: 'My Applications' },
+      { to: '/student/semester-registration', label: 'Semester Registration' },
+      { to: '/student/grants', label: 'My Grants' },
       { to: '/student/notifications', label: 'Notifications' },
     ],
   },
@@ -55,8 +55,8 @@ const ROLES: RoleColumn[] = [
       { to: '/admin/scholarships', label: 'Scholarships' },
       { to: '/admin/students', label: 'Students' },
       { to: '/admin/applications', label: 'Applications' },
-      { to: '/admin/registrations', label: 'Semester registrations' },
-      { to: '/admin/grants', label: 'Grant records' },
+      { to: '/admin/registrations', label: 'Semester Registrations' },
+      { to: '/admin/grants', label: 'Grant Records' },
       { to: '/admin/announcements', label: 'Announcements' },
       { to: '/admin/reports', label: 'Reports' },
       { to: '/admin/settings', label: 'Settings' },
@@ -70,7 +70,7 @@ export function SiteMapDiagram() {
       {/* Root node, with a rail down to the three areas. */}
       <div className="flex flex-col items-center">
         <span className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-900 dark:border-ink-700 dark:bg-ink-900 dark:text-slate-100">
-          Pampanga GrantConnect
+          Scholar
         </span>
         <span aria-hidden="true" className="h-6 w-px bg-slate-300 dark:bg-ink-700" />
       </div>
@@ -134,12 +134,12 @@ const STAGES: Stage[] = [
     body: 'The application is recorded and given a reference number. From here on you can follow it.',
   },
   {
-    label: 'Under review',
+    label: 'Under Review',
     tone: 'brand',
     body: 'An administrator reads it and checks the requirements against the listing.',
   },
   {
-    label: 'Needs information',
+    label: 'Needs Information',
     tone: 'warning',
     body: 'Something is missing. A note says what, and it appears as your next step until it is resolved.',
   },
@@ -154,7 +154,7 @@ const STAGES: Stage[] = [
     body: 'With the reason recorded on the timeline, so you know what to change next time.',
   },
   {
-    label: 'Grant record confirmed',
+    label: 'Grant Record Confirmed',
     tone: 'gold',
     decisive: true,
     body: 'An administrator records the amount and term. Only at this point are funds released, and only now does the grant appear under My grants.',

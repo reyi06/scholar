@@ -46,7 +46,7 @@ export function ErrorState({
       actions={
         onRetry ? (
           <Button variant="outline" size="sm" onClick={onRetry}>
-            Try again
+            Try Again
           </Button>
         ) : undefined
       }

@@ -33,7 +33,7 @@ import type { Application, ApplicationStatus } from '../../types/index.ts'
 const PAGE_SIZE = 10
 
 const STATUS_OPTIONS: SelectOption[] = [
-  { value: 'all', label: 'All statuses' },
+  { value: 'all', label: 'All Statuses' },
   ...APPLICATION_STATUSES.map((option) => ({ value: option.value, label: option.label })),
 ]
 
@@ -43,8 +43,8 @@ const STATUS_OPTIONS: SelectOption[] = [
  * confirmation on the grant records screen is still required.
  */
 const DECISION_ACTIONS: { status: ApplicationStatus; label: string; variant: ButtonVariant }[] = [
-  { status: 'under-review', label: 'Mark under review', variant: 'outline' },
-  { status: 'needs-info', label: 'Request information', variant: 'outline' },
+  { status: 'under-review', label: 'Mark Under Review', variant: 'outline' },
+  { status: 'needs-info', label: 'Request Information', variant: 'outline' },
   { status: 'approved', label: 'Approve', variant: 'primary' },
   { status: 'rejected', label: 'Reject', variant: 'danger' },
 ]
@@ -106,7 +106,7 @@ export function AdminApplicationsPage() {
   const awaitingIds = new Set((awaiting.data ?? []).map((item) => item.id))
 
   const scholarshipOptions: SelectOption[] = [
-    { value: 'all', label: 'All scholarships' },
+    { value: 'all', label: 'All Scholarships' },
     ...(scholarships.data ?? []).map((option) => ({ value: option.id, label: option.name })),
   ]
 
@@ -196,7 +196,7 @@ export function AdminApplicationsPage() {
     <div className="space-y-10">
       <PageHeader
         title="Applications"
-        description="Review and decide on scholarship applications submitted through Pampanga GrantConnect."
+        description="Review and decide on scholarship applications submitted through Scholar."
       />
 
       <Alert tone="info">
@@ -209,7 +209,7 @@ export function AdminApplicationsPage() {
           <div className="min-w-0 flex-1">
             <SearchInput
               id="applications-search"
-              label="Search applications"
+              label="Search Applications"
               hideLabel
               placeholder="Search reference no., student or scholarship"
               value={query}
@@ -258,11 +258,11 @@ export function AdminApplicationsPage() {
           <>
             {list.data.items.length === 0 ? (
               <EmptyState
-                title="No applications match these filters"
+                title="No Applications Match These Filters"
                 description="Try clearing the search box or choosing a different status or scholarship."
                 action={
                   <Button variant="outline" size="sm" onClick={clearFilters}>
-                    Reset filters
+                    Reset Filters
                   </Button>
                 }
               />
@@ -320,8 +320,8 @@ export function AdminApplicationsPage() {
                 },
                 { label: 'Status', value: <StatusBadge kind="application" status={review.data.status} /> },
                 { label: 'Submitted', value: formatDateTime(review.data.submittedAt) },
-                { label: 'Last updated', value: formatDateTime(review.data.updatedAt) },
-                { label: 'Reviewed by', value: review.data.reviewedBy ?? 'Not yet reviewed' },
+                { label: 'Last Updated', value: formatDateTime(review.data.updatedAt) },
+                { label: 'Reviewed By', value: review.data.reviewedBy ?? 'Not yet reviewed' },
               ]}
             />
 
@@ -332,7 +332,7 @@ export function AdminApplicationsPage() {
                   title="Approving does not create a grant record"
                   actions={
                     <LinkButton to="/admin/grants" size="sm" variant="outline">
-                      Go to grant records
+                      Go to Grant Records
                     </LinkButton>
                   }
                 >
@@ -425,7 +425,7 @@ export function AdminApplicationsPage() {
             </section>
 
             <section className="rounded-lg border border-slate-200 p-4 dark:border-ink-800">
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Record a decision</h3>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Record a Decision</h3>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 Each decision needs a short note. The note is stored on the timeline and a
                 notification is raised for the student in-app.
@@ -460,14 +460,14 @@ export function AdminApplicationsPage() {
             ? `This will mark the application as ${APPLICATION_STATUS_LABELS[decision].toLowerCase()}.`
             : undefined
         }
-        confirmLabel="Apply decision"
+        confirmLabel="Apply Decision"
         tone={decision === 'rejected' ? 'danger' : 'primary'}
         loading={decisionAction.loading}
       >
         <div className="space-y-3">
           <Textarea
             id="application-decision-note"
-            label="Note for the decision"
+            label="Note for the Decision"
             required
             rows={3}
             value={note}

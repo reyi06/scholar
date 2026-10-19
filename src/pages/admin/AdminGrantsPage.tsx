@@ -39,17 +39,17 @@ import type { Application, Grant, GrantStatus } from '../../types/index.ts'
 const PAGE_SIZE = 10
 
 const STATUS_OPTIONS: SelectOption[] = [
-  { value: 'all', label: 'All statuses' },
+  { value: 'all', label: 'All Statuses' },
   ...GRANT_STATUSES.map((option) => ({ value: option.value, label: option.label })),
 ]
 
 const ACADEMIC_YEAR_OPTIONS: SelectOption[] = [
-  { value: 'all', label: 'All academic years' },
+  { value: 'all', label: 'All Academic Years' },
   ...ACADEMIC_YEARS.map((year) => ({ value: year, label: `AY ${year}` })),
 ]
 
 const SEMESTER_OPTIONS: SelectOption[] = [
-  { value: 'all', label: 'All semesters' },
+  { value: 'all', label: 'All Semesters' },
   ...SEMESTERS.map((semester) => ({ value: semester, label: semester })),
 ]
 
@@ -108,7 +108,7 @@ interface ConfirmFormErrors {
  * record. Everything below it is the register of confirmed grants.
  */
 export function AdminGrantsPage() {
-  useDocumentTitle('Grant records')
+  useDocumentTitle('Grant Records')
   const toast = useToast()
   const { user } = useAuth()
   const actor = user ? fullName(user.firstName, user.lastName) : 'Administrator'
@@ -429,7 +429,7 @@ export function AdminGrantsPage() {
   return (
     <div className="space-y-10">
       <PageHeader
-        title="Grant records"
+        title="Grant Records"
         description="Confirm approved applications into grant records and manage every released grant."
       />
 
@@ -497,7 +497,7 @@ export function AdminGrantsPage() {
           <div className="min-w-0 flex-1">
             <SearchInput
               id="grants-search"
-              label="Search grants"
+              label="Search Grants"
               hideLabel
               placeholder="Search reference no., student or scholarship"
               value={query}
@@ -522,7 +522,7 @@ export function AdminGrantsPage() {
           <div className="sm:w-44">
             <Select
               id="grants-year"
-              aria-label="Academic year"
+              aria-label="Academic Year"
               options={ACADEMIC_YEAR_OPTIONS}
               value={academicYear}
               onChange={(event) => {
@@ -566,11 +566,11 @@ export function AdminGrantsPage() {
           <>
             {list.data.items.length === 0 ? (
               <EmptyState
-                title="No grant records match these filters"
+                title="No Grant Records Match These Filters"
                 description="Try resetting the filters, or confirm an approved application from the panel above."
                 action={
                   <Button variant="outline" size="sm" onClick={clearFilters}>
-                    Reset filters
+                    Reset Filters
                   </Button>
                 }
               />
@@ -608,7 +608,7 @@ export function AdminGrantsPage() {
               Cancel
             </Button>
             <Button onClick={requestConfirm} loading={confirmAction.loading}>
-              Confirm grant
+              Confirm Grant
             </Button>
           </>
         }
@@ -650,7 +650,7 @@ export function AdminGrantsPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <Select
               id="confirm-year"
-              label="Academic year"
+              label="Academic Year"
               options={YEAR_FORM_OPTIONS}
               value={confirmForm.academicYear}
               onChange={(event) => setConfirmForm({ ...confirmForm, academicYear: event.target.value })}
@@ -687,7 +687,7 @@ export function AdminGrantsPage() {
         onClose={() => setConfirming(false)}
         onConfirm={handleConfirmGrant}
         title="Confirm grant record"
-        confirmLabel="Yes, confirm grant"
+        confirmLabel="Yes, Confirm Grant"
         loading={confirmAction.loading}
         description={
           confirmApp
@@ -768,7 +768,7 @@ export function AdminGrantsPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <Select
               id="grant-year"
-              label="Academic year"
+              label="Academic Year"
               options={YEAR_FORM_OPTIONS}
               value={grantForm.academicYear}
               onChange={(event) => setGrantForm({ ...grantForm, academicYear: event.target.value })}
@@ -784,7 +784,7 @@ export function AdminGrantsPage() {
             />
             <Input
               id="grant-released"
-              label="Released date"
+              label="Released Date"
               type="date"
               required
               value={grantForm.releasedAt}
@@ -814,7 +814,7 @@ export function AdminGrantsPage() {
         onClose={() => setDeletingGrant(null)}
         onConfirm={handleDelete}
         title="Delete grant record"
-        confirmLabel="Delete record"
+        confirmLabel="Delete Record"
         tone="danger"
         loading={deleteAction.loading}
         description={

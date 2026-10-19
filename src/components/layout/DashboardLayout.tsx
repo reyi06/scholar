@@ -53,7 +53,7 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
           size="sm"
           className="lg:hidden"
           onClick={closeDrawer}
-          aria-label="Close navigation"
+          aria-label="Close Navigation"
         >
           <Icon name="close" className="size-4" />
         </Button>
@@ -114,7 +114,7 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
             type="button"
-            aria-label="Close navigation"
+            aria-label="Close Navigation"
             onClick={closeDrawer}
             className="absolute inset-0 size-full bg-slate-900/40"
           />
@@ -133,7 +133,7 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
                 size="sm"
                 className="-ml-2 lg:hidden"
                 onClick={openDrawer}
-                aria-label="Open navigation"
+                aria-label="Open Navigation"
               >
                 <Icon name="menu" className="size-5" />
               </Button>
@@ -148,7 +148,7 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
               <NotificationBell notificationsPath={notificationsPath} />
               {user ? (
                 <Dropdown
-                  label="Account menu"
+                  label="Account Menu"
                   align="right"
                   trigger={<Avatar initials={initials(user.firstName, user.lastName)} className="m-0.5" />}
                   header={
@@ -161,9 +161,9 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
                   }
                   items={[
                     ...(user.role === 'student'
-                      ? [{ label: 'My profile', to: '/student/profile' }]
+                      ? [{ label: 'My Profile', to: '/student/profile' }]
                       : [{ label: 'Settings', to: '/admin/settings' }]),
-                    { label: 'Sign out', onClick: () => void logout(), tone: 'danger' as const },
+                    { label: 'Sign Out', onClick: () => void logout(), tone: 'danger' as const },
                   ]}
                 />
               ) : null}
@@ -193,7 +193,7 @@ function BrandMark() {
       </span>
       <span className="flex min-w-0 flex-col leading-tight">
         <span className="truncate text-sm font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-          GrantConnect
+          Scholar
         </span>
       </span>
     </a>

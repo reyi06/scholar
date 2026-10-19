@@ -109,6 +109,28 @@ export function futureDate(label = 'Date'): Validator {
   }
 }
 
+/**
+ * ISO date that must already have happened, and cannot be implausibly old.
+ * Used for a birth date, where the failure to catch is a typo'd year.
+ */
+export function pastDate(label = 'Date', maxYearsAgo = 120): Validator {
+  return (value) => {
+    if (value.trim().length === 0) return undefined
+    const parsed = new Date(value)
+    if (Number.isNaN(parsed.getTime())) return `${label} is not a valid date.`
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    if (parsed.getTime() > today.getTime()) return `${label} cannot be in the future.`
+
+    const oldest = new Date(today)
+    oldest.setFullYear(oldest.getFullYear() - maxYearsAgo)
+    return parsed.getTime() >= oldest.getTime()
+      ? undefined
+      : `${label} is not plausible. Check the year.`
+  }
+}
+
 export function oneOf<T extends string>(allowed: T[], label = 'Selection'): Validator {
   return (value) =>
     allowed.includes(value as T) ? undefined : `Choose a valid ${label.toLowerCase()}.`

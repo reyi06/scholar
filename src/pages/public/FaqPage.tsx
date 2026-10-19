@@ -175,15 +175,15 @@ const GROUPS: FaqGroup[] = [
 ]
 
 export function FaqPage() {
-  useDocumentTitle('Frequently asked questions')
+  useDocumentTitle('Frequently Asked Questions')
 
   return (
     <div className="mx-auto max-w-2xl px-5 py-10 sm:px-8">
       <PageHeader
-        title="Frequently asked questions"
+        title="Frequently Asked Questions"
         description="How scholarships, applications, semester registration and grants work here."
         breadcrumbs={[{ label: 'Home', to: '/' }, { label: 'FAQs' }]}
-        actions={<LinkButton to="/scholarships">Browse scholarships</LinkButton>}
+        actions={<LinkButton to="/scholarships">Browse Scholarships</LinkButton>}
       />
 
       <div className="mt-10 space-y-10">
@@ -199,7 +199,7 @@ export function FaqPage() {
           </Section>
         ))}
 
-        <Section title="Still need help?">
+        <Section title="Still Need Help?">
           <p className="max-w-[64ch] text-sm text-slate-600 dark:text-slate-300">
             For anything about a specific scholarship, contact the provider using the details on its
             listing. For your account, or an application you submitted here, contact the scholarship

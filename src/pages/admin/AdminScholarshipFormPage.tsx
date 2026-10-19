@@ -61,8 +61,8 @@ const STATUS_OPTIONS: SelectOption[] = SCHOLARSHIP_STATUSES.map((option) => ({
 }))
 
 const APPLICATION_MODE_OPTIONS: SelectOption[] = [
-  { value: 'internal', label: 'Applications submitted on this site' },
-  { value: 'external', label: 'Applications handled by the provider' },
+  { value: 'internal', label: 'Applications Submitted on This Site' },
+  { value: 'external', label: 'Applications Handled by the Provider' },
 ]
 
 /** Raw form state. List fields stay as newline/comma text until submit. */
@@ -341,9 +341,9 @@ export function AdminScholarshipFormPage() {
       <div className="space-y-10">
         <PageHeader title={title} breadcrumbs={breadcrumbs} />
         <EmptyState
-          title="That scholarship listing was not found"
+          title="That Scholarship Listing Was Not Found"
           description="It may have been deleted. Return to the register to pick another listing."
-          action={<LinkButton to="/admin/scholarships">Back to scholarships</LinkButton>}
+          action={<LinkButton to="/admin/scholarships">Back to Scholarships</LinkButton>}
         />
       </div>
     )
@@ -372,7 +372,7 @@ export function AdminScholarshipFormPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input
               id="scholarship-name"
-              label="Scholarship name"
+              label="Scholarship Name"
               required
               value={form.name}
               error={errors.name}
@@ -462,7 +462,7 @@ export function AdminScholarshipFormPage() {
         </Section>
 
         <Section
-          title="Benefits and eligibility"
+          title="Benefits and Eligibility"
           description="Enter one item per line. Each line becomes a separate bullet."
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -500,7 +500,7 @@ export function AdminScholarshipFormPage() {
             />
             <Textarea
               id="scholarship-instructions"
-              label="Application instructions"
+              label="Application Instructions"
               rows={4}
               value={form.instructions}
               hint="One item per line."
@@ -516,7 +516,7 @@ export function AdminScholarshipFormPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input
               id="scholarship-deadline"
-              label="Application deadline"
+              label="Application Deadline"
               type="date"
               required
               value={form.deadline}
@@ -525,7 +525,7 @@ export function AdminScholarshipFormPage() {
             />
             <Select
               id="scholarship-application-mode"
-              label="Application mode"
+              label="Application Mode"
               required
               options={APPLICATION_MODE_OPTIONS}
               value={form.applicationMode}
@@ -535,7 +535,7 @@ export function AdminScholarshipFormPage() {
             {form.applicationMode === 'external' ? (
               <Input
                 id="scholarship-external-url"
-                label="External application link"
+                label="External Application Link"
                 type="url"
                 required
                 placeholder="https://"
@@ -556,13 +556,13 @@ export function AdminScholarshipFormPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input
               id="scholarship-contact-person"
-              label="Contact person"
+              label="Contact Person"
               value={form.contactPerson}
               onChange={(event) => update('contactPerson', event.target.value)}
             />
             <Input
               id="scholarship-contact-email"
-              label="Contact email"
+              label="Contact Email"
               type="email"
               value={form.contactEmail}
               error={errors.contactEmail}
@@ -570,7 +570,7 @@ export function AdminScholarshipFormPage() {
             />
             <Input
               id="scholarship-contact-phone"
-              label="Contact phone"
+              label="Contact Phone"
               type="tel"
               value={form.contactPhone}
               error={errors.contactPhone}
@@ -578,7 +578,7 @@ export function AdminScholarshipFormPage() {
             />
             <Input
               id="scholarship-contact-address"
-              label="Contact address"
+              label="Contact Address"
               value={form.contactAddress}
               onChange={(event) => update('contactAddress', event.target.value)}
             />
@@ -603,7 +603,7 @@ export function AdminScholarshipFormPage() {
           <div className="mt-4">
             <Checkbox
               id="scholarship-featured"
-              label="Feature this listing on the home page"
+              label="Feature This Listing on the Home Page"
               checked={form.featured}
               onChange={(event) => update('featured', event.target.checked)}
             />

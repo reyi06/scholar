@@ -11,12 +11,12 @@ export interface NavItem {
 /** Sidebar navigation for the student area. */
 export const STUDENT_NAV: NavItem[] = [
   { to: '/student/dashboard', label: 'Dashboard', icon: 'home' },
-  { to: '/student/profile', label: 'My profile', icon: 'user' },
-  { to: '/student/saved', label: 'Saved scholarships', icon: 'star' },
-  { to: '/student/applications', label: 'My applications', icon: 'file' },
-  { to: '/student/documents', label: 'My documents', icon: 'inbox' },
-  { to: '/student/semester-registration', label: 'Semester registration', icon: 'calendar' },
-  { to: '/student/grants', label: 'My grants', icon: 'award' },
+  { to: '/student/profile', label: 'My Profile', icon: 'user' },
+  { to: '/student/saved', label: 'Saved Scholarships', icon: 'star' },
+  { to: '/student/applications', label: 'My Applications', icon: 'file' },
+  { to: '/student/documents', label: 'My Documents', icon: 'inbox' },
+  { to: '/student/semester-registration', label: 'Semester Registration', icon: 'calendar' },
+  { to: '/student/grants', label: 'My Grants', icon: 'award' },
   { to: '/student/notifications', label: 'Notifications', icon: 'bell' },
 ]
 
@@ -32,8 +32,8 @@ export const ADMIN_NAV: NavItem[] = [
   { to: '/admin/scholarships', label: 'Scholarships', icon: 'graduation' },
   { to: '/admin/students', label: 'Students', icon: 'users' },
   { to: '/admin/applications', label: 'Applications', icon: 'inbox' },
-  { to: '/admin/registrations', label: 'Semester registrations', icon: 'calendar' },
-  { to: '/admin/grants', label: 'Grant records', icon: 'award' },
+  { to: '/admin/registrations', label: 'Semester Registrations', icon: 'calendar' },
+  { to: '/admin/grants', label: 'Grant Records', icon: 'award' },
   { to: '/admin/documents', label: 'Documents', icon: 'file' },
   { to: '/admin/announcements', label: 'Announcements', icon: 'megaphone' },
   { to: '/admin/reports', label: 'Reports', icon: 'chart' },

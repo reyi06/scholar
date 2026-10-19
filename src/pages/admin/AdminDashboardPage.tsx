@@ -30,7 +30,7 @@ interface WorkItem {
  * screen — every row ends in a link to the screen that does the work.
  */
 export function AdminDashboardPage() {
-  useDocumentTitle('Admin dashboard')
+  useDocumentTitle('Admin Dashboard')
 
   const { data, loading, error, reload } = useAsync(async () => {
     const [
@@ -63,7 +63,7 @@ export function AdminDashboardPage() {
   if (loading) {
     return (
       <div className="space-y-10">
-        <PageHeader title="Admin dashboard" description={description} />
+        <PageHeader title="Admin Dashboard" description={description} />
         <LoadingState label="Loading dashboard…" />
       </div>
     )
@@ -72,7 +72,7 @@ export function AdminDashboardPage() {
   if (error) {
     return (
       <div className="space-y-10">
-        <PageHeader title="Admin dashboard" description={description} />
+        <PageHeader title="Admin Dashboard" description={description} />
         <ErrorState message={error} onRetry={reload} />
       </div>
     )
@@ -81,9 +81,9 @@ export function AdminDashboardPage() {
   if (!data) {
     return (
       <div className="space-y-10">
-        <PageHeader title="Admin dashboard" description={description} />
+        <PageHeader title="Admin Dashboard" description={description} />
         <EmptyState
-          title="Nothing to show yet"
+          title="Nothing to Show Yet"
           description="Once records exist they will be summarised here."
         />
       </div>
@@ -103,14 +103,14 @@ export function AdminDashboardPage() {
     return (
       <div className="space-y-10">
         <PageHeader
-          title="Admin dashboard"
+          title="Admin Dashboard"
           description={description}
-          actions={<LinkButton to="/admin/scholarships/new">New scholarship</LinkButton>}
+          actions={<LinkButton to="/admin/scholarships/new">New Scholarship</LinkButton>}
         />
         <EmptyState
-          title="No records yet"
+          title="No Records Yet"
           description="There are no scholarships, students, applications or grants in this workspace. Create a scholarship listing to get started."
-          action={<LinkButton to="/admin/scholarships/new">Create the first scholarship</LinkButton>}
+          action={<LinkButton to="/admin/scholarships/new">Create the First Scholarship</LinkButton>}
         />
       </div>
     )
@@ -155,14 +155,14 @@ export function AdminDashboardPage() {
   return (
     <div className="space-y-10">
       <PageHeader
-        title="Admin dashboard"
+        title="Admin Dashboard"
         description={description}
-        actions={<LinkButton to="/admin/scholarships/new">New scholarship</LinkButton>}
+        actions={<LinkButton to="/admin/scholarships/new">New Scholarship</LinkButton>}
       />
 
       <Section
         divider={false}
-        title="Needs attention"
+        title="Needs Attention"
         description="Items waiting on an administrator decision."
       >
         {pending.length === 0 ? (
@@ -190,7 +190,7 @@ export function AdminDashboardPage() {
       </Section>
 
       <section
-        aria-label="Key figures"
+        aria-label="Key Figures"
         className="grid grid-cols-2 gap-x-8 gap-y-6 border-y border-slate-200 py-6 sm:grid-cols-4 dark:border-ink-800"
       >
         <StatCard
@@ -212,7 +212,7 @@ export function AdminDashboardPage() {
           to="/admin/applications"
         />
         <StatCard
-          label="Released in total"
+          label="Released in Total"
           value={formatCurrency(overview.totalAmountReleased)}
           hint={`${formatNumber(overview.totalGrants)} grant records`}
           to="/admin/grants"
@@ -220,7 +220,7 @@ export function AdminDashboardPage() {
       </section>
 
       <Section
-        title="Recent activity"
+        title="Recent Activity"
         description="The five most recently submitted applications."
         actions={
           <Link
@@ -233,7 +233,7 @@ export function AdminDashboardPage() {
       >
         {recentApplications.items.length === 0 ? (
           <EmptyState
-            title="No applications yet"
+            title="No Applications Yet"
             description="Applications submitted by students will appear here."
           />
         ) : (

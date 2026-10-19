@@ -35,17 +35,17 @@ import type { Scholarship, ScholarshipFilters, ScholarshipStatus, ScholarshipTyp
 const PAGE_SIZE = 10
 
 const TYPE_OPTIONS: SelectOption[] = [
-  { value: 'all', label: 'All types' },
+  { value: 'all', label: 'All Types' },
   ...SCHOLARSHIP_TYPES.map((option) => ({ value: option.value, label: option.label })),
 ]
 
 const MUNICIPALITY_OPTIONS: SelectOption[] = [
-  { value: 'all', label: 'All municipalities' },
+  { value: 'all', label: 'All Municipalities' },
   ...MUNICIPALITIES.map((name) => ({ value: name, label: name })),
 ]
 
 const STATUS_OPTIONS: SelectOption[] = [
-  { value: 'all', label: 'All statuses' },
+  { value: 'all', label: 'All Statuses' },
   ...SCHOLARSHIP_STATUSES.map((option) => ({ value: option.value, label: option.label })),
 ]
 
@@ -57,7 +57,7 @@ const STATUS_OPTIONS: SelectOption[] = [
  * both confirmed before they run.
  */
 export function AdminScholarshipsPage() {
-  useDocumentTitle('Manage scholarships')
+  useDocumentTitle('Manage Scholarships')
   const toast = useToast()
 
   const [query, setQuery] = useState('')
@@ -204,7 +204,7 @@ export function AdminScholarshipsPage() {
       <PageHeader
         title="Scholarships"
         description="Create, edit and retire every scholarship listing, including drafts that are not yet published."
-        actions={<LinkButton to="/admin/scholarships/new">New scholarship</LinkButton>}
+        actions={<LinkButton to="/admin/scholarships/new">New Scholarship</LinkButton>}
       />
 
       {deleteAction.error || statusAction.error ? (
@@ -218,7 +218,7 @@ export function AdminScholarshipsPage() {
           <div className="min-w-0 flex-1">
             <SearchInput
               id="scholarship-search"
-              label="Search scholarships"
+              label="Search Scholarships"
               hideLabel
               placeholder="Search name, provider or keyword"
               value={query}
@@ -288,10 +288,10 @@ export function AdminScholarshipsPage() {
                 action={
                   hasFilters ? (
                     <Button variant="outline" onClick={clearFilters}>
-                      Reset filters
+                      Reset Filters
                     </Button>
                   ) : (
-                    <LinkButton to="/admin/scholarships/new">New scholarship</LinkButton>
+                    <LinkButton to="/admin/scholarships/new">New Scholarship</LinkButton>
                   )
                 }
               />
@@ -326,7 +326,7 @@ export function AdminScholarshipsPage() {
             ? `“${deleteTarget.name}” and any bookmarks pointing at it will be removed. This cannot be undone.`
             : ''
         }
-        confirmLabel="Delete scholarship"
+        confirmLabel="Delete Scholarship"
         tone="danger"
         loading={deleteAction.loading}
       />

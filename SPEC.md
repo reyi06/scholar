@@ -1,4 +1,4 @@
-# Pampanga GrantConnect — Specification
+# Scholar — Specification
 
 Scholarship information and student grant management for the province of
 Pampanga, Philippines. Written 2026-10-19; reflects commit `087e9b0`.

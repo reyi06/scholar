@@ -60,8 +60,8 @@ export const SCHOLARSHIP_TYPES: Option<ScholarshipType>[] = [
   { value: 'provincial', label: 'Provincial' },
   { value: 'municipal', label: 'Municipal / City' },
   { value: 'national', label: 'National' },
-  { value: 'educational', label: 'Educational institution' },
-  { value: 'private', label: 'Private organization' },
+  { value: 'educational', label: 'Educational Institution' },
+  { value: 'private', label: 'Private Organization' },
 ]
 
 export const EDUCATION_LEVELS: Option<EducationLevel>[] = [
@@ -80,8 +80,8 @@ export const SCHOLARSHIP_STATUSES: Option<ScholarshipStatus>[] = [
 export const APPLICATION_STATUSES: Option<ApplicationStatus>[] = [
   { value: 'draft', label: 'Draft' },
   { value: 'submitted', label: 'Submitted' },
-  { value: 'under-review', label: 'Under review' },
-  { value: 'needs-info', label: 'Needs information' },
+  { value: 'under-review', label: 'Under Review' },
+  { value: 'needs-info', label: 'Needs Information' },
   { value: 'approved', label: 'Approved' },
   { value: 'rejected', label: 'Rejected' },
 ]
@@ -114,19 +114,19 @@ export const ANNOUNCEMENT_AUDIENCES: Option<AnnouncementAudience>[] = [
  * it answers that requirement everywhere.
  */
 export const DOCUMENT_CLASSIFICATIONS: Option<DocumentClassification>[] = [
-  { value: 'enrollment', label: 'Certificate of enrolment' },
-  { value: 'grades', label: 'Grades or transcript' },
-  { value: 'indigency', label: 'Certificate of indigency' },
-  { value: 'identification', label: 'Valid identification' },
-  { value: 'residency', label: 'Proof of residency' },
-  { value: 'good-moral', label: 'Good moral character' },
-  { value: 'other', label: 'Other supporting document' },
+  { value: 'enrollment', label: 'Certificate of Enrolment' },
+  { value: 'grades', label: 'Grades or Transcript' },
+  { value: 'indigency', label: 'Certificate of Indigency' },
+  { value: 'identification', label: 'Valid Identification' },
+  { value: 'residency', label: 'Proof of Residency' },
+  { value: 'good-moral', label: 'Good Moral Character' },
+  { value: 'other', label: 'Other Supporting Document' },
 ]
 
 export const DOCUMENT_STATUSES: Option<DocumentStatus>[] = [
   { value: 'submitted', label: 'Submitted' },
   { value: 'verified', label: 'Verified' },
-  { value: 'rejected', label: 'Needs attention' },
+  { value: 'rejected', label: 'Needs Attention' },
 ]
 
 /* ------------------------------------------------------------------ */

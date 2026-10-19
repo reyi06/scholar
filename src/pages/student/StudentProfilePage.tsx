@@ -13,6 +13,7 @@ import {
   Select,
 } from '../../components/ui'
 import { useAuth } from '../../context/authContext.ts'
+import { EmailVerificationSection } from '../../components/EmailVerificationSection.tsx'
 import { useToast } from '../../context/toastContext.ts'
 import { useAsync, useAsyncAction } from '../../hooks/useAsync.ts'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
@@ -131,7 +132,7 @@ function toFormValues(profile: StudentProfile): ProfileFormValues {
  * account name is a separate, smaller concern and has its own edit action.
  */
 export function StudentProfilePage() {
-  useDocumentTitle('My profile')
+  useDocumentTitle('My Profile')
   const { user, refresh } = useAuth()
   const toast = useToast()
   const userId = user?.id ?? ''
@@ -166,9 +167,9 @@ export function StudentProfilePage() {
   if (!user) {
     return (
       <EmptyState
-        title="You are not signed in"
+        title="You Are Not Signed In"
         description="Sign in with a student account to view and edit your profile."
-        action={<LinkButton to="/login">Sign in</LinkButton>}
+        action={<LinkButton to="/login">Sign In</LinkButton>}
       />
     )
   }
@@ -248,9 +249,9 @@ export function StudentProfilePage() {
   return (
     <div className="space-y-10">
       <PageHeader
-        title="My profile"
+        title="My Profile"
         description={`Keep your student details up to date, ${user.firstName}. Accurate information helps with eligibility checks.`}
-        actions={!editingProfile ? <Button onClick={startProfileEdit}>Edit profile</Button> : undefined}
+        actions={!editingProfile ? <Button onClick={startProfileEdit}>Edit Profile</Button> : undefined}
       />
 
       {profile.loading ? (
@@ -269,11 +270,11 @@ export function StudentProfilePage() {
             </Alert>
           ) : null}
 
-          <Section divider={false} title="Personal details">
+          <Section divider={false} title="Personal Details">
             <div className="grid gap-4 sm:grid-cols-2">
               <Input
                 id="profile-studentNumber"
-                label="Student number"
+                label="Student Number"
                 value={form.studentNumber}
                 error={errors.studentNumber}
                 required
@@ -281,7 +282,7 @@ export function StudentProfilePage() {
               />
               <Input
                 id="profile-phone"
-                label="Mobile or landline"
+                label="Mobile or Landline"
                 value={form.phone}
                 error={errors.phone}
                 required
@@ -289,7 +290,7 @@ export function StudentProfilePage() {
               />
               <Input
                 id="profile-birthDate"
-                label="Birth date"
+                label="Birth Date"
                 type="date"
                 value={form.birthDate}
                 error={errors.birthDate}
@@ -298,7 +299,7 @@ export function StudentProfilePage() {
               />
               <Select
                 id="profile-municipality"
-                label="Municipality or city"
+                label="Municipality or City"
                 placeholder="Select a municipality"
                 options={MUNICIPALITY_OPTIONS}
                 value={form.municipality}
@@ -330,7 +331,7 @@ export function StudentProfilePage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <Select
                 id="profile-educationLevel"
-                label="Education level"
+                label="Education Level"
                 placeholder="Select an education level"
                 options={EDUCATION_LEVEL_OPTIONS}
                 value={form.educationLevel}
@@ -348,7 +349,7 @@ export function StudentProfilePage() {
               />
               <Input
                 id="profile-course"
-                label="Course or strand"
+                label="Course or Strand"
                 value={form.course}
                 error={errors.course}
                 required
@@ -356,7 +357,7 @@ export function StudentProfilePage() {
               />
               <Select
                 id="profile-yearLevel"
-                label="Year level"
+                label="Year Level"
                 placeholder="Select a year level"
                 options={YEAR_LEVEL_OPTIONS}
                 value={form.yearLevel}
@@ -366,7 +367,7 @@ export function StudentProfilePage() {
               />
               <Input
                 id="profile-gwa"
-                label="General weighted average"
+                label="General Weighted Average"
                 type="number"
                 step="0.01"
                 min="1"
@@ -378,7 +379,7 @@ export function StudentProfilePage() {
               />
               <Input
                 id="profile-householdIncome"
-                label="Annual household income (PHP)"
+                label="Annual Household Income (PHP)"
                 type="number"
                 step="1000"
                 min="0"
@@ -389,11 +390,11 @@ export function StudentProfilePage() {
             </div>
           </Section>
 
-          <Section title="Guardian & contact">
+          <Section title="Guardian & Contact">
             <div className="grid gap-4 sm:grid-cols-2">
               <Input
                 id="profile-guardianName"
-                label="Guardian name"
+                label="Guardian Name"
                 value={form.guardianName}
                 error={errors.guardianName}
                 required
@@ -401,7 +402,7 @@ export function StudentProfilePage() {
               />
               <Input
                 id="profile-guardianContact"
-                label="Guardian contact number"
+                label="Guardian Contact Number"
                 value={form.guardianContact}
                 error={errors.guardianContact}
                 onChange={(event) => setField('guardianContact', event.target.value)}
@@ -411,7 +412,7 @@ export function StudentProfilePage() {
 
           <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 pt-6 dark:border-ink-800">
             <Button type="submit" loading={saveProfile.loading}>
-              Save profile
+              Save Profile
             </Button>
             <Button type="button" variant="outline" onClick={cancelProfileEdit}>
               Cancel
@@ -420,53 +421,55 @@ export function StudentProfilePage() {
         </form>
       ) : currentProfile ? (
         <div className="space-y-10">
-          <Section divider={false} title="Personal details">
+          <Section divider={false} title="Personal Details">
             <DefinitionList
               items={[
-                { label: 'Student number', value: currentProfile.studentNumber || '—' },
+                { label: 'Student Number', value: currentProfile.studentNumber || '—' },
                 { label: 'Phone', value: currentProfile.phone || '—' },
-                { label: 'Birth date', value: currentProfile.birthDate || '—' },
-                { label: 'Municipality or city', value: currentProfile.municipality || '—' },
+                { label: 'Birth Date', value: currentProfile.birthDate || '—' },
+                { label: 'Municipality or City', value: currentProfile.municipality || '—' },
                 { label: 'Barangay', value: currentProfile.barangay || '—' },
                 { label: 'Address', value: currentProfile.address || '—', wide: true },
-                { label: 'Last updated', value: formatDate(currentProfile.updatedAt), wide: true },
+                { label: 'Last Updated', value: formatDate(currentProfile.updatedAt), wide: true },
               ]}
             />
           </Section>
+
+          <EmailVerificationSection />
 
           <Section title="Enrolment">
             <DefinitionList
               items={[
                 {
-                  label: 'Education level',
+                  label: 'Education Level',
                   value: EDUCATION_LEVEL_LABELS[currentProfile.educationLevel],
                 },
                 { label: 'School', value: currentProfile.school || '—' },
-                { label: 'Course or strand', value: currentProfile.course || '—' },
-                { label: 'Year level', value: currentProfile.yearLevel || '—' },
+                { label: 'Course or Strand', value: currentProfile.course || '—' },
+                { label: 'Year Level', value: currentProfile.yearLevel || '—' },
                 {
                   label: 'GWA',
                   value: currentProfile.gwa === null ? '—' : currentProfile.gwa.toFixed(2),
                 },
-                { label: 'Household income', value: formatCurrency(currentProfile.householdIncome) },
+                { label: 'Household Income', value: formatCurrency(currentProfile.householdIncome) },
               ]}
             />
           </Section>
 
-          <Section title="Guardian & contact">
+          <Section title="Guardian & Contact">
             <DefinitionList
               items={[
                 { label: 'Guardian', value: currentProfile.guardianName || '—' },
-                { label: 'Guardian contact', value: currentProfile.guardianContact || '—' },
+                { label: 'Guardian Contact', value: currentProfile.guardianContact || '—' },
               ]}
             />
           </Section>
         </div>
       ) : (
         <EmptyState
-          title="No student profile yet"
+          title="No Student Profile Yet"
           description="Add your details so they can be recorded and checked for eligibility."
-          action={<Button onClick={startProfileEdit}>Add my details</Button>}
+          action={<Button onClick={startProfileEdit}>Add My Details</Button>}
         />
       )}
 
@@ -484,7 +487,7 @@ export function StudentProfilePage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <Input
                 id="account-firstName"
-                label="First name"
+                label="First Name"
                 value={account.firstName}
                 error={accountErrors.firstName}
                 required
@@ -494,7 +497,7 @@ export function StudentProfilePage() {
               />
               <Input
                 id="account-lastName"
-                label="Last name"
+                label="Last Name"
                 value={account.lastName}
                 error={accountErrors.lastName}
                 required
@@ -512,7 +515,7 @@ export function StudentProfilePage() {
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Button type="submit" loading={saveAccount.loading}>
-                Save account name
+                Save Account Name
               </Button>
               <Button
                 type="button"
@@ -532,7 +535,7 @@ export function StudentProfilePage() {
               ]}
             />
             <Button variant="outline" size="sm" onClick={startAccountEdit}>
-              Edit account
+              Edit Account
             </Button>
           </div>
         )}

@@ -60,6 +60,7 @@ export const sampleUsers: User[] = [
     profileComplete: true,
     hasPassword: true,
     usesGoogle: false,
+    emailVerified: true,
   },
   {
     id: 'usr_student_1',
@@ -71,6 +72,7 @@ export const sampleUsers: User[] = [
     profileComplete: true,
     hasPassword: true,
     usesGoogle: false,
+    emailVerified: true,
   },
   {
     id: 'usr_student_2',
@@ -82,6 +84,7 @@ export const sampleUsers: User[] = [
     profileComplete: true,
     hasPassword: true,
     usesGoogle: false,
+    emailVerified: true,
   },
   {
     id: 'usr_student_3',
@@ -93,6 +96,7 @@ export const sampleUsers: User[] = [
     profileComplete: true,
     hasPassword: true,
     usesGoogle: false,
+    emailVerified: true,
   },
   {
     id: 'usr_student_4',
@@ -104,6 +108,7 @@ export const sampleUsers: User[] = [
     profileComplete: true,
     hasPassword: true,
     usesGoogle: false,
+    emailVerified: true,
   },
 ]
 
@@ -641,7 +646,7 @@ interface ApplicationSeed {
 const applicationSeeds: ApplicationSeed[] = [
   {
     id: 'app_001',
-    referenceNo: 'PGC-APP-2026-0001',
+    referenceNo: 'SCH-APP-2026-0001',
     scholarshipId: 'sch_001',
     studentId: 'usr_student_1',
     status: 'approved',
@@ -659,7 +664,7 @@ const applicationSeeds: ApplicationSeed[] = [
   },
   {
     id: 'app_002',
-    referenceNo: 'PGC-APP-2026-0002',
+    referenceNo: 'SCH-APP-2026-0002',
     scholarshipId: 'sch_003',
     studentId: 'usr_student_1',
     status: 'under-review',
@@ -672,7 +677,7 @@ const applicationSeeds: ApplicationSeed[] = [
   },
   {
     id: 'app_003',
-    referenceNo: 'PGC-APP-2026-0003',
+    referenceNo: 'SCH-APP-2026-0003',
     scholarshipId: 'sch_008',
     studentId: 'usr_student_1',
     status: 'submitted',
@@ -682,7 +687,7 @@ const applicationSeeds: ApplicationSeed[] = [
   },
   {
     id: 'app_004',
-    referenceNo: 'PGC-APP-2026-0004',
+    referenceNo: 'SCH-APP-2026-0004',
     scholarshipId: 'sch_010',
     studentId: 'usr_student_1',
     status: 'rejected',
@@ -698,7 +703,7 @@ const applicationSeeds: ApplicationSeed[] = [
   },
   {
     id: 'app_005',
-    referenceNo: 'PGC-APP-2026-0005',
+    referenceNo: 'SCH-APP-2026-0005',
     scholarshipId: 'sch_002',
     studentId: 'usr_student_1',
     status: 'needs-info',
@@ -719,7 +724,7 @@ const applicationSeeds: ApplicationSeed[] = [
   },
   {
     id: 'app_006',
-    referenceNo: 'PGC-APP-2026-0006',
+    referenceNo: 'SCH-APP-2026-0006',
     scholarshipId: 'sch_007',
     studentId: 'usr_student_1',
     status: 'draft',
@@ -729,7 +734,7 @@ const applicationSeeds: ApplicationSeed[] = [
   },
   {
     id: 'app_007',
-    referenceNo: 'PGC-APP-2026-0007',
+    referenceNo: 'SCH-APP-2026-0007',
     scholarshipId: 'sch_001',
     studentId: 'usr_student_2',
     status: 'under-review',
@@ -742,7 +747,7 @@ const applicationSeeds: ApplicationSeed[] = [
   },
   {
     id: 'app_008',
-    referenceNo: 'PGC-APP-2026-0008',
+    referenceNo: 'SCH-APP-2026-0008',
     scholarshipId: 'sch_004',
     studentId: 'usr_student_2',
     status: 'approved',
@@ -758,7 +763,7 @@ const applicationSeeds: ApplicationSeed[] = [
   },
   {
     id: 'app_009',
-    referenceNo: 'PGC-APP-2026-0009',
+    referenceNo: 'SCH-APP-2026-0009',
     scholarshipId: 'sch_011',
     studentId: 'usr_student_3',
     status: 'submitted',
@@ -768,7 +773,7 @@ const applicationSeeds: ApplicationSeed[] = [
   },
   {
     id: 'app_010',
-    referenceNo: 'PGC-APP-2026-0010',
+    referenceNo: 'SCH-APP-2026-0010',
     scholarshipId: 'sch_012',
     studentId: 'usr_student_4',
     status: 'under-review',
@@ -794,8 +799,8 @@ export const sampleApplications: Application[] = applicationSeeds.map((seed) => 
     updatedAt: daysAgo(updatedDaysAgo),
     motivation: seed.motivation,
     responses: [
-      { label: 'Enrolled this semester', value: 'Yes' },
-      { label: 'Documents ready for submission', value: seed.status === 'draft' ? 'Not yet' : 'Yes' },
+      { label: 'Enrolled This Semester', value: 'Yes' },
+      { label: 'Documents Ready for Submission', value: seed.status === 'draft' ? 'Not yet' : 'Yes' },
     ],
     documentNames: seed.status === 'draft' ? [] : ['Certificate of enrolment (PDF)', 'Copy of grades (PDF)'],
     reviewNotes: seed.reviewNotes,
@@ -816,7 +821,7 @@ export const sampleApplications: Application[] = applicationSeeds.map((seed) => 
 export const sampleRegistrations: SemesterRegistration[] = [
   {
     id: 'reg_001',
-    referenceNo: 'PGC-REG-2026-0001',
+    referenceNo: 'SCH-REG-2026-0001',
     studentId: 'usr_student_1',
     academicYear: '2025-2026',
     semester: '2nd Semester',
@@ -833,7 +838,7 @@ export const sampleRegistrations: SemesterRegistration[] = [
   },
   {
     id: 'reg_002',
-    referenceNo: 'PGC-REG-2026-0002',
+    referenceNo: 'SCH-REG-2026-0002',
     studentId: 'usr_student_1',
     academicYear: '2026-2027',
     semester: '1st Semester',
@@ -848,7 +853,7 @@ export const sampleRegistrations: SemesterRegistration[] = [
   },
   {
     id: 'reg_003',
-    referenceNo: 'PGC-REG-2026-0003',
+    referenceNo: 'SCH-REG-2026-0003',
     studentId: 'usr_student_2',
     academicYear: '2026-2027',
     semester: '1st Semester',
@@ -863,7 +868,7 @@ export const sampleRegistrations: SemesterRegistration[] = [
   },
   {
     id: 'reg_004',
-    referenceNo: 'PGC-REG-2026-0004',
+    referenceNo: 'SCH-REG-2026-0004',
     studentId: 'usr_student_3',
     academicYear: '2026-2027',
     semester: '1st Semester',
@@ -887,7 +892,7 @@ export const sampleRegistrations: SemesterRegistration[] = [
 export const sampleGrants: Grant[] = [
   {
     id: 'grt_001',
-    referenceNo: 'PGC-GRT-2026-0001',
+    referenceNo: 'SCH-GRT-2026-0001',
     studentId: 'usr_student_1',
     scholarshipId: 'sch_001',
     applicationId: 'app_001',
@@ -901,7 +906,7 @@ export const sampleGrants: Grant[] = [
   },
   {
     id: 'grt_002',
-    referenceNo: 'PGC-GRT-2025-0002',
+    referenceNo: 'SCH-GRT-2025-0002',
     studentId: 'usr_student_1',
     scholarshipId: 'sch_001',
     academicYear: '2025-2026',
@@ -913,7 +918,7 @@ export const sampleGrants: Grant[] = [
   },
   {
     id: 'grt_003',
-    referenceNo: 'PGC-GRT-2026-0003',
+    referenceNo: 'SCH-GRT-2026-0003',
     studentId: 'usr_student_2',
     scholarshipId: 'sch_004',
     applicationId: 'app_008',
@@ -926,7 +931,7 @@ export const sampleGrants: Grant[] = [
   },
   {
     id: 'grt_004',
-    referenceNo: 'PGC-GRT-2026-0004',
+    referenceNo: 'SCH-GRT-2026-0004',
     studentId: 'usr_student_3',
     scholarshipId: 'sch_009',
     academicYear: '2026-2027',
@@ -939,7 +944,7 @@ export const sampleGrants: Grant[] = [
   },
   {
     id: 'grt_005',
-    referenceNo: 'PGC-GRT-2026-0005',
+    referenceNo: 'SCH-GRT-2026-0005',
     studentId: 'usr_student_4',
     scholarshipId: 'sch_007',
     academicYear: '2026-2027',
@@ -1021,7 +1026,7 @@ export const sampleNotifications: Notification[] = [
     id: 'ntf_001',
     userId: 'usr_student_1',
     title: 'Application approved',
-    body: 'Your application PGC-APP-2026-0001 passed review. A grant record must still be confirmed by an administrator before funds are released.',
+    body: 'Your application SCH-APP-2026-0001 passed review. A grant record must still be confirmed by an administrator before funds are released.',
     createdAt: daysAgo(30),
     read: false,
     link: '/student/applications/app_001',
@@ -1030,7 +1035,7 @@ export const sampleNotifications: Notification[] = [
     id: 'ntf_002',
     userId: 'usr_student_1',
     title: 'Additional information needed',
-    body: 'Application PGC-APP-2026-0005 needs an updated recommendation letter.',
+    body: 'Application SCH-APP-2026-0005 needs an updated recommendation letter.',
     createdAt: daysAgo(9),
     read: false,
     link: '/student/applications/app_005',
@@ -1039,7 +1044,7 @@ export const sampleNotifications: Notification[] = [
     id: 'ntf_003',
     userId: 'usr_student_1',
     title: 'Semester registration submitted',
-    body: 'Your registration PGC-REG-2026-0002 is pending verification.',
+    body: 'Your registration SCH-REG-2026-0002 is pending verification.',
     createdAt: daysAgo(9),
     read: true,
     link: '/student/semester-registration',

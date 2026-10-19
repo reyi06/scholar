@@ -22,30 +22,30 @@ import type { EducationLevel, ScholarshipFilters, ScholarshipType } from '../../
 const PAGE_SIZE = 10
 
 const TYPE_OPTIONS = [
-  { value: 'all', label: 'All types' },
+  { value: 'all', label: 'All Types' },
   ...SCHOLARSHIP_TYPES.map((option) => ({ value: option.value, label: option.label })),
 ]
 
 const LEVEL_OPTIONS = [
-  { value: 'all', label: 'All levels' },
+  { value: 'all', label: 'All Levels' },
   ...EDUCATION_LEVELS.map((option) => ({ value: option.value, label: option.label })),
 ]
 
 const MUNICIPALITY_OPTIONS = [
-  { value: 'all', label: 'All municipalities' },
+  { value: 'all', label: 'All Municipalities' },
   ...MUNICIPALITIES.map((name) => ({ value: name, label: name })),
 ]
 
 const DEADLINE_OPTIONS = [
-  { value: 'all', label: 'Any deadline' },
-  { value: '7', label: 'Next 7 days' },
-  { value: '30', label: 'Next 30 days' },
-  { value: '90', label: 'Next 90 days' },
+  { value: 'all', label: 'Any Deadline' },
+  { value: '7', label: 'Next 7 Days' },
+  { value: '30', label: 'Next 30 Days' },
+  { value: '90', label: 'Next 90 Days' },
 ]
 
 const SORT_OPTIONS = [
-  { value: 'deadline', label: 'Soonest deadline' },
-  { value: 'newest', label: 'Recently added' },
+  { value: 'deadline', label: 'Soonest Deadline' },
+  { value: 'newest', label: 'Recently Added' },
   { value: 'name', label: 'Name (A–Z)' },
 ]
 
@@ -145,7 +145,7 @@ export function ScholarshipDirectoryPage() {
           <div className="lg:flex-1">
             <SearchInput
               id="directory-search"
-              label="Search scholarships"
+              label="Search Scholarships"
               hideLabel
               placeholder="Search scholarships"
               value={query}
@@ -158,7 +158,7 @@ export function ScholarshipDirectoryPage() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-[repeat(4,11rem)]">
             <Select
               id="directory-type"
-              label="Scholarship type"
+              label="Scholarship Type"
               hideLabel
               options={TYPE_OPTIONS}
               value={type}
@@ -174,7 +174,7 @@ export function ScholarshipDirectoryPage() {
             />
             <Select
               id="directory-level"
-              label="Education level"
+              label="Education Level"
               hideLabel
               options={LEVEL_OPTIONS}
               value={level}
@@ -203,13 +203,13 @@ export function ScholarshipDirectoryPage() {
           <div className="flex items-center gap-2">
             {activeFilterCount > 0 ? (
               <Button variant="ghost" size="sm" onClick={clearFilters}>
-                Clear filters
+                Clear Filters
               </Button>
             ) : null}
             <div className="w-44">
               <Select
                 id="directory-sort"
-                label="Sort by"
+                label="Sort By"
                 hideLabel
                 options={SORT_OPTIONS}
                 value={sort ?? 'deadline'}
@@ -220,7 +220,7 @@ export function ScholarshipDirectoryPage() {
         </div>
 
         <div className="mt-4">
-          <h2 className="sr-only">Search results</h2>
+          <h2 className="sr-only">Search Results</h2>
           {loading ? <LoadingState label="Searching scholarships…" /> : null}
 
           {error ? <ErrorState message={error} onRetry={reload} /> : null}
@@ -228,7 +228,7 @@ export function ScholarshipDirectoryPage() {
           {!loading && !error ? (
             results.length === 0 ? (
               <EmptyState
-                title="No scholarships match your filters"
+                title="No Scholarships Match Your Filters"
                 description={
                   activeFilterCount > 0
                     ? 'Try removing a filter or searching for a different keyword.'
@@ -237,7 +237,7 @@ export function ScholarshipDirectoryPage() {
                 action={
                   activeFilterCount > 0 ? (
                     <Button variant="outline" onClick={clearFilters}>
-                      Clear all filters
+                      Clear All Filters
                     </Button>
                   ) : undefined
                 }

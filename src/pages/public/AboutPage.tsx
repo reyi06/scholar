@@ -24,10 +24,10 @@ const STEPS = [
 
 const PROVIDER_TYPES = [
   { label: 'Provincial', body: 'Offered across the whole province by provincial offices.' },
-  { label: 'Municipal and city', body: 'Administered by a specific municipality or city, usually for its own residents.' },
+  { label: 'Municipal and City', body: 'Administered by a specific municipality or city, usually for its own residents.' },
   { label: 'National', body: 'Run by national agencies, which normally use their own application process.' },
-  { label: 'Educational institution', body: 'Awards and discounts offered by a school, college or university.' },
-  { label: 'Private organisation', body: 'Funded by foundations and other private organisations.' },
+  { label: 'Educational Institution', body: 'Awards and discounts offered by a school, college or university.' },
+  { label: 'Private Organisation', body: 'Funded by foundations and other private organisations.' },
 ]
 
 export function AboutPage() {
@@ -37,13 +37,13 @@ export function AboutPage() {
   return (
     <div className="mx-auto max-w-3xl px-5 py-10 sm:px-8">
       <PageHeader
-        title="About this platform"
+        title="About This Platform"
         breadcrumbs={[{ label: 'Home', to: '/' }, { label: 'About' }]}
-        description="Pampanga GrantConnect brings scholarship listings and student grant records together in one place."
+        description="Scholar brings scholarship listings and student grant records together in one place."
       />
 
       <div className="mt-10 space-y-10">
-        <Section divider={false} title="What it does">
+        <Section divider={false} title="What It Does">
           <div className="space-y-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
             <p>
               Students use the platform to find scholarships, keep a shortlist, submit applications and
@@ -58,7 +58,7 @@ export function AboutPage() {
           </div>
         </Section>
 
-        <Section title="How to use it">
+        <Section title="How to Use It">
           <ol className="space-y-5">
             {STEPS.map((step, index) => (
               <li key={step.title} className="flex gap-4">
@@ -77,7 +77,7 @@ export function AboutPage() {
           </ol>
         </Section>
 
-        <Section title="Where applications are submitted">
+        <Section title="Where Applications Are Submitted">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-md border border-slate-200 p-4 dark:border-ink-800">
               <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Through this platform</p>
@@ -96,7 +96,7 @@ export function AboutPage() {
           </div>
         </Section>
 
-        <Section title="What happens to an application">
+        <Section title="What Happens to an Application">
           <p className="mb-7 max-w-[62ch] text-sm text-slate-600 dark:text-slate-300">
             Every application moves through the same stages. The last one is the step people most
             often assume has already happened: an approval is a decision, and a grant record has to
@@ -111,7 +111,7 @@ export function AboutPage() {
           </p>
         </Section>
 
-        <Section title="Site map">
+        <Section title="Site Map">
           <p className="mb-8 max-w-[62ch] text-sm text-slate-600 dark:text-slate-300">
             Three areas, each with its own pages. Everything in the first is open to anyone; the other
             two ask you to sign in.
@@ -119,7 +119,7 @@ export function AboutPage() {
           <SiteMapDiagram />
         </Section>
 
-        <Section title="Providers in the directory">
+        <Section title="Providers in the Directory">
           <ul className="space-y-3">
             {PROVIDER_TYPES.map((provider) => (
               <li key={provider.label} className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -130,7 +130,7 @@ export function AboutPage() {
           </ul>
         </Section>
 
-        <Section title="Your details">
+        <Section title="Your Details">
           <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
             <p>
               Your profile, applications and grant records are visible only to you and to the
@@ -143,7 +143,7 @@ export function AboutPage() {
           </div>
         </Section>
 
-        <Section title="Need help?">
+        <Section title="Need Help?">
           <div className="space-y-5">
             <p className="text-sm text-slate-600 dark:text-slate-300">
               For questions about a specific scholarship, contact the provider using the details on its
@@ -151,7 +151,7 @@ export function AboutPage() {
               scholarship office.
             </p>
             <div className="flex flex-wrap gap-3">
-              <LinkButton to="/scholarships">Browse scholarships</LinkButton>
+              <LinkButton to="/scholarships">Browse Scholarships</LinkButton>
               <LinkButton
                 to={user ? (isStudent ? '/student/dashboard' : '/admin/dashboard') : '/login'}
                 variant="outline"

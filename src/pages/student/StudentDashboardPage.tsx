@@ -41,7 +41,7 @@ function pickNextStep(applications: Application[], registrations: SemesterRegist
   if (needsInfo) {
     return {
       sentence: `Application ${needsInfo.referenceNo} needs more information before it can be reviewed.`,
-      label: 'Review the request',
+      label: 'Review the Request',
       to: `/student/applications/${needsInfo.id}`,
     }
   }
@@ -50,7 +50,7 @@ function pickNextStep(applications: Application[], registrations: SemesterRegist
   if (pendingRegistration) {
     return {
       sentence: `Your ${pendingRegistration.semester} registration for AY ${pendingRegistration.academicYear} is awaiting verification.`,
-      label: 'View registration',
+      label: 'View Registration',
       to: '/student/semester-registration',
     }
   }
@@ -59,14 +59,14 @@ function pickNextStep(applications: Application[], registrations: SemesterRegist
   if (draft) {
     return {
       sentence: 'You have a draft application that has not been submitted yet.',
-      label: 'Continue your draft',
+      label: 'Continue Your Draft',
       to: `/student/applications/${draft.id}`,
     }
   }
 
   return {
     sentence: 'Find a scholarship to apply for; everything you submit is tracked here.',
-    label: 'Browse scholarships',
+    label: 'Browse Scholarships',
     to: '/scholarships',
   }
 }
@@ -95,9 +95,9 @@ export function StudentDashboardPage() {
   if (!user) {
     return (
       <EmptyState
-        title="You are not signed in"
+        title="You Are Not Signed In"
         description="Sign in with a student account to see your dashboard."
-        action={<LinkButton to="/login">Sign in</LinkButton>}
+        action={<LinkButton to="/login">Sign In</LinkButton>}
       />
     )
   }
@@ -126,7 +126,7 @@ export function StudentDashboardPage() {
         <ErrorState message={dashboard.error} onRetry={dashboard.reload} />
       ) : (
         <>
-          <Section divider={false} title="Your next step">
+          <Section divider={false} title="Your Next Step">
             <p className="text-sm text-slate-600 dark:text-slate-300">{nextStep.sentence}</p>
             <div className="mt-4">
               <LinkButton to={nextStep.to}>{nextStep.label}</LinkButton>
@@ -134,17 +134,17 @@ export function StudentDashboardPage() {
           </Section>
 
           <Section
-            title="Application status"
+            title="Application Status"
             description="Counts across every application you have filed."
           >
             <div className="grid grid-cols-2 gap-x-8 gap-y-6 border-y border-slate-200 py-6 sm:grid-cols-4 dark:border-ink-800">
               <StatCard
-                label="All applications"
+                label="All Applications"
                 value={applications.length}
                 to="/student/applications"
               />
               <StatCard
-                label="In progress"
+                label="In Progress"
                 value={inProgress}
                 hint="Draft, submitted, under review or needing information"
                 to="/student/applications"
@@ -154,7 +154,7 @@ export function StudentDashboardPage() {
             </div>
           </Section>
 
-          <Section title="Recent updates" description="The latest notifications on your account.">
+          <Section title="Recent Updates" description="The latest notifications on your account.">
             {notifications.length === 0 ? (
               <p className="text-sm text-slate-500 dark:text-slate-400">No updates yet.</p>
             ) : (

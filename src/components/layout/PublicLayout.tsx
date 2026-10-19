@@ -18,7 +18,7 @@ const FOOTER_LINKS = [
   { to: '/scholarships', label: 'Scholarships' },
   { to: '/faqs', label: 'FAQs' },
   { to: '/about', label: 'About' },
-  { to: '/login', label: 'Sign in' },
+  { to: '/login', label: 'Sign In' },
 ]
 
 /**
@@ -60,7 +60,7 @@ export function PublicLayout() {
               <Icon name="graduation" className="size-4" />
             </span>
             <span className="text-sm font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-              Pampanga GrantConnect
+              Scholar
             </span>
           </Link>
 
@@ -91,7 +91,7 @@ export function PublicLayout() {
                   {isStudent ? 'My dashboard' : 'Admin area'}
                 </LinkButton>
                 <Dropdown
-                  label="Account menu"
+                  label="Account Menu"
                   align="right"
                   trigger={<Avatar initials={initials(user.firstName, user.lastName)} className="m-0.5" />}
                   header={
@@ -103,19 +103,19 @@ export function PublicLayout() {
                     </div>
                   }
                   items={[
-                    { label: 'My dashboard', to: dashboardPath },
-                    ...(isStudent ? [{ label: 'My profile', to: '/student/profile' }] : []),
-                    { label: 'Sign out', onClick: handleLogout, tone: 'danger' as const },
+                    { label: 'My Dashboard', to: dashboardPath },
+                    ...(isStudent ? [{ label: 'My Profile', to: '/student/profile' }] : []),
+                    { label: 'Sign Out', onClick: handleLogout, tone: 'danger' as const },
                   ]}
                 />
               </>
             ) : (
               <>
                 <LinkButton to="/login" variant="ghost" size="sm">
-                  Sign in
+                  Sign In
                 </LinkButton>
                 <LinkButton to="/register" size="sm">
-                  Create account
+                  Create Account
                 </LinkButton>
               </>
             )}
@@ -127,7 +127,7 @@ export function PublicLayout() {
               onClick={() => setMenuOpen((value) => !value)}
               aria-expanded={menuOpen}
               aria-controls="mobile-nav"
-              aria-label="Toggle navigation menu"
+              aria-label="Toggle Navigation Menu"
             >
               <Icon name={menuOpen ? 'close' : 'menu'} className="size-5" />
             </Button>
@@ -171,7 +171,7 @@ export function PublicLayout() {
       <footer className="border-t border-slate-200 bg-white dark:border-ink-800 dark:bg-ink-950">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            © {CURRENT_YEAR} Pampanga GrantConnect
+            © {CURRENT_YEAR} Scholar
           </p>
           <nav aria-label="Footer">
             <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">

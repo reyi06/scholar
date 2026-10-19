@@ -1,5 +1,5 @@
 /**
- * Domain models for Pampanga GrantConnect.
+ * Domain models for Scholar.
  *
  * These types are the single source of truth for the shape of data flowing
  * between the UI and the data-access layer (`src/lib/api.ts`). When a real
@@ -29,6 +29,14 @@ export interface User {
   hasPassword: boolean
   /** Whether this account can be entered with Google. */
   usesGoogle: boolean
+  /**
+   * Whether the address has been confirmed.
+   *
+   * Google accounts arrive already confirmed, because Google is the authority
+   * for those addresses. Defaults to true in the schema so the records that
+   * predate this feature are not retroactively treated as unverified.
+   */
+  emailVerified: boolean
 }
 
 export interface StudentProfile {
@@ -404,13 +412,39 @@ export interface PlatformSettings {
   updatedAt: string
 }
 
+/**
+ * What registration collects.
+ *
+ * The student details are part of sign-up rather than a later profile edit,
+ * because eligibility depends on them: a municipal scholarship needs a
+ * barangay, an age-limited one needs a birth date, and a listing for college
+ * students is noise to a senior-high applicant. Collecting them once, up front,
+ * means the account is useful from its first page rather than after a second
+ * visit to the profile screen.
+ */
 export interface RegisterInput {
   email: string
   password: string
   firstName: string
   lastName: string
-  municipality: string
+
+  /* Student details */
   phone: string
+  municipality: string
+  barangay: string
+  /** ISO date (yyyy-mm-dd). */
+  birthDate: string
+  educationLevel: EducationLevel
+  school: string
+  course: string
+  yearLevel: string
+
+  /* Optional: not every applicant knows these yet. */
+  address?: string
+  gwa?: number | null
+  householdIncome?: number | null
+  guardianName?: string
+  guardianContact?: string
 }
 
 export interface LoginInput {
@@ -418,10 +452,81 @@ export interface LoginInput {
   password: string
 }
 
-/** Details Google cannot supply, collected once for a Google-created account. */
+/**
+ * Details Google cannot supply, collected once for a Google-created account.
+ *
+ * Carries the same student details registration collects, so both sign-up
+ * paths produce the same shape of record.
+ */
 export interface CompleteProfileInput {
   firstName: string
   lastName: string
-  municipality: string
   phone: string
+  municipality: string
+  barangay: string
+  birthDate: string
+  educationLevel: EducationLevel
+  school: string
+  course: string
+  yearLevel: string
+  address: string
+  gwa: number | null
+  householdIncome: number | null
+  guardianName: string
+  guardianContact: string
+}
+
+/**
+ * The student details every sign-up path collects, as raw form strings.
+ *
+ * Shared by the registration form and the Google profile step so the two
+ * cannot drift into asking for different things. Numbers and dates stay as
+ * strings because that is what form controls produce; the API converts.
+ */
+export interface StudentDetailsValues {
+  phone: string
+  municipality: string
+  barangay: string
+  birthDate: string
+  educationLevel: string
+  school: string
+  course: string
+  yearLevel: string
+  address: string
+  gwa: string
+  householdIncome: string
+  guardianName: string
+  guardianContact: string
+}
+
+/* ------------------------------------------------------------------ */
+/* One-time codes                                                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Why a code was issued.
+ *
+ * Scoped on purpose: a code sent to confirm an email address must not be
+ * replayable to reset a password, so a challenge is only ever valid for the
+ * purpose it was created for.
+ */
+export type OtpPurpose = 'verify-email' | 'reset-password'
+
+/**
+ * What the browser learns when a code is requested. Deliberately carries no
+ * information about whether the address exists, and never the code itself.
+ */
+export interface OtpChallenge {
+  expiresInSeconds: number
+  resendAfterSeconds: number
+}
+
+export interface OtpRequestResult extends OtpChallenge {
+  submitted: boolean
+  /**
+   * Where the message actually went. The interface reports this rather than
+   * assuming an email was sent, which is why a development server can say the
+   * code went to the log and mean it.
+   */
+  delivery: 'log' | 'email' | 'none'
 }

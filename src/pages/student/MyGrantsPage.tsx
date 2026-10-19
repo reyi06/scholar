@@ -26,7 +26,7 @@ import { formatCurrency, formatDate } from '../../lib/format.ts'
  * which the page states once, briefly.
  */
 export function MyGrantsPage() {
-  useDocumentTitle('My grants')
+  useDocumentTitle('My Grants')
   const { user } = useAuth()
   const userId = user?.id ?? ''
 
@@ -45,9 +45,9 @@ export function MyGrantsPage() {
   if (!user) {
     return (
       <EmptyState
-        title="You are not signed in"
+        title="You Are Not Signed In"
         description="Sign in with a student account to view your grants."
-        action={<LinkButton to="/login">Sign in</LinkButton>}
+        action={<LinkButton to="/login">Sign In</LinkButton>}
       />
     )
   }
@@ -59,7 +59,7 @@ export function MyGrantsPage() {
   return (
     <div className="space-y-10">
       <PageHeader
-        title="My grants"
+        title="My Grants"
         description="Confirmed grant records and the amounts released to you."
       />
 
@@ -87,9 +87,9 @@ export function MyGrantsPage() {
 
           {grants.length === 0 ? (
             <EmptyState
-              title="No confirmed grants yet"
+              title="No Confirmed Grants Yet"
               description="An approved application on its own is not a grant. Once an administrator confirms a grant record, it will appear here."
-              action={<LinkButton to="/student/applications">View my applications</LinkButton>}
+              action={<LinkButton to="/student/applications">View My Applications</LinkButton>}
             />
           ) : (
             <Table>

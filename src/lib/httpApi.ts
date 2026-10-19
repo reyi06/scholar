@@ -17,6 +17,8 @@ import type {
   GrantFilters,
   LoginInput,
   Notification,
+  OtpPurpose,
+  OtpRequestResult,
   Paginated,
   PlatformSettings,
   RegisterInput,
@@ -205,6 +207,36 @@ const authApi = {
   async completeGoogleProfile(input: CompleteProfileInput): Promise<User> {
     const result = await request<{ user: User }>('POST', '/auth/google/complete', input)
     return result.user
+  },
+
+  /** Ask for a one-time code. Answers identically for unknown addresses. */
+  async requestCode(email: string, purpose: OtpPurpose): Promise<OtpRequestResult> {
+    return request<OtpRequestResult>('POST', '/auth/otp/request', { email, purpose })
+  },
+
+  /**
+   * Confirm an address. Returns the refreshed user when the caller was signed
+   * in as that account, which is the common case from the profile page.
+   */
+  async verifyEmailCode(email: string, code: string): Promise<User | null> {
+    const result = await request<{ user?: User; verified?: boolean }>(
+      'POST',
+      '/auth/otp/verify',
+      { email, purpose: 'verify-email', code },
+    )
+    return result.user ?? null
+  },
+
+  /** Consume a reset code and set the new password in the same request. */
+  async resetPassword(input: {
+    email: string
+    code: string
+    password: string
+  }): Promise<void> {
+    await request<{ reset: boolean }>('POST', '/auth/otp/verify', {
+      ...input,
+      purpose: 'reset-password',
+    })
   },
 }
 

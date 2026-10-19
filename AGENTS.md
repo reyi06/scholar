@@ -8,7 +8,7 @@ date as you work — they are the running record of what has been done here.
 
 ## 1. What this is
 
-**Pampanga GrantConnect** — a web-based scholarship information and student
+**Scholar** — a web-based scholarship information and student
 grant management system for the province of Pampanga, Philippines.
 
 It does two things:
@@ -360,6 +360,44 @@ Do not present the current implementation as secure.
 
 Newest first. Record the command and its observed result.
 
+### 2026-10-19 - typography sweep, OTP and a full route sweep (all passing)
+
+- `npm run lint` clean; `npx tsc -b` clean; `npm run build` clean — 20
+  prerendered pages. Home now emits its own title (`Scholar - Scholarships in
+  Pampanga`) instead of inheriting the shell title.
+- **Route sweep, 27 routes, zero console errors and zero text anomalies**
+  (`undefined`, `NaN`, `[object Object]`, replacement characters):
+  - public: home, directory, listing detail, about, faqs, login, register,
+    forgot-password, 404
+  - student, signed in: dashboard, profile, saved, applications, documents,
+    semester registration, grants, notifications
+  - administrator, signed in: dashboard, scholarships, students, applications,
+    registrations, grants, documents, announcements, reports, settings
+- **OTP verified over real HTTP**, so the security properties are demonstrated
+  rather than asserted:
+  - a new registration reports `emailVerified: false`
+  - the console transport printed the code, which was then accepted (200)
+  - a code cannot be replayed after use (400)
+  - five wrong guesses exhaust the challenge — the **correct** code is then
+    refused
+  - a `verify-email` code is refused when presented for `reset-password`
+  - the reset set a new password; the old password then returns 401 and the
+    new one 200, and existing sessions were deleted
+  - an unknown address returns a byte-identical reply to a known one
+- **The `(?)` affordance verified in the browser**: `role="tooltip"`, hidden at
+  rest, revealed on hover and focus, and readable with a real border and
+  surface in both themes.
+- **Two environment traps, neither a defect**, recorded so they are not
+  re-diagnosed as bugs:
+  1. After a dev-server restart the first page load took **over 12 s** — Vite
+     transforms the whole graph unbundled. A probe at 5-9 s therefore sees an
+     empty `#root` and reports a false failure.
+  2. With **22 browser tabs** open, pages stopped rendering entirely. Closing
+     them restored normal behaviour.
+  Also: `Get-NetTCPConnection -LocalPort 8787` before concluding a route is
+  missing, and `npm run dev` resurfaces stale module graphs after bulk file
+  rewrites — a restart fixes `does not provide an export named …`.
+
 ### 2026-10-19 - Google sign-in and the profile-completion gate (verified)
 
 - `npm run lint` clean; `npx tsc -b` clean; `npm run build` clean — 20 pages.
@@ -464,7 +502,7 @@ Newest first. Record the command and its observed result.
   instead of bouncing to the login screen.
 - **Verified against a running API** as both roles: 7 student pages and 9
   administrator pages all rendered with real data - application references
-  (PGC-APP-2026-0006, 0003, 0002, 0005), grants (PGC-GRT-2026-0001), 10
+  (SCH-APP-2026-0006, 0003, 0002, 0005), grants (SCH-GRT-2026-0001), 10
   scholarship rows, 4 students, 25 report rows. Console empty of errors.
 - **Server gaps filled** for the client: educationLevel, deadlineWithinDays,
   featured and sort on the scholarship query; create/update/delete for listings;
@@ -701,6 +739,51 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-19 - OTP verification, sign-up prerequisites, typography, rename
+
+- **Renamed to Scholar.** User-facing copy, the manifest, the prerendered
+  titles, the documentation and the reference prefix (`PGC-` → `SCH-`) all
+  follow the new name. Internal `pgc-theme` / `pgc:` storage keys and the
+  `pgc_session` cookie were deliberately left alone: they are not user-visible,
+  and changing them would invalidate sessions and stored preferences for no
+  benefit.
+- **`server/otp.ts`** — one-time codes on the same primitives as passwords
+  (scrypt, constant-time compare, `node:crypto`). A six-digit code is
+  low-entropy, so the hash is not what makes it safe: a 10-minute expiry, a
+  five-attempt cap, a 60-second resend cooldown, an hourly ceiling per account,
+  single use and a per-purpose scope are. A code issued to confirm an address
+  cannot be replayed to reset a password.
+- **`server/mailer.ts`** — a transport seam with a console implementation. It
+  prints the message, including the code, to the server log, which is exactly
+  what a demonstration needs. `MAIL_TRANSPORT` swaps it; an unknown value fails
+  loudly rather than pretending a message was sent. The API reports
+  `delivery: 'log' | 'email' | 'none'` so the interface can say where the
+  message actually went.
+- **Endpoints:** `POST /api/auth/otp/request`, `POST /api/auth/otp/verify`.
+  Requests answer identically whether or not the address belongs to an account,
+  so the endpoint cannot enumerate students.
+- **`EmailVerificationSection`** on the profile, and **`/forgot-password`**.
+  Verification is a signal, not a gate — a deployment without mail configured
+  must still be usable.
+- **Sign-up now collects the student details as prerequisites**, in a two-step
+  form, because eligibility is decided on them: a municipal scholarship needs a
+  barangay, an age-limited one needs a birth date. `StudentDetailsFields` is
+  shared by registration and the Google profile step so the two cannot drift.
+  Server-side validation lives in one `readStudentDetails` function used by
+  both routes.
+- **`HelpHint`** replaces permanent explanatory text with a `(?)` that reveals
+  it on hover, focus or tap. `Field`, `Section` and `PageHeader` all fold their
+  `hint`/`description` into it, so every page inherited the change at once.
+  Errors stay inline and are still announced with `role="alert"`.
+- **Typography convention** applied across the app: Title Case for titles,
+  headings, navigation, buttons, form labels, options and statuses; sentence
+  case for descriptions, hints, placeholders, validation messages and loading
+  states. Loading text was corrected back to sentence case after an initial
+  sweep over-applied Title Case to it.
+- **Home page was missing from the prerender list** even though the count
+  included it, so `dist/index.html` shipped the shell title. It now has its own
+  entry.
 
 ### 2026-10-19 - Google sign-in, with a profile-completion step
 
@@ -990,7 +1073,7 @@ chronological lists for announcements and notifications.
   `AGENTS.md` (business-rule rows 1 and 10, plus an explicit note not to re-add
   labelling).
 
-### 2026-10-17 — Pampanga GrantConnect implemented
+### 2026-10-17 — Scholar implemented
 
 - Added `react-router@8` (the only new runtime dependency).
 - **Types** (`src/types/index.ts`): `User`, `StudentProfile`, `StudentRecord`,
@@ -1029,10 +1112,10 @@ chronological lists for announcements and notifications.
 - Eight `set-state-in-effect` warnings from form seeding were removed by adding
   an `onSuccess` callback to `useAsync` — no lint suppressions were used.
 - **Reference numbers could collide:** the demo sequence counters reset on page
-  load, so a new grant reused `PGC-GRT-2026-0001`. Added
+  load, so a new grant reused `SCH-GRT-2026-0001`. Added
   `nextReference(kind, existingRefs)` and routed all four creation sites
   through it. Verified: the next grant correctly took the free slot
-  `PGC-GRT-2026-0002` with zero duplicates.
+  `SCH-GRT-2026-0002` with zero duplicates.
 - Added `--color-brand-950` (referenced but undefined) and replaced
   `border-3` with `border-[3px]` (not a real scale value), both of which
   silently produced no CSS.

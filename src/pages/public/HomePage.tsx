@@ -52,7 +52,7 @@ const ADVISORY_LIMIT = 5
  * those, and a home page that duplicates them is a home page nobody reads twice.
  */
 export function HomePage() {
-  useDocumentTitle('Find scholarships in Pampanga')
+  useDocumentTitle('Find Scholarships in Pampanga')
   const navigate = useNavigate()
   const { user, isStudent } = useAuth()
 
@@ -80,9 +80,7 @@ export function HomePage() {
       {/* --------------------------------- Search --------------------------------- */}
       <section className="grid items-center gap-12 pt-16 pb-16 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:pt-24 lg:pb-20">
         <div className="mx-auto max-w-xl text-center lg:mx-0 lg:text-left">
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl dark:text-slate-100">
-            Find a scholarship that fits
-          </h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl dark:text-slate-100">Find a Scholarship That Fits</h1>
           <p className="mx-auto mt-5 max-w-xl text-base text-slate-600 lg:mx-0 dark:text-slate-300">
             Listings from provincial, municipal, national, educational and private providers across
             Pampanga, with your applications tracked in one place.
@@ -92,7 +90,7 @@ export function HomePage() {
             <div className="flex-1">
               <SearchInput
                 id="home-search"
-                label="Search scholarships"
+                label="Search Scholarships"
                 hideLabel
                 placeholder="Search by name, provider or keyword"
                 value={query}
@@ -129,9 +127,7 @@ export function HomePage() {
 
       {/* --------------------------------- Process -------------------------------- */}
       <section className="border-t border-slate-200 py-16 dark:border-ink-800">
-        <h2 className="text-center text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-          From searching to a confirmed grant
-        </h2>
+        <h2 className="text-center text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">From Searching to a Confirmed Grant</h2>
         <p className="mx-auto mt-2 max-w-md text-center text-sm text-slate-500 dark:text-slate-400">
           Three steps, and you can see exactly where you are at each one.
         </p>
@@ -163,9 +159,7 @@ export function HomePage() {
       <section className="border-t border-slate-200 py-16 dark:border-ink-800">
         <div className="mx-auto max-w-3xl">
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-              Announcements and advisories
-            </h2>
+            <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">Announcements and Advisories</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">
               Notices for applicants and current grantees.
             </p>
@@ -223,15 +217,15 @@ export function HomePage() {
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             {user ? (
               <LinkButton to={isStudent ? '/student/dashboard' : '/admin/dashboard'} size="lg">
-                Open my dashboard
+                Open My Dashboard
               </LinkButton>
             ) : (
               <>
                 <LinkButton to="/register" size="lg">
-                  Create account
+                  Create Account
                 </LinkButton>
                 <LinkButton to="/login" variant="outline" size="lg">
-                  Sign in
+                  Sign In
                 </LinkButton>
               </>
             )}

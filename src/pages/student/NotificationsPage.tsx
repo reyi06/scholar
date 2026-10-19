@@ -37,9 +37,9 @@ export function NotificationsPage() {
   if (!user) {
     return (
       <EmptyState
-        title="You are not signed in"
+        title="You Are Not Signed In"
         description="Sign in to view your notifications."
-        action={<LinkButton to="/login">Sign in</LinkButton>}
+        action={<LinkButton to="/login">Sign In</LinkButton>}
       />
     )
   }
@@ -89,9 +89,9 @@ export function NotificationsPage() {
         <ErrorState message={state.error} onRetry={state.reload} />
       ) : notifications.length === 0 ? (
         <EmptyState
-          title="No notifications yet"
+          title="No Notifications Yet"
           description="Updates about your applications, registrations and grants appear here."
-          action={<LinkButton to="/student/dashboard">Back to dashboard</LinkButton>}
+          action={<LinkButton to="/student/dashboard">Back to Dashboard</LinkButton>}
         />
       ) : (
         <ul className="divide-y divide-slate-200 dark:divide-ink-800">

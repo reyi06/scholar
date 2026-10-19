@@ -1,4 +1,4 @@
-# Pampanga GrantConnect
+# Scholar
 
 A web-based scholarship information and student grant management system for the
 province of Pampanga, Philippines.

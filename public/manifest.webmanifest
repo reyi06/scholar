@@ -1,6 +1,6 @@
 {
-  "name": "Pampanga GrantConnect",
-  "short_name": "GrantConnect",
+  "name": "Scholar",
+  "short_name": "Scholar",
   "description": "Scholarship information and student grant management for the province of Pampanga.",
   "start_url": "/",
   "scope": "/",

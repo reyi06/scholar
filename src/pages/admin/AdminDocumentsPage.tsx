@@ -95,7 +95,7 @@ export function AdminDocumentsPage() {
             label="Status"
             hideLabel
             value={statusFilter}
-            options={[{ value: 'all', label: 'All statuses' }, ...DOCUMENT_STATUSES]}
+            options={[{ value: 'all', label: 'All Statuses' }, ...DOCUMENT_STATUSES]}
             onChange={(event) => setStatusFilter(event.target.value as DocumentStatus | 'all')}
           />
         }
@@ -105,7 +105,7 @@ export function AdminDocumentsPage() {
 
         {!state.loading && !state.error && visible.length === 0 ? (
           <EmptyState
-            title="Nothing to review"
+            title="Nothing to Review"
             description={
               statusFilter === 'submitted'
                 ? 'No documents are waiting for review.'
@@ -193,7 +193,7 @@ export function AdminDocumentsPage() {
 
             <Field
               htmlFor="review-note"
-              label="Note to the student"
+              label="Note to the Student"
               hint="Required when returning a document, so they know what to fix."
             >
               <Textarea

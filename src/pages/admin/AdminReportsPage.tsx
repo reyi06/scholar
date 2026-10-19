@@ -135,7 +135,7 @@ export function AdminReportsPage() {
   const byMonth = reportData?.byMonth ?? []
 
   const monthOptions: SelectOption[] = [
-    { value: 'all', label: 'All months' },
+    { value: 'all', label: 'All Months' },
     ...byMonth.map((row) => ({ value: row.label, label: formatMonthLabel(row.label) })),
   ]
 
@@ -233,7 +233,7 @@ export function AdminReportsPage() {
               }
             />
             <StatCard
-              label="Semester registrations"
+              label="Semester Registrations"
               value={overview ? formatNumber(overview.totalRegistrations) : '—'}
               hint={
                 overview
@@ -242,19 +242,19 @@ export function AdminReportsPage() {
               }
             />
             <StatCard
-              label="Grant records"
+              label="Grant Records"
               value={overview ? formatNumber(overview.totalGrants) : '—'}
               hint={overview ? `${formatNumber(overview.activeGrants)} active` : undefined}
             />
             <StatCard
-              label="Released in total"
+              label="Released in Total"
               value={overview ? formatCurrency(overview.totalAmountReleased) : '—'}
             />
           </section>
 
           {breakdowns.length === 0 ? (
             <EmptyState
-              title="No breakdowns to show"
+              title="No Breakdowns to Show"
               description="Breakdowns appear here once there are applications, registrations or grants to report on."
             />
           ) : (

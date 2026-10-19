@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-const SUFFIX = 'Pampanga GrantConnect'
+const SUFFIX = 'Scholar'
 
 /** Set the document title for a page, restoring nothing on unmount. */
 export function useDocumentTitle(title?: string): void {

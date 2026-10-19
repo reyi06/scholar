@@ -1,35 +1,49 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
-import { Alert, Button, Input, Select } from '../../components/ui'
+import { Alert, Button, Input } from '../../components/ui'
+import { StudentDetailsFields } from '../../components/StudentDetailsFields.tsx'
 import { useAuth } from '../../context/authContext.ts'
 import { useToast } from '../../context/toastContext.ts'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
-import { MUNICIPALITIES_ONLY } from '../../lib/constants.ts'
-import type { CompleteProfileInput } from '../../types/index.ts'
+import { validateStudentDetails, toStudentDetailPayload } from '../../lib/studentDetails.ts'
+import { hasErrors, type FormErrors } from '../../lib/validation.ts'
+import type { EducationLevel, StudentDetailsValues } from '../../types/index.ts'
 
 /**
  * The one-time step for an account created through Google.
  *
  * Google returns a name and an email address and nothing else, while every
- * page behind the student area needs a municipality, a contact number and
- * eventually a school. Asking once here is what makes the rest of the app
- * truthful: a student record always has a profile behind it.
+ * page behind the student area needs a profile — and scholarship eligibility
+ * needs these details specifically. Asking once here is what makes the rest of
+ * the app truthful: a student record always has a profile behind it.
  *
- * Reached only while `profileComplete` is false; the route guard sends the
- * student here and releases them when this succeeds.
+ * The fields are the same component registration uses, so a Google student and
+ * a password student end up with an identically shaped record.
  */
 export function WelcomePage() {
-  useDocumentTitle('Complete your profile')
+  useDocumentTitle('Complete Your Profile')
   const { user, completeProfile, logout } = useAuth()
   const toast = useToast()
   const navigate = useNavigate()
 
-  const [values, setValues] = useState<CompleteProfileInput>({
-    firstName: user?.firstName ?? '',
-    lastName: user?.lastName ?? '',
-    municipality: '',
+  const [firstName, setFirstName] = useState(user?.firstName ?? '')
+  const [lastName, setLastName] = useState(user?.lastName ?? '')
+  const [details, setDetails] = useState<StudentDetailsValues>({
     phone: '',
+    municipality: '',
+    barangay: '',
+    birthDate: '',
+    educationLevel: '',
+    school: '',
+    course: '',
+    yearLevel: '',
+    address: '',
+    gwa: '',
+    householdIncome: '',
+    guardianName: '',
+    guardianContact: '',
   })
+  const [errors, setErrors] = useState<FormErrors<StudentDetailsValues & { firstName: string; lastName: string }>>({})
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -37,19 +51,24 @@ export function WelcomePage() {
     event.preventDefault()
     setError(null)
 
-    if (!values.firstName.trim() || !values.lastName.trim()) {
-      setError('Enter your first and last name.')
-      return
-    }
-    if (!values.municipality) {
-      setError('Choose the municipality you live in.')
-      return
-    }
+    const nameErrors: typeof errors = {}
+    if (!firstName.trim()) nameErrors.firstName = 'Enter your first name.'
+    if (!lastName.trim()) nameErrors.lastName = 'Enter your last name.'
+
+    const detailErrors = validateStudentDetails(details)
+    const combined = { ...detailErrors, ...nameErrors }
+    setErrors(combined as typeof errors)
+    if (Object.keys(combined).length > 0 && hasErrors(combined)) return
 
     setSaving(true)
     try {
-      await completeProfile(values)
-      toast.success('Profile complete', 'You can add your school and course from My profile.')
+      await completeProfile({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        ...toStudentDetailPayload(details),
+        educationLevel: details.educationLevel as EducationLevel,
+      })
+      toast.success('Profile complete', 'You can change any of these later from My profile.')
       navigate('/student/dashboard', { replace: true })
     } catch (cause: unknown) {
       setError(cause instanceof Error ? cause.message : 'Something went wrong. Please try again.')
@@ -59,13 +78,11 @@ export function WelcomePage() {
   }
 
   return (
-    <div className="mx-auto max-w-sm px-5 py-16 sm:py-24">
-      <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-        Complete your profile
-      </h1>
+    <div className="mx-auto max-w-xl px-5 py-16 sm:py-20">
+      <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Complete Your Profile</h1>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-        Google gave us your name and email address. These extra details are what the scholarship
-        office uses to match you to listings.
+        Google gave us your name and email address. These details are what the scholarship office
+        uses to match you to listings, and they are needed before you can apply.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-5" noValidate>
@@ -73,53 +90,42 @@ export function WelcomePage() {
 
         <Input
           id="welcome-email"
-          label="Email address"
+          label="Email Address"
           value={user?.email ?? ''}
           readOnly
           disabled
           hint="From your Google account. Contact the office to change it."
         />
 
-        <Input
-          id="welcome-first-name"
-          label="First name"
-          required
-          autoComplete="given-name"
-          value={values.firstName}
-          onChange={(event) => setValues({ ...values, firstName: event.target.value })}
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Input
+            id="welcome-first-name"
+            label="First Name"
+            required
+            autoComplete="given-name"
+            value={firstName}
+            error={errors.firstName}
+            onChange={(event) => setFirstName(event.target.value)}
+          />
+          <Input
+            id="welcome-last-name"
+            label="Last Name"
+            required
+            autoComplete="family-name"
+            value={lastName}
+            error={errors.lastName}
+            onChange={(event) => setLastName(event.target.value)}
+          />
+        </div>
+
+        <StudentDetailsFields
+          idPrefix="welcome"
+          values={details}
+          errors={errors}
+          onChange={(key, value) => setDetails((current) => ({ ...current, [key]: value }))}
         />
 
-        <Input
-          id="welcome-last-name"
-          label="Last name"
-          required
-          autoComplete="family-name"
-          value={values.lastName}
-          onChange={(event) => setValues({ ...values, lastName: event.target.value })}
-        />
-
-        <Select
-          id="welcome-municipality"
-          label="Municipality or city"
-          required
-          placeholder="Select where you live"
-          options={MUNICIPALITIES_ONLY.map((name) => ({ value: name, label: name }))}
-          value={values.municipality}
-          onChange={(event) => setValues({ ...values, municipality: event.target.value })}
-        />
-
-        <Input
-          id="welcome-phone"
-          label="Contact number"
-          type="tel"
-          autoComplete="tel"
-          placeholder="09XX XXX XXXX"
-          hint="Optional. Used only for scholarship correspondence."
-          value={values.phone}
-          onChange={(event) => setValues({ ...values, phone: event.target.value })}
-        />
-
-        <Button type="submit" disabled={saving} className="w-full">
+        <Button type="submit" loading={saving} fullWidth>
           {saving ? 'Saving…' : 'Finish setting up'}
         </Button>
 

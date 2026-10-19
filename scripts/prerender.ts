@@ -73,7 +73,7 @@ function renderPage(meta: PageMeta): string {
     meta.noindex ? '<meta name="robots" content="noindex, follow" />' : '',
     `<link rel="canonical" href="${url}" />`,
     `<meta property="og:type" content="website" />`,
-    `<meta property="og:site_name" content="Pampanga GrantConnect" />`,
+    `<meta property="og:site_name" content="Scholar" />`,
     `<meta property="og:title" content="${title}" />`,
     `<meta property="og:description" content="${description}" />`,
     `<meta property="og:url" content="${url}" />`,
@@ -353,7 +353,7 @@ let written = 0
 for (const listing of listings) {
   const summary = listing.description.replace(/\s+/g, ' ').trim()
   writePage({
-    title: `${listing.name} — ${listing.provider} | Pampanga GrantConnect`,
+    title: `${listing.name} — ${listing.provider} | Scholar`,
     description: summary.length > 155 ? `${summary.slice(0, 152).trimEnd()}...` : summary,
     path: `/scholarships/${listing.id}`,
   })
@@ -361,30 +361,36 @@ for (const listing of listings) {
 }
 
 writePage({
-  title: 'Scholarships in Pampanga | Pampanga GrantConnect',
+  title: 'Scholar - Scholarships in Pampanga',
+  description:
+    'Search scholarship listings across Pampanga, keep a shortlist and track your applications, semester registration and confirmed grants in one place.',
+  path: '/',
+})
+writePage({
+  title: 'Scholarships in Pampanga | Scholar',
   description:
     'Search scholarship listings from provincial, municipal, national, educational and private providers across Pampanga. Filter by municipality, education level and deadline.',
   path: '/scholarships',
 })
 writePage({
-  title: 'About Pampanga GrantConnect',
+  title: 'About Scholar',
   description:
-    'How scholarship applications, semester registration and confirmed grants work on Pampanga GrantConnect.',
+    'How scholarship applications, semester registration and confirmed grants work on Scholar.',
   path: '/about',
 })
 writePage({
-  title: 'Frequently asked questions | Pampanga GrantConnect',
+  title: 'Frequently Asked Questions | Scholar',
   description:
-    'How scholarships, applications, semester registration and confirmed grants work on Pampanga GrantConnect.',
+    'How scholarships, applications, semester registration and confirmed grants work on Scholar.',
   path: '/faqs',
 })
 writePage({
-  title: 'Create a student account | Pampanga GrantConnect',
+  title: 'Create a Student Account | Scholar',
   description: 'Save listings, submit applications and follow their progress.',
   path: '/register',
 })
 writePage({
-  title: 'Sign in | Pampanga GrantConnect',
+  title: 'Sign In | Scholar',
   description: 'Access your applications, semester registration and grants.',
   path: '/login',
   // Auth screens have nothing to offer a search result.

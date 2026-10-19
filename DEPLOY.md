@@ -1,4 +1,4 @@
-# Deploying Pampanga GrantConnect
+# Deploying Scholar
 
 **This is not one thing you upload.** There are three parts, and they run in
 three different places:

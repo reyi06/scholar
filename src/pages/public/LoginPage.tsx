@@ -50,7 +50,7 @@ export function LoginPage() {
 
   return (
     <div className="mx-auto max-w-sm px-5 py-16 sm:py-24">
-      <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Sign in</h1>
+      <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Sign In</h1>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Access your applications, semester registration and grants.
       </p>
@@ -60,7 +60,7 @@ export function LoginPage() {
 
         <Input
           id="login-email"
-          label="Email address"
+          label="Email Address"
           type="email"
           autoComplete="email"
           required
@@ -81,7 +81,7 @@ export function LoginPage() {
         />
 
         <Button type="submit" loading={loading} fullWidth>
-          Sign in
+          Sign In
         </Button>
       </form>
 
@@ -109,6 +109,15 @@ export function LoginPage() {
           className="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-300"
         >
           Create a student account
+        </Link>
+      </p>
+
+      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+        <Link
+          to="/forgot-password"
+          className="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-300"
+        >
+          Forgot your password?
         </Link>
       </p>
 

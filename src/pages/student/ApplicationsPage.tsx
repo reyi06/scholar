@@ -37,7 +37,7 @@ function matchesFilter(application: Application, filter: FilterId): boolean {
  * application's own page, where the report and timeline live.
  */
 export function ApplicationsPage() {
-  useDocumentTitle('My applications')
+  useDocumentTitle('My Applications')
   const { user } = useAuth()
   const userId = user?.id ?? ''
   const [filter, setFilter] = useState<FilterId>('all')
@@ -59,9 +59,9 @@ export function ApplicationsPage() {
   if (!user) {
     return (
       <EmptyState
-        title="You are not signed in"
+        title="You Are Not Signed In"
         description="Sign in with a student account to see your applications."
-        action={<LinkButton to="/login">Sign in</LinkButton>}
+        action={<LinkButton to="/login">Sign In</LinkButton>}
       />
     )
   }
@@ -74,7 +74,7 @@ export function ApplicationsPage() {
     { id: 'all', label: 'All', count: applications.length },
     {
       id: 'in-progress',
-      label: 'In progress',
+      label: 'In Progress',
       count: applications.filter((application) => matchesFilter(application, 'in-progress')).length,
     },
     {
@@ -92,11 +92,11 @@ export function ApplicationsPage() {
   return (
     <div className="space-y-10">
       <PageHeader
-        title="My applications"
-        description="Track the scholarships you applied for through GrantConnect."
+        title="My Applications"
+        description="Track the scholarships you applied for through Scholar."
         actions={
           <LinkButton to="/scholarships" variant="outline">
-            Browse scholarships
+            Browse Scholarships
           </LinkButton>
         }
       />
@@ -112,7 +112,7 @@ export function ApplicationsPage() {
             provider's own website do not appear in this list.
           </Alert>
 
-          <Tabs tabs={tabs} active={filter} onChange={setFilter} label="Application status" />
+          <Tabs tabs={tabs} active={filter} onChange={setFilter} label="Application Status" />
 
           {visible.length === 0 ? (
             <EmptyState
@@ -122,7 +122,7 @@ export function ApplicationsPage() {
                   ? 'You have not started an internal application yet. Browse the directory to find a scholarship you can apply for here.'
                   : 'No applications match this status. Try another tab.'
               }
-              action={<LinkButton to="/scholarships">Browse scholarships</LinkButton>}
+              action={<LinkButton to="/scholarships">Browse Scholarships</LinkButton>}
             />
           ) : (
             <ul className="divide-y divide-slate-200 dark:divide-ink-800">

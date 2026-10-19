@@ -30,17 +30,17 @@ import type { RegistrationStatus, SemesterRegistration } from '../../types/index
 const PAGE_SIZE = 10
 
 const STATUS_OPTIONS: SelectOption[] = [
-  { value: 'all', label: 'All statuses' },
+  { value: 'all', label: 'All Statuses' },
   ...REGISTRATION_STATUSES.map((option) => ({ value: option.value, label: option.label })),
 ]
 
 const ACADEMIC_YEAR_OPTIONS: SelectOption[] = [
-  { value: 'all', label: 'All academic years' },
+  { value: 'all', label: 'All Academic Years' },
   ...ACADEMIC_YEARS.map((year) => ({ value: year, label: `AY ${year}` })),
 ]
 
 const SEMESTER_OPTIONS: SelectOption[] = [
-  { value: 'all', label: 'All semesters' },
+  { value: 'all', label: 'All Semesters' },
   ...SEMESTERS.map((semester) => ({ value: semester, label: semester })),
 ]
 
@@ -50,7 +50,7 @@ const SEMESTER_OPTIONS: SelectOption[] = [
  * rejection requires a short reason.
  */
 export function AdminRegistrationsPage() {
-  useDocumentTitle('Semester registrations')
+  useDocumentTitle('Semester Registrations')
   const toast = useToast()
   const { user } = useAuth()
   const actor = user ? fullName(user.firstName, user.lastName) : 'Administrator'
@@ -200,7 +200,7 @@ export function AdminRegistrationsPage() {
   return (
     <div className="space-y-10">
       <PageHeader
-        title="Semester registrations"
+        title="Semester Registrations"
         description="Verify the semester re-registration of students who already hold a grant."
       />
 
@@ -214,7 +214,7 @@ export function AdminRegistrationsPage() {
           <div className="min-w-0 flex-1">
             <SearchInput
               id="registrations-search"
-              label="Search registrations"
+              label="Search Registrations"
               hideLabel
               placeholder="Search reference no., student or school"
               value={query}
@@ -239,7 +239,7 @@ export function AdminRegistrationsPage() {
           <div className="sm:w-44">
             <Select
               id="registrations-year"
-              aria-label="Academic year"
+              aria-label="Academic Year"
               options={ACADEMIC_YEAR_OPTIONS}
               value={academicYear}
               onChange={(event) => {
@@ -275,11 +275,11 @@ export function AdminRegistrationsPage() {
           <>
             {list.data.items.length === 0 ? (
               <EmptyState
-                title="No registrations match these filters"
+                title="No Registrations Match These Filters"
                 description="Try clearing the search box or choosing a different status, academic year or semester."
                 action={
                   <Button variant="outline" size="sm" onClick={clearFilters}>
-                    Reset filters
+                    Reset Filters
                   </Button>
                 }
               />

@@ -7,6 +7,18 @@ import { HttpError } from './httpError.ts'
 import { deleteUpload, readMultipart, readUpload, saveUpload, storedNameFor } from './uploads.ts'
 import { googleIsAuthoritative, verifyGoogleIdToken } from './googleAuth.ts'
 import {
+  OTP_POLICY,
+  checkAddressAllowance,
+  consumeCode,
+  issueCode,
+  pruneExpiredCodes,
+} from './otp.ts'
+import {
+  buildOtpMessage,
+  mailTransport,
+  settleDeliveryDelay,
+} from './mailer.ts'
+import {
   stringifyArray,
   stringifyObject,
   toAnnouncement,
@@ -26,7 +38,7 @@ import {
   suggestDocumentTitle,
   validateDocumentFile,
 } from '../src/lib/documents.ts'
-import type { DocumentClassification, Role, User } from '../src/types/index.ts'
+import type { DocumentClassification, OtpPurpose, Role, User } from '../src/types/index.ts'
 
 /**
  * Local API server.
@@ -312,6 +324,9 @@ route('POST', '/api/auth/google', async ({ req, res }) => {
       firstName: identity.givenName || 'Student',
       lastName: identity.familyName || '',
       profileComplete: false,
+      // Google is authoritative for the address it just asserted, so there is
+      // nothing left to confirm.
+      emailVerified: true,
     },
   })
 
@@ -335,16 +350,11 @@ route('POST', '/api/auth/google/complete', async ({ req, res, user }) => {
 
   const firstName = String(body.firstName ?? '').trim()
   const lastName = String(body.lastName ?? '').trim()
-  const municipality = String(body.municipality ?? '').trim()
-  const phone = String(body.phone ?? '').trim()
-
   if (!firstName || !lastName) throw new HttpError(400, 'Enter your first and last name.')
-  if (!MUNICIPALITIES_ONLY.includes(municipality)) {
-    throw new HttpError(400, 'Choose the municipality you live in.')
-  }
-  if (phone && !/^[\d\s+()-]{7,20}$/.test(phone)) {
-    throw new HttpError(400, 'Enter a valid contact number.')
-  }
+
+  // The same prerequisites as registration, so a Google account ends up with
+  // the same shape of record as a password account.
+  const details = readStudentDetails(body)
 
   const updated = await prisma.user.update({
     where: { id: signedIn.id },
@@ -353,8 +363,8 @@ route('POST', '/api/auth/google/complete', async ({ req, res, user }) => {
 
   await prisma.studentProfile.upsert({
     where: { userId: signedIn.id },
-    update: { municipality, phone },
-    create: { userId: signedIn.id, municipality, phone },
+    update: details,
+    create: { userId: signedIn.id, ...details },
   })
 
   await prisma.notification.create({
@@ -380,6 +390,90 @@ route('POST', '/api/auth/logout', async ({ req, res }) => {
   send(res, 200, { ok: true })
 })
 
+/** Education levels the student profile accepts, mirroring src/lib/constants.ts. */
+const EDUCATION_LEVEL_VALUES = ['senior-high', 'college', 'vocational', 'graduate']
+
+interface StudentDetails {
+  phone: string
+  municipality: string
+  barangay: string
+  birthDate: string
+  educationLevel: string
+  school: string
+  course: string
+  yearLevel: string
+  address: string
+  gwa: number | null
+  householdIncome: number | null
+  guardianName: string
+  guardianContact: string
+}
+
+/**
+ * Read and validate the student details that registration and Google sign-up
+ * both collect.
+ *
+ * One definition, because the two routes must not accept different things —
+ * otherwise two students would have differently-shaped records depending on
+ * how they signed in. Everything required here is required because eligibility
+ * is decided on it; the optional fields are only optional because a first-year
+ * student has no GWA yet and not everyone knows the household income.
+ */
+function readStudentDetails(body: Record<string, unknown>): StudentDetails {
+  const phone = String(body.phone ?? '').trim()
+  const municipality = String(body.municipality ?? '').trim()
+  const barangay = String(body.barangay ?? '').trim()
+  const birthDate = String(body.birthDate ?? '').trim()
+  const educationLevel = String(body.educationLevel ?? '').trim()
+  const school = String(body.school ?? '').trim()
+  const course = String(body.course ?? '').trim()
+  const yearLevel = String(body.yearLevel ?? '').trim()
+
+  if (!phone || !/^[\d\s+()-]{7,20}$/.test(phone)) {
+    throw new HttpError(400, 'Enter a valid contact number.')
+  }
+  if (!MUNICIPALITIES_ONLY.includes(municipality)) {
+    throw new HttpError(400, 'Choose the municipality you live in.')
+  }
+  if (!barangay) throw new HttpError(400, 'Enter your barangay.')
+  if (!EDUCATION_LEVEL_VALUES.includes(educationLevel)) {
+    throw new HttpError(400, 'Choose your education level.')
+  }
+  if (!school) throw new HttpError(400, 'Enter the school you attend.')
+  if (!course) throw new HttpError(400, 'Enter your course or strand.')
+  if (!yearLevel) throw new HttpError(400, 'Choose your year level.')
+
+  const born = new Date(birthDate)
+  if (!birthDate || Number.isNaN(born.getTime())) {
+    throw new HttpError(400, 'Enter your birth date.')
+  }
+  if (born.getTime() > Date.now()) {
+    throw new HttpError(400, 'Your birth date cannot be in the future.')
+  }
+
+  const optionalNumber = (value: unknown, max: number): number | null => {
+    if (value === undefined || value === null || value === '') return null
+    const parsed = Number(value)
+    return Number.isFinite(parsed) && parsed >= 0 && parsed <= max ? parsed : null
+  }
+
+  return {
+    phone,
+    municipality,
+    barangay,
+    birthDate,
+    educationLevel,
+    school,
+    course,
+    yearLevel,
+    address: String(body.address ?? '').trim(),
+    gwa: optionalNumber(body.gwa, 5),
+    householdIncome: optionalNumber(body.householdIncome, 100_000_000),
+    guardianName: String(body.guardianName ?? '').trim(),
+    guardianContact: String(body.guardianContact ?? '').trim(),
+  }
+}
+
 route('POST', '/api/auth/register', async ({ req, res }) => {
   const body = await readJson(req)
   const email = String(body.email ?? '').trim()
@@ -391,12 +485,9 @@ route('POST', '/api/auth/register', async ({ req, res }) => {
     throw new HttpError(400, 'Please complete every required field.')
   }
 
-  // The form offers a list; the server must not accept anything outside it, or
-  // a hand-made request could store a municipality that does not exist.
-  const municipality = String(body.municipality ?? '').trim()
-  if (!MUNICIPALITIES_ONLY.includes(municipality)) {
-    throw new HttpError(400, 'Choose the municipality you live in.')
-  }
+  // The student details are a prerequisite, not a later profile edit, so they
+  // are validated here rather than trusted from the form.
+  const details = readStudentDetails(body)
 
   const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } })
   if (existing) throw new HttpError(409, 'An account with that email address already exists.')
@@ -410,22 +501,21 @@ route('POST', '/api/auth/register', async ({ req, res }) => {
       role: 'student',
       firstName,
       lastName,
+      // A self-registered account starts unconfirmed. The Google route sets
+      // this true, because Google is the authority for the addresses it issues.
+      emailVerified: false,
     },
   })
 
   await prisma.studentProfile.create({
-    data: {
-      userId: id,
-      phone: String(body.phone ?? '').trim(),
-      municipality,
-    },
+    data: { userId: id, ...details },
   })
 
   await prisma.notification.create({
     data: {
       id: createId('ntf'),
       userId: id,
-      title: 'Welcome to Pampanga GrantConnect',
+      title: 'Welcome to Scholar',
       body: 'Complete your student profile to improve your scholarship matches.',
       createdAt: new Date(),
       link: '/student/profile',
@@ -438,6 +528,142 @@ route('POST', '/api/auth/register', async ({ req, res }) => {
 
 /* Test credentials live in the client (src/lib/testAccounts.ts) rather than
    behind an endpoint, so the server never serves passwords. */
+
+/* ------------------------------------------------------------------ */
+/* One-time codes                                                      */
+/* ------------------------------------------------------------------ */
+
+/** The address a request came from, for throttling and the audit trail. */
+function requestOrigin(req: IncomingMessage): string | null {
+  const forwarded = req.headers['x-forwarded-for']
+  if (typeof forwarded === 'string' && forwarded) return forwarded.split(',')[0].trim()
+  return req.socket.remoteAddress ?? null
+}
+
+/**
+ * Request a one-time code.
+ *
+ * The response is deliberately identical whether or not the address belongs to
+ * an account: a different answer here would turn this endpoint into a way to
+ * discover which students are registered. That is also why the delivery
+ * message is worded the same either way.
+ */
+route('POST', '/api/auth/otp/request', async ({ req, res }) => {
+  const body = await readJson(req)
+  const email = String(body.email ?? '').trim().toLowerCase()
+  const purpose = String(body.purpose ?? 'verify-email') as OtpPurpose
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    throw new HttpError(400, 'Enter a valid email address.')
+  }
+  if (purpose !== 'verify-email' && purpose !== 'reset-password') {
+    throw new HttpError(400, 'That is not a valid verification purpose.')
+  }
+
+  const origin = requestOrigin(req)
+  if (origin && !checkAddressAllowance(origin)) {
+    throw new HttpError(429, 'Too many codes requested. Try again later.')
+  }
+
+  const account = await prisma.user.findUnique({ where: { email } })
+  const transport = mailTransport()
+
+  // A code is only ever issued to a real account, but the caller cannot tell:
+  // the same work is done and the same reply returned when the address is
+  // unknown, so timing and wording both stay flat.
+  if (account && !(purpose === 'verify-email' && account.emailVerified)) {
+    try {
+      const issued = await issueCode({ userId: account.id, purpose, requestedFrom: origin })
+      const settings = await prisma.platformSettings.findUnique({ where: { id: 'singleton' } })
+
+      await transport.send(
+        buildOtpMessage({
+          to: account.email,
+          code: issued.code,
+          purpose,
+          expiresInSeconds: issued.expiresInSeconds,
+          contactEmail: settings?.contactEmail ?? 'the scholarship office',
+        }),
+      )
+    } catch (cause: unknown) {
+      // A throttle is the caller's business and is reported; a delivery failure
+      // is not, so it is logged and swallowed to keep the reply uniform.
+      if (cause instanceof HttpError) throw cause
+      console.error('[otp] delivery failed:', cause instanceof Error ? cause.message : cause)
+    }
+  }
+
+  await settleDeliveryDelay()
+  await pruneExpiredCodes()
+
+  send(res, 200, {
+    submitted: true,
+    ...OTP_POLICY,
+    // Says where the message actually went, so the interface never claims an
+    // email was sent when the console transport handled it.
+    delivery: transport.delivery,
+  })
+})
+
+/**
+ * Check a code.
+ *
+ * `verify-email` marks the address confirmed. `reset-password` also sets a new
+ * password in the same request, so a verified code is never left sitting
+ * around as a bearer token for a later call.
+ */
+route('POST', '/api/auth/otp/verify', async ({ req, res, user }) => {
+  const body = await readJson(req)
+  const email = String(body.email ?? '').trim().toLowerCase()
+  const code = String(body.code ?? '').trim()
+  const purpose = String(body.purpose ?? 'verify-email') as OtpPurpose
+
+  if (!email || !code) throw new HttpError(400, 'Enter the code we sent you.')
+  if (!/^\d{6}$/.test(code)) throw new HttpError(400, 'The code is six digits.')
+
+  const account = await prisma.user.findUnique({ where: { email } })
+  // One message for an unknown address and a wrong code alike.
+  if (!account) throw new HttpError(400, 'That code is not valid or has expired.')
+
+  const accepted = await consumeCode({ userId: account.id, purpose, code })
+  if (!accepted) throw new HttpError(400, 'That code is not valid or has expired.')
+
+  if (purpose === 'verify-email') {
+    const updated = await prisma.user.update({
+      where: { id: account.id },
+      data: { emailVerified: true },
+    })
+    if (user?.id === account.id) {
+      send(res, 200, { user: toUser(updated) })
+      return
+    }
+    send(res, 200, { verified: true })
+    return
+  }
+
+  // reset-password
+  const password = String(body.password ?? '')
+  if (password.length < 8) {
+    throw new HttpError(400, 'Choose a password of at least 8 characters.')
+  }
+
+  // An account created through Google has no password to reset; setting one is
+  // a different action, so it is refused rather than silently allowed.
+  if (!account.passwordHash) {
+    throw new HttpError(409, 'This account signs in with Google, so it has no password to reset.')
+  }
+
+  await prisma.user.update({
+    where: { id: account.id },
+    data: { passwordHash: hashPassword(password) },
+  })
+
+  // A password change invalidates every existing session, including any that
+  // belonged to whoever prompted the reset.
+  await prisma.session.deleteMany({ where: { userId: account.id } })
+
+  send(res, 200, { reset: true })
+})
 
 /* ================================================================== */
 /* Scholarships                                                        */

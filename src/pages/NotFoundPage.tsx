@@ -8,7 +8,7 @@ import { useAuth } from '../context/authContext.ts'
  * minimal chrome and always offers a way back into the application.
  */
 export function NotFoundPage() {
-  useDocumentTitle('Page not found')
+  useDocumentTitle('Page Not Found')
   const { user } = useAuth()
 
   const dashboardPath = user?.role === 'admin' ? '/admin/dashboard' : '/student/dashboard'
@@ -19,22 +19,20 @@ export function NotFoundPage() {
         <p className="text-xs font-medium tracking-wide text-slate-500 uppercase dark:text-slate-400">
           Error 404
         </p>
-        <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-          Page not found
-        </h1>
+        <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Page Not Found</h1>
         <p className="mx-auto max-w-sm text-sm text-slate-500 dark:text-slate-400">
           The page you were looking for does not exist, or the link may be out of date.
         </p>
       </div>
 
       <div className="flex flex-wrap justify-center gap-3">
-        <LinkButton to="/">Back to home</LinkButton>
+        <LinkButton to="/">Back to Home</LinkButton>
         <LinkButton to="/scholarships" variant="outline">
           Scholarships
         </LinkButton>
         {user ? (
           <LinkButton to={dashboardPath} variant="ghost">
-            My dashboard
+            My Dashboard
           </LinkButton>
         ) : null}
       </div>

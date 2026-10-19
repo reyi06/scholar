@@ -37,6 +37,13 @@ model User {
   /// True until the student has supplied the profile details Google does not
   /// provide. Route guards send an incomplete account to /welcome.
   profileComplete Boolean @default(true)
+  /// Whether the address has been confirmed by a one-time code.
+  ///
+  /// Defaults to true so accounts that predate this feature are not
+  /// retroactively treated as unverified; registration sets it false
+  /// explicitly. Google accounts arrive verified, since Google is the
+  /// authority for the addresses it issues.
+  emailVerified   Boolean @default(true)
   role         String // student | admin
   firstName    String
   lastName     String
@@ -50,6 +57,7 @@ model User {
   notifications Notification[]
   saved         SavedScholarship[]
   documents     StudentDocument[]
+  verifications EmailVerification[]
 
   @@index([role])
 }
@@ -268,6 +276,41 @@ model StudentDocument {
   @@index([applicationId])
   @@index([status])
   @@index([classification])
+}
+
+/* ------------------------------------------------------------------ */
+/* One-time codes                                                      */
+/* ------------------------------------------------------------------ */
+
+/// A one-time code issued to an account, for confirming an address or
+/// resetting a password.
+///
+/// Only a hash of the code is stored. A six-digit code is low-entropy, so the
+/// hash alone is not what makes this safe — the short expiry, the attempt cap
+/// and the request throttling do. The hash stops a database read from handing
+/// someone a live code.
+model EmailVerification {
+  id String @id
+
+  userId String
+  /// verify-email | reset-password
+  purpose String
+  /// scrypt hash of the code. The code itself is never stored or logged in
+  /// production; see server/mailer.ts.
+  codeHash String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  /// Wrong guesses so far. The challenge is dead once it hits the cap.
+  attempts Int @default(0)
+  /// Set when the code is accepted, so a code cannot be used twice.
+  consumedAt DateTime?
+  /// Address the request came from, kept for throttling and for an audit trail.
+  requestedFrom String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose])
+  @@index([expiresAt])
 }
 
 /* ------------------------------------------------------------------ */

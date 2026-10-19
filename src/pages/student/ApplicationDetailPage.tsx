@@ -35,7 +35,7 @@ const NOT_FOUND_DESCRIPTION =
  * history. Editing a draft and withdrawing both stay available but quiet.
  */
 export function ApplicationDetailPage() {
-  useDocumentTitle('Application details')
+  useDocumentTitle('Application Details')
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
   const toast = useToast()
@@ -74,9 +74,9 @@ export function ApplicationDetailPage() {
   if (!user) {
     return (
       <EmptyState
-        title="You are not signed in"
+        title="You Are Not Signed In"
         description="Sign in with a student account to view this application."
-        action={<LinkButton to="/login">Sign in</LinkButton>}
+        action={<LinkButton to="/login">Sign In</LinkButton>}
       />
     )
   }
@@ -121,7 +121,7 @@ export function ApplicationDetailPage() {
             : 'Review the details, documents and status history for this application.'
         }
         breadcrumbs={[
-          { label: 'My applications', to: '/student/applications' },
+          { label: 'My Applications', to: '/student/applications' },
           { label: application ? application.referenceNo : 'Details' },
         ]}
         actions={
@@ -137,11 +137,11 @@ export function ApplicationDetailPage() {
         <ErrorState message={state.error} onRetry={state.reload} />
       ) : !application ? (
         <EmptyState
-          title="Application not found"
+          title="Application Not Found"
           description={NOT_FOUND_DESCRIPTION}
           action={
             <LinkButton to="/student/applications" variant="outline">
-              Back to my applications
+              Back to My Applications
             </LinkButton>
           }
         />
@@ -150,10 +150,10 @@ export function ApplicationDetailPage() {
           <Section divider={false} title="Summary">
             <DefinitionList
               items={[
-                { label: 'Reference number', value: application.referenceNo },
+                { label: 'Reference Number', value: application.referenceNo },
                 { label: 'Submitted', value: formatDate(application.submittedAt) },
-                { label: 'Last updated', value: formatDate(application.updatedAt) },
-                { label: 'Application mode', value: 'Internal — tracked in this system' },
+                { label: 'Last Updated', value: formatDate(application.updatedAt) },
+                { label: 'Application Mode', value: 'Internal — tracked in this system' },
                 { label: 'Scholarship', value: scholarship?.name ?? 'Listing unavailable', wide: true },
                 { label: 'Provider', value: scholarship?.provider ?? '—', wide: true },
               ]}
@@ -170,7 +170,7 @@ export function ApplicationDetailPage() {
           </Section>
 
           <Section
-            title="Your statement"
+            title="Your Statement"
             description="What you wrote when you applied, and any responses recorded with it."
             actions={
               canEdit ? (
@@ -204,7 +204,7 @@ export function ApplicationDetailPage() {
           </Section>
 
           <Section
-            title="Document checklist"
+            title="Document Checklist"
             description="The documents you listed for this application."
           >
             {application.documentNames.length === 0 ? (

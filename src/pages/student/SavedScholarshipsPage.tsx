@@ -9,7 +9,7 @@ import type { Scholarship } from '../../types/index.ts'
 
 /** The student's shortlist of bookmarked scholarships. */
 export function SavedScholarshipsPage() {
-  useDocumentTitle('Saved scholarships')
+  useDocumentTitle('Saved Scholarships')
   const { user } = useAuth()
   const userId = user?.id ?? ''
   const { isSaved, toggle } = useSavedScholarships()
@@ -19,9 +19,9 @@ export function SavedScholarshipsPage() {
   if (!user) {
     return (
       <EmptyState
-        title="You are not signed in"
+        title="You Are Not Signed In"
         description="Sign in with a student account to view your saved scholarships."
-        action={<LinkButton to="/login">Sign in</LinkButton>}
+        action={<LinkButton to="/login">Sign In</LinkButton>}
       />
     )
   }
@@ -36,11 +36,11 @@ export function SavedScholarshipsPage() {
   return (
     <div className="space-y-10">
       <PageHeader
-        title="Saved scholarships"
+        title="Saved Scholarships"
         description="Your shortlist of scholarships to come back to. Saving a scholarship does not submit an application."
         actions={
           <LinkButton to="/scholarships" variant="outline">
-            Browse scholarships
+            Browse Scholarships
           </LinkButton>
         }
       />
@@ -51,9 +51,9 @@ export function SavedScholarshipsPage() {
         <ErrorState message={saved.error} onRetry={saved.reload} />
       ) : items.length === 0 ? (
         <EmptyState
-          title="No saved scholarships yet"
+          title="No Saved Scholarships Yet"
           description="Save a scholarship from the directory to build a shortlist you can return to."
-          action={<LinkButton to="/scholarships">Browse scholarships</LinkButton>}
+          action={<LinkButton to="/scholarships">Browse Scholarships</LinkButton>}
         />
       ) : (
         <div className="space-y-4">

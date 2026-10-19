@@ -86,8 +86,8 @@ export function ScholarshipDetailPage() {
         motivation: values.motivation.trim(),
         documentNames: selectedDocs,
         responses: [
-          { label: 'Documents ready for submission', value: asDraft ? 'Not yet' : 'Yes' },
-          { label: 'Information confirmed accurate', value: confirmed ? 'Yes' : 'No' },
+          { label: 'Documents Ready for Submission', value: asDraft ? 'Not yet' : 'Yes' },
+          { label: 'Information Confirmed Accurate', value: confirmed ? 'Yes' : 'No' },
         ],
       },
       asDraft,
@@ -144,9 +144,9 @@ export function ScholarshipDetailPage() {
     return (
       <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8">
         <EmptyState
-          title="Scholarship not found"
+          title="Scholarship Not Found"
           description="This listing may have been removed, or the link may be incorrect."
-          action={<LinkButton to="/scholarships">Back to scholarships</LinkButton>}
+          action={<LinkButton to="/scholarships">Back to Scholarships</LinkButton>}
         />
       </div>
     )
@@ -204,7 +204,7 @@ export function ScholarshipDetailPage() {
             />
           </Section>
 
-          <Section title="How to apply">
+          <Section title="How to Apply">
             <div className="space-y-5">
               <p className="text-sm text-slate-600 dark:text-slate-300">
                 {isExternal
@@ -271,7 +271,7 @@ export function ScholarshipDetailPage() {
                     </span>
                   </div>
                   <LinkButton to={`/student/applications/${existingApplication.id}`} fullWidth>
-                    View your application
+                    View Your Application
                   </LinkButton>
                 </>
               ) : !user ? (
@@ -280,7 +280,7 @@ export function ScholarshipDetailPage() {
                     Sign in to apply and track your progress.
                   </p>
                   <LinkButton to="/login" fullWidth>
-                    Sign in to apply
+                    Sign in to Apply
                   </LinkButton>
                 </>
               ) : !isStudent ? (
@@ -321,7 +321,7 @@ export function ScholarshipDetailPage() {
             </CardBody>
           </Card>
 
-          <Section title="At a glance" divider={false}>
+          <Section title="At a Glance" divider={false}>
             <DefinitionList
               columns={1}
               items={[
@@ -329,11 +329,11 @@ export function ScholarshipDetailPage() {
                 { label: 'Provider', value: scholarship.provider },
                 { label: 'Coverage', value: scholarship.municipality },
                 {
-                  label: 'Education level',
+                  label: 'Education Level',
                   value: scholarship.educationLevels.map((value) => EDUCATION_LEVEL_LABELS[value]).join(', '),
                 },
                 {
-                  label: 'Application method',
+                  label: 'Application Method',
                   value: isExternal ? 'Provider website' : 'Through this platform',
                 },
               ]}
@@ -394,7 +394,7 @@ export function ScholarshipDetailPage() {
         <div className="space-y-6">
           <Textarea
             id="application-motivation"
-            label="Why are you applying?"
+            label="Why Are You Applying?"
             hint="At least 20 characters. This is shared with the reviewing administrator."
             required
             rows={5}
@@ -437,7 +437,7 @@ export function ScholarshipDetailPage() {
 
           <Checkbox
             id="application-confirm"
-            label="I confirm the information I am submitting is accurate and my own."
+            label="I Confirm the Information I Am Submitting Is Accurate and My Own."
             checked={confirmed}
             onChange={(event) => setConfirmed(event.target.checked)}
           />

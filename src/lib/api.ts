@@ -22,6 +22,8 @@ import type {
   GrantFilters,
   LoginInput,
   Notification,
+  OtpPurpose,
+  OtpRequestResult,
   Paginated,
   PlatformSettings,
   RegisterInput,
@@ -190,6 +192,8 @@ const localAuthApi = {
       profileComplete: true,
       hasPassword: true,
       usesGoogle: false,
+      // The browser-storage build has no mail, so nothing to confirm.
+      emailVerified: true,
     }
     db.users.push(user)
     // The password is held in plain text because there is no backend yet.
@@ -200,23 +204,23 @@ const localAuthApi = {
       studentNumber: '',
       phone: input.phone.trim(),
       municipality: input.municipality,
-      barangay: '',
-      address: '',
-      birthDate: '',
-      educationLevel: 'college',
-      school: '',
-      course: '',
-      yearLevel: '',
-      gwa: null,
-      householdIncome: null,
-      guardianName: '',
-      guardianContact: '',
+      barangay: input.barangay.trim(),
+      address: (input.address ?? '').trim(),
+      birthDate: input.birthDate,
+      educationLevel: input.educationLevel,
+      school: input.school.trim(),
+      course: input.course.trim(),
+      yearLevel: input.yearLevel,
+      gwa: input.gwa ?? null,
+      householdIncome: input.householdIncome ?? null,
+      guardianName: (input.guardianName ?? '').trim(),
+      guardianContact: (input.guardianContact ?? '').trim(),
       updatedAt: new Date().toISOString(),
     })
     db.notifications.push({
       id: createId('ntf'),
       userId: user.id,
-      title: 'Welcome to Pampanga GrantConnect',
+      title: 'Welcome to Scholar',
       body: 'Complete your student profile to improve your scholarship matches.',
       createdAt: new Date().toISOString(),
       read: false,
@@ -263,6 +267,40 @@ const localAuthApi = {
 
   async completeGoogleProfile(_input: CompleteProfileInput): Promise<User> {
     throw new Error('Google sign-in needs the API server.')
+  },
+
+  /**
+   * No mail exists in the browser-storage build, so a code could be generated
+   * but never delivered. Reporting `delivery: 'none'` keeps the interface
+   * honest instead of implying a message was sent.
+   */
+  async requestCode(
+    _email: string,
+    _purpose: OtpPurpose,
+  ): Promise<OtpRequestResult> {
+    await delay()
+    return {
+      submitted: true,
+      expiresInSeconds: 600,
+      resendAfterSeconds: 60,
+      delivery: 'none',
+    }
+  },
+
+  async verifyEmailCode(_email: string, _code: string): Promise<User | null> {
+    throw new Error(
+      'Email verification needs the API server. Start it with "npm run server".',
+    )
+  },
+
+  async resetPassword(_input: {
+    email: string
+    code: string
+    password: string
+  }): Promise<void> {
+    throw new Error(
+      'Password reset needs the API server. Start it with "npm run server".',
+    )
   },
 }
 

@@ -38,7 +38,7 @@ import type { StudentRecord } from '../../types/index.ts'
 const PAGE_SIZE = 10
 
 const MUNICIPALITY_OPTIONS: SelectOption[] = [
-  { value: 'all', label: 'All municipalities' },
+  { value: 'all', label: 'All Municipalities' },
   ...MUNICIPALITIES.map((name) => ({ value: name, label: name })),
 ]
 
@@ -245,27 +245,27 @@ export function AdminStudentsPage() {
         const gwa = profile?.gwa ?? null
         const income = profile?.householdIncome ?? null
         return [
-          { label: 'Full name', value: fullName(detailRecord.user.firstName, detailRecord.user.lastName) },
+          { label: 'Full Name', value: fullName(detailRecord.user.firstName, detailRecord.user.lastName) },
           { label: 'Email', value: detailRecord.user.email },
-          { label: 'Student number', value: profile?.studentNumber || '—' },
+          { label: 'Student Number', value: profile?.studentNumber || '—' },
           { label: 'Phone', value: profile?.phone || '—' },
           { label: 'Municipality', value: profile?.municipality || '—' },
           { label: 'Barangay', value: profile?.barangay || '—' },
           { label: 'Address', value: profile?.address || '—', wide: true },
-          { label: 'Birth date', value: profile?.birthDate ? formatDate(profile.birthDate) : '—' },
+          { label: 'Birth Date', value: profile?.birthDate ? formatDate(profile.birthDate) : '—' },
           {
-            label: 'Education level',
+            label: 'Education Level',
             value: profile ? EDUCATION_LEVEL_LABELS[profile.educationLevel] : '—',
           },
           { label: 'School', value: profile?.school || '—' },
           { label: 'Course', value: profile?.course || '—' },
-          { label: 'Year level', value: profile?.yearLevel || '—' },
-          { label: 'General weighted average', value: gwa !== null ? formatNumber(gwa) : '—' },
-          { label: 'Household income', value: income !== null ? formatCurrency(income) : '—' },
+          { label: 'Year Level', value: profile?.yearLevel || '—' },
+          { label: 'General Weighted Average', value: gwa !== null ? formatNumber(gwa) : '—' },
+          { label: 'Household Income', value: income !== null ? formatCurrency(income) : '—' },
           { label: 'Guardian', value: profile?.guardianName || '—' },
-          { label: 'Guardian contact', value: profile?.guardianContact || '—' },
-          { label: 'Applications submitted', value: formatNumber(detailRecord.applicationCount) },
-          { label: 'Confirmed grants', value: formatNumber(detailRecord.grantCount) },
+          { label: 'Guardian Contact', value: profile?.guardianContact || '—' },
+          { label: 'Applications Submitted', value: formatNumber(detailRecord.applicationCount) },
+          { label: 'Confirmed Grants', value: formatNumber(detailRecord.grantCount) },
         ]
       })()
     : []
@@ -288,7 +288,7 @@ export function AdminStudentsPage() {
           <div className="min-w-0 flex-1">
             <SearchInput
               id="student-search"
-              label="Search students"
+              label="Search Students"
               hideLabel
               placeholder="Search name, email, school or student number"
               value={query}
@@ -334,7 +334,7 @@ export function AdminStudentsPage() {
                 action={
                   hasFilters ? (
                     <Button variant="outline" onClick={clearFilters}>
-                      Reset filters
+                      Reset Filters
                     </Button>
                   ) : undefined
                 }
@@ -398,7 +398,7 @@ export function AdminStudentsPage() {
           </div>
         ) : (
           <EmptyState
-            title="Record not available"
+            title="Record Not Available"
             description="This student may have been removed from the workspace."
           />
         )}
@@ -419,7 +419,7 @@ export function AdminStudentsPage() {
               Cancel
             </Button>
             <Button type="submit" form="student-account-form" loading={accountAction.loading}>
-              Save changes
+              Save Changes
             </Button>
           </>
         }
@@ -432,7 +432,7 @@ export function AdminStudentsPage() {
           ) : null}
           <Input
             id="student-first-name"
-            label="First name"
+            label="First Name"
             required
             value={editValues.firstName}
             error={editErrors.firstName}
@@ -440,7 +440,7 @@ export function AdminStudentsPage() {
           />
           <Input
             id="student-last-name"
-            label="Last name"
+            label="Last Name"
             required
             value={editValues.lastName}
             error={editErrors.lastName}
@@ -448,7 +448,7 @@ export function AdminStudentsPage() {
           />
           <Input
             id="student-email"
-            label="Email address"
+            label="Email Address"
             type="email"
             required
             value={editValues.email}
@@ -468,7 +468,7 @@ export function AdminStudentsPage() {
             ? `Deleting ${fullName(deleteTarget.user.firstName, deleteTarget.user.lastName)} also removes their applications, semester registrations, grant records and notifications. This cannot be undone.`
             : ''
         }
-        confirmLabel="Delete student"
+        confirmLabel="Delete Student"
         tone="danger"
         loading={deleteAction.loading}
       />
