@@ -366,10 +366,20 @@ export interface DocumentRecord {
 
 export type AnnouncementAudience = 'all' | 'students' | 'admins'
 
+/**
+ * What kind of notice this is.
+ *
+ * The distinction earns its place: a deadline and a result are acted on
+ * differently, and a channel that mixes them forces every reader to parse the
+ * body to find out which it is.
+ */
+export type AnnouncementCategory = 'advisory' | 'deadline' | 'result' | 'general'
+
 export interface Announcement {
   id: string
   title: string
   body: string
+  category: AnnouncementCategory
   audience: AnnouncementAudience
   pinned: boolean
   publishedAt: string

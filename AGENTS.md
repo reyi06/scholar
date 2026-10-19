@@ -34,11 +34,14 @@ npm run dev        # dev server -> http://localhost:5173
 npm run build      # type-check (tsc -b) then build to dist/
 npm run preview    # serve the production build locally
 npm run lint       # oxlint
+npm run check:responsive   # drive Chrome at 390/768/1280; needs dev + server
 ```
 
-There is **no test runner configured**. Verification is currently manual —
-see the Verification log for the approach used (browser-driven smoke tests of
-every route plus Lighthouse).
+There is **no unit-test runner configured**. Verification is manual and
+browser-driven — see the Verification log for the approach used (route sweeps,
+decoded QR output, HTTP-level checks, Lighthouse). `check:responsive` is the one
+scripted check; it reports horizontal overflow and missing headings per route,
+and writes screenshots to `tmp/responsive/`.
 
 Demo sign-in: student `maria.santos@example.com` / `student123`,
 administrator `admin@example.com` / `admin123`.
@@ -368,6 +371,32 @@ Do not present the current implementation as secure.
 ## 11. Verification log
 
 Newest first. Record the command and its observed result.
+
+### 2026-10-19 - responsive check tooling and the announcement channel
+
+- `npm run lint` clean; `npx tsc -b` clean; `npm run build` clean — **21
+  prerendered pages** and **21 sitemap URLs** (the channel page added one of
+  each).
+- **`scripts/check-responsive.ts`** drives the installed Chrome through
+  `playwright-core` — no browser download — at 390, 768 and 1280 px. It reports
+  horizontal overflow, the offending elements, and a missing `h1`, and writes
+  full-page screenshots.
+- **First run found two real mobile overflows**: `/about` (67 px) and `/faqs`
+  (134 px). The culprit was the `(?)` tooltip: `w-64` anchored `left-0` to a
+  label near the right edge extends past the document and creates a horizontal
+  scrollbar. Fixed by positioning the tooltip against the viewport with a
+  clamp (`position: fixed`), which cannot widen the document.
+- **After the fix: 78 page loads across three viewports, all clean** — public
+  (24), student (24), admin (30). Zero overflow, every route rendered a heading.
+  This is the mobile verification that was previously missing.
+- **Announcement channel checked in the browser**: `/announcements` renders the
+  category filter and all four categories; the home page shows three teasers
+  with category badges and a link to the channel, with no `<details>` left
+  behind; the admin list shows category, pinned and audience per notice, with a
+  working filter.
+- Migration `20261019120841_announcement_category` applied; existing rows were
+  updated to their seeded categories and one `result` notice added, so every
+  category is represented in the demonstration data.
 
 ### 2026-10-19 - scholarship sharing and QR codes (decoded, not eyeballed)
 
@@ -766,6 +795,33 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-19 - responsive verification tooling, announcements revamped
+
+- **`scripts/check-responsive.ts` + `npm run check:responsive`** — drives the
+  locally installed Chrome (`playwright-core`, no bundled browser) at phone,
+  tablet and laptop widths. Reports horizontal overflow with the offending
+  elements, missing headings, and screenshots each route. `--role=student` and
+  `--role=admin` sign in first. This replaced "responsive is untested" with a
+  check that found two real defects on its first run.
+- **`HelpHint` tooltips moved from absolute to viewport-clamped fixed
+  positioning.** The old box was `w-64` anchored `left-0`, so a label near the
+  right edge pushed the document wider than the viewport on a phone.
+- **Announcements became a channel rather than a list of paragraphs.**
+  - `Announcement.category` (`advisory` | `deadline` | `result` | `general`) —
+    a deadline and a result are acted on differently, and a channel that mixes
+    them makes every reader parse the body to find out which it is.
+  - **`/announcements`** is a public page with a category filter, pinned notices
+    first, then newest. It is in the nav, the footer, the sitemap and the
+    prerender list.
+  - **The home page teases instead of reproducing**: three notices with date,
+    category and a truncated body, plus a link to the channel. The accordion is
+    gone, which removes both the density and the second place announcements had
+    to be maintained.
+  - **The admin list** filters by category and shows category, pinned and
+    audience on every row; the form gained a category field.
+- One `result` announcement was added to the seed so every category is
+  represented when demonstrating the filter.
 
 ### 2026-10-19 - share a listing as a link or a QR code
 

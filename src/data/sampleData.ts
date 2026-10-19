@@ -964,6 +964,7 @@ export const sampleAnnouncements: Announcement[] = [
   {
     id: 'ann_001',
     title: 'Application window now open',
+    category: 'deadline',
     body: 'Several scholarship listings are currently accepting applications. Check the directory for listings marked as open, and submit before each individual deadline.',
     audience: 'all',
     pinned: true,
@@ -973,6 +974,7 @@ export const sampleAnnouncements: Announcement[] = [
   {
     id: 'ann_002',
     title: 'Semester registration for existing grantees',
+    category: 'deadline',
     body: 'Grantees re-enrolling this term should file their semester registration before the end of the enrolment period for the term to be verified.',
     audience: 'students',
     pinned: true,
@@ -982,6 +984,7 @@ export const sampleAnnouncements: Announcement[] = [
   {
     id: 'ann_003',
     title: 'Document checklist reminder',
+    category: 'advisory',
     body: 'Prepare your certificate of enrolment and a copy of your grades before starting an application. Incomplete submissions take longer to review.',
     audience: 'students',
     pinned: false,
@@ -991,6 +994,7 @@ export const sampleAnnouncements: Announcement[] = [
   {
     id: 'ann_004',
     title: 'Review schedule for administrators',
+    category: 'advisory',
     body: 'Clear the review queue weekly so that applicants receive a decision promptly and grant confirmation is not delayed.',
     audience: 'admins',
     pinned: false,
@@ -1000,6 +1004,7 @@ export const sampleAnnouncements: Announcement[] = [
   {
     id: 'ann_005',
     title: 'Grant release schedule',
+    category: 'advisory',
     body: 'Grant releases follow the confirmation of grant records by an administrator. Confirmed releases appear on the grant records page with the amount and term.',
     audience: 'all',
     pinned: false,
@@ -1009,12 +1014,24 @@ export const sampleAnnouncements: Announcement[] = [
   {
     id: 'ann_006',
     title: 'Welcome to the scholarship portal',
+    category: 'general',
     body: 'Browse listings from provincial, municipal, national, educational and private providers, and track your applications, semester registration and grants in one place.',
     audience: 'all',
     pinned: false,
     publishedAt: daysAgo(60),
     author: 'Liza Mendoza',
   },
+  {
+    id: 'ann_007',
+    title: 'First-semester grants confirmed',
+    body: 'Grant records for the first semester have been confirmed and now appear under My grants. Students whose records are not yet listed should check the status of their semester registration.',
+    category: 'result',
+    audience: 'students',
+    pinned: false,
+    publishedAt: daysAgo(18),
+    author: 'Liza Mendoza',
+  },
+
 ]
 
 /* ------------------------------------------------------------------ */

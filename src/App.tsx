@@ -26,6 +26,9 @@ const LoginPage = lazy(async () => ({ default: (await import('./pages/public/Log
 const RegisterPage = lazy(async () => ({ default: (await import('./pages/public/RegisterPage.tsx')).RegisterPage }))
 const AboutPage = lazy(async () => ({ default: (await import('./pages/public/AboutPage.tsx')).AboutPage }))
 const FaqPage = lazy(async () => ({ default: (await import('./pages/public/FaqPage.tsx')).FaqPage }))
+const AnnouncementsPage = lazy(async () => ({
+  default: (await import('./pages/public/AnnouncementsPage.tsx')).AnnouncementsPage,
+}))
 const WelcomePage = lazy(async () => ({
   default: (await import('./pages/public/WelcomePage.tsx')).WelcomePage,
 }))
@@ -138,6 +141,7 @@ export default function App() {
             <Route path="/scholarships/:id" element={<ScholarshipDetailPage />} />
             <Route path="/about" element={<AboutPage />} />
           <Route path="/faqs" element={<FaqPage />} />
+          <Route path="/announcements" element={<AnnouncementsPage />} />
 
             {/* Not inside GuestOnlyRoute: the student is already signed in,
                 they simply have not finished setting up yet. */}

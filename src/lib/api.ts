@@ -9,6 +9,7 @@ import { DB_VERSION, createSeedDatabase, type DemoDatabase } from '../data/schem
 import type {
   Announcement,
   AnnouncementAudience,
+  AnnouncementCategory,
   Application,
   ApplicationFilters,
   ApplicationStatus,
@@ -1046,19 +1047,26 @@ const localGrantsApi = {
 export interface AnnouncementInput {
   title: string
   body: string
+  category: AnnouncementCategory
   audience: AnnouncementAudience
   pinned: boolean
 }
 
 const localAnnouncementsApi = {
-  /** `audience` filters to what a role should see. Omit for everything. */
-  async list(audience?: AnnouncementAudience | Role): Promise<Announcement[]> {
+  /** `audience` filters to what a role should see; `category` narrows further. */
+  async list(
+    audience?: AnnouncementAudience | Role,
+    category?: AnnouncementCategory | 'all',
+  ): Promise<Announcement[]> {
     await delay()
     let items = [...db.announcements]
     if (audience === 'students') {
       items = items.filter((item) => item.audience === 'all' || item.audience === 'students')
     } else if (audience === 'admins' || audience === 'admin') {
       items = items.filter((item) => item.audience === 'all' || item.audience === 'admins')
+    }
+    if (category && category !== 'all') {
+      items = items.filter((item) => item.category === category)
     }
     items.sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1

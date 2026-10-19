@@ -232,6 +232,7 @@ async function writeSitemap(): Promise<number> {
   const entries: { loc: string; changefreq: string; priority: string; lastmod?: string }[] = [
     { loc: '/', changefreq: 'weekly', priority: '1.0' },
     { loc: '/scholarships', changefreq: 'daily', priority: '0.9' },
+    { loc: '/announcements', changefreq: 'daily', priority: '0.7' },
     { loc: '/about', changefreq: 'monthly', priority: '0.5' },
     { loc: '/faqs', changefreq: 'monthly', priority: '0.5' },
     { loc: '/register', changefreq: 'monthly', priority: '0.4' },
@@ -379,6 +380,12 @@ writePage({
   path: '/about',
 })
 writePage({
+  title: 'Announcements | Scholar',
+  description:
+    'Deadlines, advisories and results from the Pampanga scholarship office.',
+  path: '/announcements',
+})
+writePage({
   title: 'Frequently Asked Questions | Scholar',
   description:
     'How scholarships, applications, semester registration and confirmed grants work on Scholar.',
@@ -396,7 +403,7 @@ writePage({
   // Auth screens have nothing to offer a search result.
   noindex: true,
 })
-written += 6
+written += 7
 
 /**
  * Brand images are written to public/ (so the dev server serves them and they
@@ -418,7 +425,7 @@ writeRobots()
 writeServiceWorker()
 
 console.log(`Prerendered ${written} pages (${listings.length} listings)`)
-console.log(`  sitemap.xml          ${sitemapListings + 5} urls`)
+console.log(`  sitemap.xml          ${sitemapListings + 7} urls`)
 console.log('  robots.txt           regenerated')
 console.log('  og-image.png         1200x630')
 console.log('  icon-192/512, apple-touch-icon')

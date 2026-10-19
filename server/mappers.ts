@@ -343,6 +343,7 @@ interface AnnouncementRow {
   id: string
   title: string
   body: string
+  category: string
   audience: string
   pinned: boolean
   publishedAt: Date
@@ -354,6 +355,7 @@ export function toAnnouncement(row: AnnouncementRow): Announcement {
     id: row.id,
     title: row.title,
     body: row.body,
+    category: row.category as Announcement['category'],
     audience: row.audience as Announcement['audience'],
     pinned: row.pinned,
     publishedAt: row.publishedAt.toISOString(),

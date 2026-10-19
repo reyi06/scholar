@@ -16,18 +16,35 @@ import {
   Textarea,
 } from '../../components/ui'
 import { announcementsApi, type AnnouncementInput } from '../../lib/api.ts'
-import { ANNOUNCEMENT_AUDIENCES, ANNOUNCEMENT_AUDIENCE_LABELS } from '../../lib/constants.ts'
+import {
+  ANNOUNCEMENT_AUDIENCES,
+  ANNOUNCEMENT_AUDIENCE_LABELS,
+  ANNOUNCEMENT_CATEGORIES,
+  ANNOUNCEMENT_CATEGORY_LABELS,
+} from '../../lib/constants.ts'
 import { formatDateTime } from '../../lib/format.ts'
 import { minLength, required, validateValue } from '../../lib/validation.ts'
 import { useAsync, useAsyncAction } from '../../hooks/useAsync.ts'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
 import { useAuth } from '../../context/authContext.ts'
 import { useToast } from '../../context/toastContext.ts'
-import type { Announcement, AnnouncementAudience } from '../../types/index.ts'
+import type {
+  Announcement,
+  AnnouncementAudience,
+  AnnouncementCategory,
+} from '../../types/index.ts'
+
+const CATEGORY_TONES: Record<AnnouncementCategory, 'warning' | 'brand' | 'success' | 'neutral'> = {
+  advisory: 'warning',
+  deadline: 'brand',
+  result: 'success',
+  general: 'neutral',
+}
 
 interface AnnouncementFormState {
   title: string
   body: string
+  category: AnnouncementCategory
   audience: AnnouncementAudience
   pinned: boolean
 }
@@ -40,6 +57,7 @@ interface AnnouncementFormErrors {
 const EMPTY_FORM: AnnouncementFormState = {
   title: '',
   body: '',
+  category: 'general',
   audience: 'students',
   pinned: false,
 }
@@ -57,7 +75,8 @@ export function AdminAnnouncementsPage() {
   const { user } = useAuth()
   const author = user ? `${user.firstName} ${user.lastName}` : 'Administrator'
 
-  const list = useAsync(() => announcementsApi.list(), [])
+  const [category, setCategory] = useState<AnnouncementCategory | 'all'>('all')
+  const list = useAsync(() => announcementsApi.list(undefined, category), [category])
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Announcement | null>(null)
@@ -86,6 +105,7 @@ export function AdminAnnouncementsPage() {
     setForm({
       title: announcement.title,
       body: announcement.body,
+      category: announcement.category,
       audience: announcement.audience,
       pinned: announcement.pinned,
     })
@@ -115,6 +135,7 @@ export function AdminAnnouncementsPage() {
     const input: AnnouncementInput = {
       title: form.title.trim(),
       body: form.body.trim(),
+      category: form.category,
       audience: form.audience,
       pinned: form.pinned,
     }
@@ -145,9 +166,21 @@ export function AdminAnnouncementsPage() {
         title="Announcements"
         description="Post notices for students and administrators. They appear inside the app."
         actions={
-          <Button leadingIcon={<Icon name="plus" className="size-4" />} onClick={openCreate}>
-            New announcement
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select
+              id="announcement-filter"
+              label="Category"
+              hideLabel
+              value={category}
+              options={[{ value: 'all', label: 'All Categories' }, ...ANNOUNCEMENT_CATEGORIES]}
+              onChange={(event) =>
+                setCategory(event.target.value as AnnouncementCategory | 'all')
+              }
+            />
+            <Button leadingIcon={<Icon name="plus" className="size-4" />} onClick={openCreate}>
+              New Announcement
+            </Button>
+          </div>
         }
       />
 
@@ -182,6 +215,9 @@ export function AdminAnnouncementsPage() {
                   <span className="text-xs text-slate-500 dark:text-slate-400">
                     {formatDateTime(announcement.publishedAt)}
                   </span>
+                  <Badge tone={CATEGORY_TONES[announcement.category]}>
+                    {ANNOUNCEMENT_CATEGORY_LABELS[announcement.category]}
+                  </Badge>
                   {announcement.pinned ? <Badge tone="gold">Pinned</Badge> : null}
                   <Badge tone="neutral">{ANNOUNCEMENT_AUDIENCE_LABELS[announcement.audience]}</Badge>
                 </div>
@@ -249,6 +285,16 @@ export function AdminAnnouncementsPage() {
             onChange={(event) => setForm({ ...form, body: event.target.value })}
             error={errors.body}
             hint="At least 10 characters. Describe what changed and what recipients should do."
+          />
+          <Select
+            id="announcement-category"
+            label="Category"
+            options={ANNOUNCEMENT_CATEGORIES}
+            value={form.category}
+            onChange={(event) =>
+              setForm({ ...form, category: event.target.value as AnnouncementCategory })
+            }
+            hint="A deadline and a result are acted on differently; the category lets readers tell them apart before opening the notice."
           />
           <Select
             id="announcement-audience"

@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from 'react'
+import { useId, useRef, useState, type ReactNode } from 'react'
 
 /**
  * A small `(?)` that reveals an explanation on hover, focus or tap.
@@ -8,11 +8,19 @@ import { useId, useState, type ReactNode } from 'react'
  * and noise afterwards; behind a question mark it costs four pixels instead of
  * a line of text.
  *
- * Deliberately a real button rather than a `title` attribute: `title` is
- * unreachable by keyboard, invisible on touch, and slow to appear. This one
- * responds to hover, focus and click, closes on Escape, and is announced with
- * `aria-describedby`, so the text is still there for a screen reader.
+ * Positioned against the viewport rather than the icon. An absolutely
+ * positioned tooltip anchored `left: 0` to a label near the right edge extends
+ * past the document and creates a horizontal scrollbar on a phone — which is
+ * exactly what a responsive check caught. A fixed box, clamped to the viewport,
+ * cannot do that.
+ *
+ * When closed the text is rendered `sr-only`, so it stays in the accessibility
+ * tree and `aria-describedby` still resolves.
  */
+
+const WIDTH = 256
+const EDGE = 8
+
 export interface HelpHintProps {
   /** Optional explicit id, so a control's `aria-describedby` can point here. */
   id?: string
@@ -24,18 +32,37 @@ export interface HelpHintProps {
 export function HelpHint({ id, label = 'More information', children }: HelpHintProps) {
   const generatedId = useId()
   const tooltipId = id ?? generatedId
-  const [open, setOpen] = useState(false)
+  const button = useRef<HTMLButtonElement>(null)
+  const [position, setPosition] = useState<{ top: number; left: number } | null>(null)
+
+  function show() {
+    const element = button.current
+    if (!element) return
+    const rect = element.getBoundingClientRect()
+    // Keep the whole box on screen, even for a label that ends at the edge.
+    const left = Math.min(Math.max(EDGE, rect.left), window.innerWidth - WIDTH - EDGE)
+    setPosition({ top: rect.bottom + EDGE, left })
+  }
+
+  function hide() {
+    setPosition(null)
+  }
 
   return (
-    <span className="group/help relative inline-flex">
+    <span className="inline-flex">
       <button
+        ref={button}
         type="button"
         aria-label={label}
-        aria-expanded={open}
+        aria-expanded={position !== null}
         aria-describedby={tooltipId}
-        onClick={() => setOpen((value) => !value)}
+        onMouseEnter={show}
+        onMouseLeave={hide}
+        onFocus={show}
+        onBlur={hide}
+        onClick={() => (position ? hide() : show())}
         onKeyDown={(event) => {
-          if (event.key === 'Escape') setOpen(false)
+          if (event.key === 'Escape') hide()
         }}
         className="inline-flex size-4 items-center justify-center rounded-full border border-slate-300 text-[10px] leading-none font-semibold text-slate-500 transition-colors hover:border-slate-400 hover:text-slate-700 focus-visible:border-brand-700 focus-visible:text-brand-800 dark:border-ink-700 dark:text-slate-400 dark:hover:text-slate-200 dark:focus-visible:text-brand-300"
       >
@@ -45,11 +72,12 @@ export function HelpHint({ id, label = 'More information', children }: HelpHintP
       <span
         id={tooltipId}
         role="tooltip"
-        className={`absolute top-full left-0 z-30 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-md border border-slate-200 bg-white p-3 text-left text-xs leading-relaxed font-normal text-slate-600 shadow-float transition-opacity duration-100 dark:border-ink-700 dark:bg-ink-900 dark:text-slate-300 ${
-          open
-            ? 'opacity-100'
-            : 'pointer-events-none opacity-0 group-hover/help:opacity-100 group-focus-within/help:opacity-100'
-        }`}
+        style={position ? { top: position.top, left: position.left, width: WIDTH } : undefined}
+        className={
+          position
+            ? 'fixed z-50 rounded-md border border-slate-200 bg-white p-3 text-left text-xs leading-relaxed font-normal text-slate-600 shadow-float dark:border-ink-700 dark:bg-ink-900 dark:text-slate-300'
+            : 'sr-only'
+        }
       >
         {children}
       </span>

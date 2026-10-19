@@ -1,5 +1,6 @@
 import type {
   AnnouncementAudience,
+  AnnouncementCategory,
   ApplicationStatus,
   DocumentClassification,
   DocumentStatus,
@@ -104,6 +105,13 @@ export const ANNOUNCEMENT_AUDIENCES: Option<AnnouncementAudience>[] = [
   { value: 'admins', label: 'Administrators' },
 ]
 
+export const ANNOUNCEMENT_CATEGORIES: Option<AnnouncementCategory>[] = [
+  { value: 'advisory', label: 'Advisory' },
+  { value: 'deadline', label: 'Deadline' },
+  { value: 'result', label: 'Result' },
+  { value: 'general', label: 'General' },
+]
+
 /* ------------------------------------------------------------------ */
 /* Documents                                                           */
 /* ------------------------------------------------------------------ */
@@ -173,5 +181,6 @@ export const APPLICATION_STATUS_LABELS = labelMap(APPLICATION_STATUSES)
 export const REGISTRATION_STATUS_LABELS = labelMap(REGISTRATION_STATUSES)
 export const GRANT_STATUS_LABELS = labelMap(GRANT_STATUSES)
 export const ANNOUNCEMENT_AUDIENCE_LABELS = labelMap(ANNOUNCEMENT_AUDIENCES)
+export const ANNOUNCEMENT_CATEGORY_LABELS = labelMap(ANNOUNCEMENT_CATEGORIES)
 export const DOCUMENT_CLASSIFICATION_LABELS = labelMap(DOCUMENT_CLASSIFICATIONS)
 export const DOCUMENT_STATUS_LABELS = labelMap(DOCUMENT_STATUSES)

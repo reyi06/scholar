@@ -322,10 +322,14 @@ model Announcement {
 
   title       String
   body        String
+  /// advisory | deadline | result | general
+  category    String   @default("general")
   audience    String // all | students | admins
   pinned      Boolean  @default(false)
   publishedAt DateTime
   author      String
+
+  @@index([category])
 }
 
 model Notification {

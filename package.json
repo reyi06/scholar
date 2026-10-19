@@ -13,7 +13,8 @@
     "db:seed": "node --env-file=.env prisma/seed.ts",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset --force",
-    "prerender": "node --env-file=.env scripts/prerender.ts"
+    "prerender": "node --env-file=.env scripts/prerender.ts",
+    "check:responsive": "node scripts/check-responsive.ts"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.1",
@@ -31,6 +32,7 @@
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "oxlint": "^1.81.0",
+    "playwright-core": "^1.64.1",
     "prisma": "^7.10.1",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",

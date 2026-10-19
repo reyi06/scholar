@@ -7,7 +7,6 @@ import {
   TrackIllustration,
 } from '../../components/Illustrations.tsx'
 import {
-  Accordion,
   Badge,
   Button,
   ErrorState,
@@ -17,11 +16,13 @@ import {
   SearchInput,
 } from '../../components/ui'
 import { announcementsApi } from '../../lib/api.ts'
-import { formatDate } from '../../lib/format.ts'
+import { ANNOUNCEMENT_CATEGORY_LABELS } from '../../lib/constants.ts'
+import { formatDate, truncate } from '../../lib/format.ts'
 import { useAsync } from '../../hooks/useAsync.ts'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
 import { useInView } from '../../hooks/useInView.ts'
 import { useAuth } from '../../context/authContext.ts'
+import type { AnnouncementCategory } from '../../types/index.ts'
 
 const STEPS = [
   {
@@ -41,8 +42,15 @@ const STEPS = [
   },
 ]
 
-/** How many advisories the home page shows before users go looking. */
-const ADVISORY_LIMIT = 5
+/** How many advisories the home page teases before sending readers to the channel. */
+const ADVISORY_LIMIT = 3
+
+const ADVISORY_TONES: Record<AnnouncementCategory, 'warning' | 'brand' | 'success' | 'neutral'> = {
+  advisory: 'warning',
+  deadline: 'brand',
+  result: 'success',
+  general: 'neutral',
+}
 
 /**
  * Home page.
@@ -160,9 +168,12 @@ export function HomePage() {
         <div className="mx-auto max-w-3xl">
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">Announcements and Advisories</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Notices for applicants and current grantees.
-            </p>
+            <Link
+              to="/announcements"
+              className="text-sm text-brand-800 underline-offset-4 hover:underline dark:text-brand-300"
+            >
+              View All Announcements
+            </Link>
           </div>
 
           {announcementsLoading ? (
@@ -183,21 +194,30 @@ export function HomePage() {
                 There are no announcements at the moment.
               </p>
             ) : (
-              <Accordion
-                className="mt-2"
-                items={advisories.map((advisory, index) => ({
-                  id: advisory.id,
-                  meta: (
-                    <span className="flex flex-wrap items-center gap-2">
-                      {formatDate(advisory.publishedAt)}
-                      {advisory.pinned ? <Badge tone="brand">Pinned</Badge> : null}
-                    </span>
-                  ),
-                  title: advisory.title,
-                  content: <p className="max-w-[64ch]">{advisory.body}</p>,
-                  defaultOpen: index === 0,
-                }))}
-              />
+              <ul className="mt-4 divide-y divide-slate-200 dark:divide-ink-800">
+                {advisories.map((advisory) => (
+                  <li key={advisory.id} className="py-4 first:pt-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <time
+                        dateTime={advisory.publishedAt}
+                        className="text-xs text-slate-500 dark:text-slate-400"
+                      >
+                        {formatDate(advisory.publishedAt)}
+                      </time>
+                      <Badge tone={ADVISORY_TONES[advisory.category]}>
+                        {ANNOUNCEMENT_CATEGORY_LABELS[advisory.category]}
+                      </Badge>
+                      {advisory.pinned ? <Badge tone="gold">Pinned</Badge> : null}
+                    </div>
+                    <h3 className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">
+                      {advisory.title}
+                    </h3>
+                    <p className="mt-0.5 max-w-[64ch] text-sm text-slate-600 dark:text-slate-300">
+                      {truncate(advisory.body, 150)}
+                    </p>
+                  </li>
+                ))}
+              </ul>
             )
           ) : null}
         </div>

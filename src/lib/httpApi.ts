@@ -4,6 +4,7 @@ import { TEST_ACCOUNTS } from './testAccounts.ts'
 import type {
   Announcement,
   AnnouncementAudience,
+  AnnouncementCategory,
   Application,
   ApplicationFilters,
   ApplicationStatus,
@@ -546,10 +547,19 @@ const grantsApi = {
 /* ------------------------------------------------------------------ */
 
 const announcementsApi = {
-  async list(audience?: AnnouncementAudience | Role): Promise<Announcement[]> {
+  async list(
+    audience?: AnnouncementAudience | Role,
+    category?: AnnouncementCategory | 'all',
+  ): Promise<Announcement[]> {
     const normalised =
       audience === 'students' || audience === 'admins' ? audience : undefined
-    return request<Announcement[]>('GET', `/announcements${queryString({ audience: normalised })}`)
+    return request<Announcement[]>(
+      'GET',
+      `/announcements${queryString({
+        audience: normalised,
+        category: category && category !== 'all' ? category : undefined,
+      })}`,
+    )
   },
 
   async get(id: string): Promise<Announcement | null> {
