@@ -27,7 +27,7 @@ export function ScholarshipCard({ scholarship, onToggleSave, saved = false, comp
   const headlineBenefit = scholarship.benefits[0]
 
   return (
-    <article className="group relative flex h-full flex-col rounded-lg border border-slate-200 bg-white transition-colors hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
+    <article className="group relative flex h-full flex-col rounded-lg border border-slate-200 bg-white transition-colors hover:border-slate-300 dark:border-ink-800 dark:bg-ink-900 dark:hover:border-ink-700">
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 space-y-1.5">
@@ -39,7 +39,7 @@ export function ScholarshipCard({ scholarship, onToggleSave, saved = false, comp
 
             {/* Stretched link keeps the whole card clickable without nesting
                 interactive elements. */}
-            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               <Link to={detailsPath} className="after:absolute after:inset-0">
                 {scholarship.name}
               </Link>
@@ -83,7 +83,7 @@ export function ScholarshipCard({ scholarship, onToggleSave, saved = false, comp
           </p>
         ) : null}
 
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 dark:border-slate-800">
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 dark:border-ink-800">
           <DeadlineBadge deadline={scholarship.deadline} open={isOpen} />
           <span className="text-sm font-medium text-brand-700 dark:text-brand-300">View details</span>
         </div>

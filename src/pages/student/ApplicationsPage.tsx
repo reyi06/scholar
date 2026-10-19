@@ -125,7 +125,7 @@ export function ApplicationsPage() {
               action={<LinkButton to="/scholarships">Browse scholarships</LinkButton>}
             />
           ) : (
-            <ul className="divide-y divide-slate-200 dark:divide-slate-800">
+            <ul className="divide-y divide-slate-200 dark:divide-ink-800">
               {visible.map((application) => (
                 <li
                   key={application.id}
@@ -135,7 +135,7 @@ export function ApplicationsPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <Link
                         to={`/student/applications/${application.id}`}
-                        className="text-sm font-medium text-slate-900 transition-colors hover:text-brand-800 dark:text-white dark:hover:text-brand-300"
+                        className="text-sm font-medium text-slate-900 transition-colors hover:text-brand-800 dark:text-slate-100 dark:hover:text-brand-300"
                       >
                         {names.get(application.scholarshipId) ?? 'Scholarship application'}
                       </Link>

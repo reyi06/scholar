@@ -109,7 +109,7 @@ export function AdminRegistrationsPage() {
     {
       key: 'referenceNo',
       header: 'Reference no.',
-      accessor: (row) => <span className="font-medium text-slate-900 dark:text-white">{row.referenceNo}</span>,
+      accessor: (row) => <span className="font-medium text-slate-900 dark:text-slate-100">{row.referenceNo}</span>,
     },
     {
       key: 'student',
@@ -284,7 +284,7 @@ export function AdminRegistrationsPage() {
                 }
               />
             ) : (
-              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-ink-800 dark:bg-ink-900">
                 <DataTable
                   columns={columns}
                   rows={list.data.items}

@@ -29,13 +29,13 @@ export function Section({
 
   return (
     <section
-      className={`${divider ? 'border-t border-slate-200 pt-8 dark:border-slate-800' : ''} ${className}`}
+      className={`${divider ? 'border-t border-slate-200 pt-8 dark:border-ink-800' : ''} ${className}`}
     >
       {hasHeader ? (
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             {title ? (
-              <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white">
+              <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">
                 {title}
               </h2>
             ) : null}

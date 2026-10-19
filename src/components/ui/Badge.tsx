@@ -9,7 +9,7 @@ export type BadgeSize = 'sm' | 'md'
  * `gold` is reserved for featured and pinned markers.
  */
 const TONES: Record<BadgeTone, string> = {
-  neutral: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+  neutral: 'bg-slate-100 text-slate-600 dark:bg-ink-800 dark:text-slate-300',
   brand: 'bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-200',
   gold: 'bg-gold-100 text-gold-800 dark:bg-gold-800/25 dark:text-gold-200',
   success: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',

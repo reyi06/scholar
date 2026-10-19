@@ -1,3 +1,4 @@
+import { LifecycleDiagram, SiteMapDiagram } from '../../components/Diagrams.tsx'
 import { Badge, LinkButton, PageHeader, Section } from '../../components/ui'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
 import { useAuth } from '../../context/authContext.ts'
@@ -68,7 +69,7 @@ export function AboutPage() {
                   {index + 1}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-900 dark:text-white">{step.title}</p>
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{step.title}</p>
                   <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-300">{step.body}</p>
                 </div>
               </li>
@@ -78,15 +79,15 @@ export function AboutPage() {
 
         <Section title="Where applications are submitted">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-md border border-slate-200 p-4 dark:border-slate-800">
-              <p className="text-sm font-medium text-slate-900 dark:text-white">Through this platform</p>
+            <div className="rounded-md border border-slate-200 p-4 dark:border-ink-800">
+              <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Through this platform</p>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                 The submission, its timeline and its review outcome are recorded here so you can follow
                 progress without contacting the office.
               </p>
             </div>
-            <div className="rounded-md border border-slate-200 p-4 dark:border-slate-800">
-              <p className="text-sm font-medium text-slate-900 dark:text-white">By the provider</p>
+            <div className="rounded-md border border-slate-200 p-4 dark:border-ink-800">
+              <p className="text-sm font-medium text-slate-900 dark:text-slate-100">By the provider</p>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                 Some providers run their own process. The listing links to their website and this
                 platform does not receive or track that submission.
@@ -95,28 +96,27 @@ export function AboutPage() {
           </div>
         </Section>
 
-        <Section title="Applications, registrations and grants">
-          <dl className="space-y-4 text-sm">
-            {[
-              {
-                term: 'Application',
-                body: 'A request for a scholarship. It moves through review and can be approved, returned for more information, or declined.',
-              },
-              {
-                term: 'Semester registration',
-                body: 'Filed by students who already hold a grant, once per term, so enrolment can be verified. It is not an application for a new scholarship.',
-              },
-              {
-                term: 'Confirmed grant',
-                body: 'Created after an application is approved. Approving an application does not by itself release funds, which is why a listing can be approved while no grant record exists yet.',
-              },
-            ].map((item) => (
-              <div key={item.term}>
-                <dt className="font-medium text-slate-900 dark:text-white">{item.term}</dt>
-                <dd className="mt-0.5 text-slate-600 dark:text-slate-300">{item.body}</dd>
-              </div>
-            ))}
-          </dl>
+        <Section title="What happens to an application">
+          <p className="mb-7 max-w-[62ch] text-sm text-slate-600 dark:text-slate-300">
+            Every application moves through the same stages. The last one is the step people most
+            often assume has already happened: an approval is a decision, and a grant record has to
+            be confirmed separately before anything is released.
+          </p>
+          <LifecycleDiagram />
+
+          <p className="mt-8 max-w-[62ch] border-t border-slate-200 pt-6 text-sm text-slate-600 dark:border-ink-800 dark:text-slate-300">
+            <span className="font-medium text-slate-900 dark:text-slate-100">Semester registration</span> is
+            a separate record. It is filed by students who already hold a confirmed grant, once per
+            term, and it is verified on its own rather than going through application review.
+          </p>
+        </Section>
+
+        <Section title="Site map">
+          <p className="mb-8 max-w-[62ch] text-sm text-slate-600 dark:text-slate-300">
+            Three areas, each with its own pages. Everything in the first is open to anyone; the other
+            two ask you to sign in.
+          </p>
+          <SiteMapDiagram />
         </Section>
 
         <Section title="Providers in the directory">

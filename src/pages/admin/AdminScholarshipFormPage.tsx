@@ -610,7 +610,7 @@ export function AdminScholarshipFormPage() {
           </div>
         </Section>
 
-        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 pt-6 dark:border-slate-800">
+        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 pt-6 dark:border-ink-800">
           <LinkButton to="/admin/scholarships" variant="ghost">
             Cancel
           </LinkButton>

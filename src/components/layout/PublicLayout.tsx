@@ -10,11 +10,13 @@ const CURRENT_YEAR = new Date().getFullYear()
 
 const NAV_LINKS = [
   { to: '/scholarships', label: 'Scholarships', end: false },
+  { to: '/faqs', label: 'FAQs', end: false },
   { to: '/about', label: 'About', end: false },
 ]
 
 const FOOTER_LINKS = [
   { to: '/scholarships', label: 'Scholarships' },
+  { to: '/faqs', label: 'FAQs' },
   { to: '/about', label: 'About' },
   { to: '/login', label: 'Sign in' },
 ]
@@ -38,7 +40,7 @@ export function PublicLayout() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col bg-canvas dark:bg-slate-950">
+    <div className="flex min-h-svh flex-col bg-canvas dark:bg-ink-950">
       <a
         href="#main"
         className="sr-only-focusable absolute top-2 left-2 z-50 rounded-md bg-brand-700 px-4 py-2 text-sm font-medium text-white"
@@ -46,7 +48,7 @@ export function PublicLayout() {
         Skip to main content
       </a>
 
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-950/90">
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur-sm dark:border-ink-800 dark:bg-ink-950/90">
         <div className="accent-rule h-0.5 w-full" aria-hidden="true" />
 
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-3 sm:px-8">
@@ -57,7 +59,7 @@ export function PublicLayout() {
             >
               <Icon name="graduation" className="size-4" />
             </span>
-            <span className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
+            <span className="text-sm font-semibold tracking-tight text-slate-900 dark:text-slate-100">
               Pampanga GrantConnect
             </span>
           </Link>
@@ -94,7 +96,7 @@ export function PublicLayout() {
                   trigger={<Avatar initials={initials(user.firstName, user.lastName)} className="m-0.5" />}
                   header={
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
+                      <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                         {user.firstName} {user.lastName}
                       </p>
                       <p className="truncate text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
@@ -136,7 +138,7 @@ export function PublicLayout() {
           <nav
             id="mobile-nav"
             aria-label="Main"
-            className="border-t border-slate-200 px-5 py-3 md:hidden dark:border-slate-800"
+            className="border-t border-slate-200 px-5 py-3 md:hidden dark:border-ink-800"
           >
             <ul className="flex flex-col gap-0.5">
               {NAV_LINKS.map((link) => (
@@ -149,7 +151,7 @@ export function PublicLayout() {
                       `block rounded-md px-3 py-2 text-sm transition-colors ${
                         isActive
                           ? 'text-brand-800 dark:text-brand-200'
-                          : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                          : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-ink-800'
                       }`
                     }
                   >
@@ -166,7 +168,7 @@ export function PublicLayout() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+      <footer className="border-t border-slate-200 bg-white dark:border-ink-800 dark:bg-ink-950">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <p className="text-xs text-slate-500 dark:text-slate-400">
             © {CURRENT_YEAR} Pampanga GrantConnect

@@ -25,7 +25,7 @@ export function EmptyState({ title, description, icon, action, className = '' }:
         </div>
       ) : null}
       <div className="max-w-sm space-y-1">
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{title}</h3>
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
         {description ? (
           <div className="text-sm text-slate-500 dark:text-slate-400">{description}</div>
         ) : null}

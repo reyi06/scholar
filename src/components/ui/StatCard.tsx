@@ -4,7 +4,7 @@ import { Link } from 'react-router'
 export type StatTone = 'neutral' | 'brand' | 'success' | 'warning' | 'danger'
 
 const TONE_ACCENT: Record<StatTone, string> = {
-  neutral: 'text-slate-900 dark:text-white',
+  neutral: 'text-slate-900 dark:text-slate-100',
   brand: 'text-brand-700 dark:text-brand-300',
   success: 'text-emerald-700 dark:text-emerald-300',
   warning: 'text-amber-700 dark:text-amber-300',
@@ -53,7 +53,7 @@ export function StatCard({ label, value, hint, tone = 'neutral', to }: StatCardP
 export function StatRow({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
     <div
-      className={`grid grid-cols-2 gap-y-6 divide-slate-200 sm:grid-cols-4 sm:divide-x dark:divide-slate-800 ${className}`}
+      className={`grid grid-cols-2 gap-y-6 divide-slate-200 sm:grid-cols-4 sm:divide-x dark:divide-ink-800 ${className}`}
     >
       {children}
     </div>

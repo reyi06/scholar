@@ -73,7 +73,7 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
               `flex items-center gap-3 rounded-md px-2.5 py-1.5 text-sm transition-colors ${
                 isActive
                   ? 'bg-brand-50 font-medium text-brand-800 dark:bg-brand-950/60 dark:text-brand-200'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-ink-800 dark:hover:text-white'
               }`
             }
           >
@@ -83,10 +83,10 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
         ))}
       </nav>
 
-      <div className="mt-4 border-t border-slate-200 pt-2 dark:border-slate-800">
+      <div className="mt-4 border-t border-slate-200 pt-2 dark:border-ink-800">
         <NavLink
           to="/"
-          className="flex items-center gap-3 rounded-md px-2.5 py-1.5 text-sm text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+          className="flex items-center gap-3 rounded-md px-2.5 py-1.5 text-sm text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-ink-800 dark:hover:text-white"
         >
           <Icon name="home" className="size-4 shrink-0 opacity-70" />
           Public site
@@ -96,7 +96,7 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
   )
 
   return (
-    <div className="flex min-h-svh bg-canvas dark:bg-slate-950">
+    <div className="flex min-h-svh bg-canvas dark:bg-ink-950">
       <a
         href="#dashboard-main"
         className="sr-only-focusable absolute top-2 left-2 z-50 rounded-md bg-brand-700 px-4 py-2 text-sm font-medium text-white"
@@ -105,7 +105,7 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
       </a>
 
       {/* Sidebar — desktop */}
-      <aside className="hidden w-60 shrink-0 border-r border-slate-200 bg-white lg:block dark:border-slate-800 dark:bg-slate-950">
+      <aside className="hidden w-60 shrink-0 border-r border-slate-200 bg-white lg:block dark:border-ink-800 dark:bg-ink-950">
         <div className="sticky top-0 h-svh overflow-y-auto">{sidebar}</div>
       </aside>
 
@@ -118,14 +118,14 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
             onClick={closeDrawer}
             className="absolute inset-0 size-full bg-slate-900/40"
           />
-          <div className="relative z-10 h-full w-64 max-w-[85%] overflow-y-auto bg-white dark:bg-slate-950">
+          <div className="relative z-10 h-full w-64 max-w-[85%] overflow-y-auto bg-white dark:bg-ink-950">
             {sidebar}
           </div>
         </div>
       ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-950/90">
+        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur-sm dark:border-ink-800 dark:bg-ink-950/90">
           <div className="flex items-center justify-between gap-3 px-5 py-3 sm:px-8">
             <div className="flex min-w-0 items-center gap-2">
               <Button
@@ -138,7 +138,7 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
                 <Icon name="menu" className="size-5" />
               </Button>
               {/* Plain text, not a heading: the page itself owns the h1. */}
-              <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
+              <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                 {activeItem?.label ?? areaLabel}
               </p>
             </div>
@@ -153,7 +153,7 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
                   trigger={<Avatar initials={initials(user.firstName, user.lastName)} className="m-0.5" />}
                   header={
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
+                      <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                         {user.firstName} {user.lastName}
                       </p>
                       <p className="truncate text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
@@ -192,7 +192,7 @@ function BrandMark() {
         <Icon name="graduation" className="size-4" />
       </span>
       <span className="flex min-w-0 flex-col leading-tight">
-        <span className="truncate text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
+        <span className="truncate text-sm font-semibold tracking-tight text-slate-900 dark:text-slate-100">
           GrantConnect
         </span>
       </span>

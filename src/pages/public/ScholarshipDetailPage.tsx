@@ -43,7 +43,7 @@ function BulletList({ items, emptyLabel }: { items: string[]; emptyLabel: string
     <ul className="space-y-2.5">
       {items.map((item, index) => (
         <li key={`${index}-${item}`} className="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
-          <span aria-hidden="true" className="mt-1.5 size-1.5 shrink-0 rounded-full bg-slate-300 dark:bg-slate-600" />
+          <span aria-hidden="true" className="mt-1.5 size-1.5 shrink-0 rounded-full bg-slate-300 dark:bg-ink-600" />
           <span>{item}</span>
         </li>
       ))}
@@ -308,7 +308,7 @@ export function ScholarshipDetailPage() {
                 </>
               )}
 
-              <div className="border-t border-slate-200 pt-4 dark:border-slate-800">
+              <div className="border-t border-slate-200 pt-4 dark:border-ink-800">
                 <Button
                   variant="outline"
                   fullWidth

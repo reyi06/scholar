@@ -374,7 +374,7 @@ export function AdminGrantsPage() {
     {
       key: 'referenceNo',
       header: 'Reference no.',
-      accessor: (row) => <span className="font-medium text-slate-900 dark:text-white">{row.referenceNo}</span>,
+      accessor: (row) => <span className="font-medium text-slate-900 dark:text-slate-100">{row.referenceNo}</span>,
     },
     {
       key: 'student',
@@ -433,9 +433,9 @@ export function AdminGrantsPage() {
         description="Confirm approved applications into grant records and manage every released grant."
       />
 
-      <section className="rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-        <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
-          <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+      <section className="rounded-lg border border-slate-200 bg-white dark:border-ink-800 dark:bg-ink-900">
+        <div className="border-b border-slate-200 px-5 py-4 dark:border-ink-800">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
             Awaiting grant confirmation
             {awaiting.data !== null ? (
               <span className="ml-1.5 font-normal text-slate-500 dark:text-slate-400">
@@ -461,14 +461,14 @@ export function AdminGrantsPage() {
             No approved applications are waiting. Every approval already has a confirmed grant record.
           </p>
         ) : (
-          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+          <ul className="divide-y divide-slate-100 dark:divide-ink-800">
             {awaitingList.map((application) => (
               <li
                 key={application.id}
                 className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-900 dark:text-white">
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                     {studentNames.get(application.studentId) ?? 'Unknown student'}
                   </p>
                   <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
@@ -487,7 +487,7 @@ export function AdminGrantsPage() {
 
       <p className="text-sm text-slate-600 dark:text-slate-300">
         Total released across all confirmed grants:{' '}
-        <span className="font-semibold text-slate-900 tabular-nums dark:text-white">
+        <span className="font-semibold text-slate-900 tabular-nums dark:text-slate-100">
           {totalReleased.data === null ? '—' : formatCurrency(totalReleased.data)}
         </span>
       </p>
@@ -575,7 +575,7 @@ export function AdminGrantsPage() {
                 }
               />
             ) : (
-              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-ink-800 dark:bg-ink-900">
                 <DataTable
                   columns={columns}
                   rows={list.data.items}

@@ -233,6 +233,7 @@ async function writeSitemap(): Promise<number> {
     { loc: '/', changefreq: 'weekly', priority: '1.0' },
     { loc: '/scholarships', changefreq: 'daily', priority: '0.9' },
     { loc: '/about', changefreq: 'monthly', priority: '0.5' },
+    { loc: '/faqs', changefreq: 'monthly', priority: '0.5' },
     { loc: '/register', changefreq: 'monthly', priority: '0.4' },
     { loc: '/login', changefreq: 'yearly', priority: '0.2' },
     ...listings.map((listing) => ({
@@ -372,6 +373,12 @@ writePage({
   path: '/about',
 })
 writePage({
+  title: 'Frequently asked questions | Pampanga GrantConnect',
+  description:
+    'How scholarships, applications, semester registration and confirmed grants work on Pampanga GrantConnect.',
+  path: '/faqs',
+})
+writePage({
   title: 'Create a student account | Pampanga GrantConnect',
   description: 'Save listings, submit applications and follow their progress.',
   path: '/register',
@@ -383,7 +390,7 @@ writePage({
   // Auth screens have nothing to offer a search result.
   noindex: true,
 })
-written += 5
+written += 6
 
 /**
  * Brand images are written to public/ (so the dev server serves them and they

@@ -25,6 +25,7 @@ const ScholarshipDetailPage = lazy(async () => ({
 const LoginPage = lazy(async () => ({ default: (await import('./pages/public/LoginPage.tsx')).LoginPage }))
 const RegisterPage = lazy(async () => ({ default: (await import('./pages/public/RegisterPage.tsx')).RegisterPage }))
 const AboutPage = lazy(async () => ({ default: (await import('./pages/public/AboutPage.tsx')).AboutPage }))
+const FaqPage = lazy(async () => ({ default: (await import('./pages/public/FaqPage.tsx')).FaqPage }))
 
 const StudentDashboardPage = lazy(async () => ({
   default: (await import('./pages/student/StudentDashboardPage.tsx')).StudentDashboardPage,
@@ -93,7 +94,7 @@ function GuestOnlyRoute({ children }: { children: ReactNode }) {
   // login screen on every refresh.
   if (initialising) {
     return (
-      <div className="flex min-h-svh items-center justify-center bg-canvas dark:bg-slate-950">
+      <div className="flex min-h-svh items-center justify-center bg-canvas dark:bg-ink-950">
         <LoadingState label="Checking your session…" />
       </div>
     )
@@ -112,7 +113,7 @@ export default function App() {
       {/* A single boundary covers every lazily loaded page. */}
       <Suspense
         fallback={
-          <div className="flex min-h-svh items-center justify-center bg-slate-50 dark:bg-slate-950">
+          <div className="flex min-h-svh items-center justify-center bg-slate-50 dark:bg-ink-950">
             <LoadingState label="Loading page…" />
           </div>
         }
@@ -124,6 +125,7 @@ export default function App() {
             <Route path="/scholarships" element={<ScholarshipDirectoryPage />} />
             <Route path="/scholarships/:id" element={<ScholarshipDetailPage />} />
             <Route path="/about" element={<AboutPage />} />
+          <Route path="/faqs" element={<FaqPage />} />
             <Route
               path="/login"
               element={

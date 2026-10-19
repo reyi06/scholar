@@ -17,14 +17,14 @@ export function Table({ children, className = '' }: { children: ReactNode; class
 
 export function THead({ children }: { children: ReactNode }) {
   return (
-    <thead className="border-b border-slate-200 dark:border-slate-800">
+    <thead className="border-b border-slate-200 dark:border-ink-800">
       {children}
     </thead>
   )
 }
 
 export function TBody({ children }: { children: ReactNode }) {
-  return <tbody className="divide-y divide-slate-100 dark:divide-slate-800">{children}</tbody>
+  return <tbody className="divide-y divide-slate-100 dark:divide-ink-800">{children}</tbody>
 }
 
 export function TR({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -130,7 +130,7 @@ export function DataTable<T>({
         {rows.map((row) => (
           <TR
             key={getRowId(row)}
-            className={onRowClick ? 'cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60' : undefined}
+            className={onRowClick ? 'cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-ink-800/60' : undefined}
           >
             {columns.map((column) => (
               <TD key={column.key} className={`${ALIGN[column.align ?? 'left']} ${column.className ?? ''}`}>

@@ -70,7 +70,7 @@ export function NotificationBell({ notificationsPath }: { notificationsPath?: st
       }
       header={
         <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-semibold text-slate-900 dark:text-white">Notifications</p>
+          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Notifications</p>
           {hasUnread ? <Badge tone="danger">{unread} new</Badge> : <Badge tone="neutral">All read</Badge>}
         </div>
       }
@@ -101,13 +101,13 @@ export function NotificationBell({ notificationsPath }: { notificationsPath?: st
           You have no notifications yet.
         </p>
       ) : (
-        <ul className="max-h-80 divide-y divide-slate-100 overflow-y-auto dark:divide-slate-800">
+        <ul className="max-h-80 divide-y divide-slate-100 overflow-y-auto dark:divide-ink-800">
           {recent.map((notification) => (
             <li key={notification.id}>
               <button
                 type="button"
                 onClick={() => openNotification(notification)}
-                className={`flex w-full flex-col gap-1 px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800 ${
+                className={`flex w-full flex-col gap-1 px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-ink-800 ${
                   notification.read ? '' : 'bg-brand-50/60 dark:bg-brand-950/30'
                 }`}
               >
@@ -115,7 +115,7 @@ export function NotificationBell({ notificationsPath }: { notificationsPath?: st
                   {notification.read ? null : (
                     <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-brand-700" />
                   )}
-                  <span className="text-sm font-medium text-slate-900 dark:text-white">
+                  <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
                     {notification.title}
                   </span>
                 </span>

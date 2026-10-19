@@ -19,7 +19,7 @@ export function ProtectedRoute({ role }: { role: Role }) {
   // the login screen on every refresh.
   if (initialising) {
     return (
-      <div className="flex min-h-svh items-center justify-center bg-canvas dark:bg-slate-950">
+      <div className="flex min-h-svh items-center justify-center bg-canvas dark:bg-ink-950">
         <LoadingState label="Checking your session…" />
       </div>
     )

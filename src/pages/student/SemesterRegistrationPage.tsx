@@ -88,7 +88,7 @@ function StepIndicator({ current }: { current: Step }) {
               className={`flex size-5 items-center justify-center rounded-full text-xs font-medium ${
                 isCurrent
                   ? 'bg-brand-700 text-white'
-                  : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                  : 'bg-slate-100 text-slate-500 dark:bg-ink-800 dark:text-slate-400'
               }`}
             >
               {index + 1}
@@ -97,7 +97,7 @@ function StepIndicator({ current }: { current: Step }) {
               aria-current={isCurrent ? 'step' : undefined}
               className={`text-sm ${
                 isCurrent
-                  ? 'font-semibold text-slate-900 dark:text-white'
+                  ? 'font-semibold text-slate-900 dark:text-slate-100'
                   : 'text-slate-500 dark:text-slate-400'
               }`}
             >
@@ -238,7 +238,7 @@ export function SemesterRegistrationPage() {
                   <form onSubmit={handleReview} noValidate>
                     <fieldset disabled={createRegistration.loading}>
                       <div className="px-5 py-4">
-                        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Term</h3>
+                        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Term</h3>
                         <div className="mt-4 grid gap-4 sm:grid-cols-2">
                           <Select
                             id="registration-academicYear"
@@ -263,8 +263,8 @@ export function SemesterRegistrationPage() {
                         </div>
                       </div>
 
-                      <div className="border-t border-slate-200 px-5 py-4 dark:border-slate-800">
-                        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                      <div className="border-t border-slate-200 px-5 py-4 dark:border-ink-800">
+                        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                           Enrolment
                         </h3>
                         <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -297,8 +297,8 @@ export function SemesterRegistrationPage() {
                         </div>
                       </div>
 
-                      <div className="border-t border-slate-200 px-5 py-4 dark:border-slate-800">
-                        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                      <div className="border-t border-slate-200 px-5 py-4 dark:border-ink-800">
+                        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                           Academic performance
                         </h3>
                         <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -329,7 +329,7 @@ export function SemesterRegistrationPage() {
                       </div>
                     </fieldset>
 
-                    <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 px-5 py-4 dark:border-slate-800">
+                    <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 px-5 py-4 dark:border-ink-800">
                       <Button type="submit">Review registration</Button>
                     </div>
                   </form>
@@ -365,7 +365,7 @@ export function SemesterRegistrationPage() {
                       ]}
                     />
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 px-5 py-4 dark:border-slate-800">
+                  <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 px-5 py-4 dark:border-ink-800">
                     <Button onClick={() => void handleConfirm()} loading={createRegistration.loading}>
                       Submit registration
                     </Button>
@@ -416,11 +416,11 @@ export function SemesterRegistrationPage() {
                 description="Once you are a confirmed grantee, submit a registration each semester to keep your grant active."
               />
             ) : (
-              <ul className="divide-y divide-slate-200 dark:divide-slate-800">
+              <ul className="divide-y divide-slate-200 dark:divide-ink-800">
                 {registrations.map((registration) => (
                   <li key={registration.id} className="space-y-1 py-4">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-medium text-slate-900 dark:text-white">
+                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                         {registration.referenceNo}
                       </p>
                       <StatusBadge kind="registration" status={registration.status} />

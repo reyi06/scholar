@@ -409,7 +409,7 @@ export function StudentProfilePage() {
             </div>
           </Section>
 
-          <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 pt-6 dark:border-slate-800">
+          <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 pt-6 dark:border-ink-800">
             <Button type="submit" loading={saveProfile.loading}>
               Save profile
             </Button>

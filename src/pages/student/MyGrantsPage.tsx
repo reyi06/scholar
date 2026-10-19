@@ -72,7 +72,7 @@ export function MyGrantsPage() {
           <div className="space-y-1">
             <p className="text-sm text-slate-600 dark:text-slate-300">
               Total released{' '}
-              <span className="font-semibold text-slate-900 dark:text-white">
+              <span className="font-semibold text-slate-900 dark:text-slate-100">
                 {formatCurrency(totalReleased)}
               </span>
               {grants.length > 0
@@ -106,7 +106,7 @@ export function MyGrantsPage() {
               <TBody>
                 {grants.map((grant) => (
                   <TR key={grant.id}>
-                    <TD className="font-medium text-slate-900 dark:text-white">{grant.referenceNo}</TD>
+                    <TD className="font-medium text-slate-900 dark:text-slate-100">{grant.referenceNo}</TD>
                     <TD>{names.get(grant.scholarshipId) ?? 'Listing unavailable'}</TD>
                     <TD>
                       {grant.academicYear} · {grant.semester}

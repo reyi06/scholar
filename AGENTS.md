@@ -242,11 +242,18 @@ setting:
   change that script to match.
 - `:root` and `.dark` set `color-scheme`, so native UI (scrollbars, date
   pickers, form controls) follows the theme too.
+- **Dark surfaces use the `ink-*` ramp, never `slate-*`.** `slate-950` is
+  `#020617`, near-black, and a page built on it reads as a hard, glaring block.
+  `ink-950` (canvas) → `ink-900` (surface) → `ink-800` (border) is a neutral
+  charcoal ramp defined in `@theme`. Use it for `dark:bg-*`, `dark:border-*`,
+  `dark:divide-*` and `dark:ring-*`. The value *is* the dark value, so never
+  reach for these behind a light-mode utility. `dark:text-*` still uses `slate`.
 
 **When adding a component, give every text colour its `dark:` counterpart.** A
-light-only `text-slate-500` on a dark surface measures 4.23:1 against
-`slate-950` and fails the 4.5:1 threshold — exactly the bug that shipped in the
-scholarship detail page. Decorative `aria-hidden` icons are exempt.
+light-only `text-slate-500` on a dark surface measures 4.23:1 against a dark
+background and fails the 4.5:1 threshold — exactly the bug that shipped in the
+scholarship detail page. Decorative `aria-hidden` icons are exempt. Headings in
+dark mode are `slate-100`, not `#ffffff`, which glares on a charcoal canvas.
 
 ### Accessibility
 Lighthouse Accessibility is **100** on the audited pages; keep it there. The
@@ -352,6 +359,28 @@ Do not present the current implementation as secure.
 ## 11. Verification log
 
 Newest first. Record the command and its observed result.
+
+### 2026-10-19 - FAQ, diagrams and a retuned dark theme (all passing)
+
+- `npm run lint` clean; `npx tsc -b` clean; `npm run build` clean — **20
+  prerendered pages** (14 listings plus home, directory, about, faqs, login,
+  register) and **19 sitemap URLs**.
+- **About page diagrams render.** The lifecycle rail shows all 6 stages in
+  order; the site map renders 3 role columns and 18 real links. Console empty.
+- **Dark theme measured in the browser** with the toggle, not by poking
+  `localStorage` (the storage write races the reload — the control is the
+  reliable path). With `.dark` applied:
+  - canvas `oklch(0.205 0.007 265)` — previously `slate-950`, `#020617`
+  - body text `oklch(0.869 0.022 252.894)`
+  - headings now `slate-100` rather than pure white
+- The remap was mechanical and audited: **124** `dark:` surface/border
+  utilities across 42 files moved from `slate` to `ink`, **0** left behind, and
+  **55** `dark:text-white` heading colours softened. Verified by counting both
+  the remaining old class and the new token after the sweep.
+- **The two modal scrims were checked specifically** (`bg-slate-900/40`, no
+  `dark:` variant). Because the sweep changes only `dark:`-prefixed utilities
+  and does not redefine Tailwind's `slate` variables, the scrims keep their
+  near-black value in both themes and stay correct.
 
 ### 2026-10-19 - client wired to the API (all pages verified)
 
@@ -601,6 +630,40 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-19 - dark theme retuned, FAQ page, site diagrams, hero illustrations
+
+- **The dark theme no longer uses Tailwind's `slate` for surfaces.** `slate-950`
+  is `#020617` — near-black — which made every dark page read as a hard, glaring
+  block. `src/index.css` now defines a dedicated `ink-600..950` ramp (a neutral
+  charcoal) that only ever appears behind a `dark:` variant, so the token value
+  *is* the dark value and nothing has to be overridden. Elevation steps lighter,
+  exactly as it does in light mode: canvas `ink-950` → surface `ink-900` →
+  border `ink-800`. Headings in dark mode are `slate-100`, not `#fff`.
+- **Applied by sweeping the `dark:` utilities** (124 surface/border occurrences
+  across 42 files, plus 55 heading colours). Mapping only the `dark:`-prefixed
+  utilities is what keeps it safe: utilities such as the modal scrim
+  `bg-slate-900/40` are light-mode declarations and keep their original value.
+- **`src/pages/public/FaqPage.tsx`** — a new `/faqs` route with 7 grouped
+  sections, wired into the router, the public nav, the footer and the
+  prerenderer.
+- **`src/components/Illustrations.tsx`** — hand-authored SVG line art for the
+  hero and the three process steps, revealed with a measured stroke-dash
+  animation (`--draw-length`, set from `getTotalLength()`), with the resting
+  state fully drawn so the artwork survives a browser that never runs the
+  animation.
+- **`src/components/Diagrams.tsx`** — `SiteMapDiagram` (three role columns whose
+  links genuinely navigate) and `LifecycleDiagram` (the application stages, with
+  the grant-confirmation step marked as the one that releases funds). Both use
+  real HTML text rather than SVG text, which would be unselectable, unsearchable
+  and illegible at phone widths. They replace the prose block that previously
+  explained the same distinctions on the About page.
+- **`src/hooks/useInView.ts`** — a small reveal-on-scroll hook with a positive
+  bottom `rootMargin`, so sections start revealing slightly before they enter the
+  viewport instead of painting late.
+- **Home page** rebuilt around the hero search, the three-step process and an
+  "Announcements and advisories" accordion; the scholarship listings were removed
+  from it by product decision.
 
 ### 2026-10-19 - client wired to the API, spec sheet and deployment guide
 

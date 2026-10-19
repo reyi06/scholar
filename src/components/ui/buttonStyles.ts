@@ -15,9 +15,9 @@ const VARIANTS: Record<ButtonVariant, string> = {
   secondary:
     'bg-slate-900 text-white hover:bg-slate-800 active:bg-slate-950 disabled:bg-slate-400 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white',
   outline:
-    'border border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:text-slate-900 disabled:text-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600',
+    'border border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:text-slate-900 disabled:text-slate-400 dark:border-ink-700 dark:bg-ink-900 dark:text-slate-200 dark:hover:border-ink-600',
   ghost:
-    'text-slate-600 hover:bg-slate-100 hover:text-slate-900 disabled:text-slate-400 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white',
+    'text-slate-600 hover:bg-slate-100 hover:text-slate-900 disabled:text-slate-400 dark:text-slate-300 dark:hover:bg-ink-800 dark:hover:text-white',
   danger: 'bg-rose-600 text-white hover:bg-rose-700 active:bg-rose-800 disabled:bg-rose-300',
 }
 

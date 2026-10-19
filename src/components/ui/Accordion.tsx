@@ -24,7 +24,7 @@ export interface AccordionProps {
  */
 export function Accordion({ items, className = '' }: AccordionProps) {
   return (
-    <div className={`divide-y divide-slate-200 dark:divide-slate-800 ${className}`}>
+    <div className={`divide-y divide-slate-200 dark:divide-ink-800 ${className}`}>
       {items.map((item) => (
         <details key={item.id} open={item.defaultOpen} className="group">
           <summary className="flex cursor-pointer list-none items-start justify-between gap-4 py-4 transition hover:text-brand-700 dark:hover:text-brand-300">
@@ -34,7 +34,7 @@ export function Accordion({ items, className = '' }: AccordionProps) {
                   {item.meta}
                 </span>
               ) : null}
-              <span className="mt-0.5 block text-sm font-semibold text-slate-900 dark:text-white">
+              <span className="mt-0.5 block text-sm font-semibold text-slate-900 dark:text-slate-100">
                 {item.title}
               </span>
             </span>

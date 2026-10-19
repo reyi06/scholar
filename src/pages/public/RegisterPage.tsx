@@ -86,7 +86,7 @@ export function RegisterPage() {
 
   return (
     <div className="mx-auto max-w-sm px-5 py-16 sm:py-24">
-      <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">
+      <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
         Create a student account
       </h1>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">

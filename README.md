@@ -159,7 +159,8 @@ the app still boots in demo mode.
 | `/scholarships/:id` | Scholarship details         | Provider, eligibility, benefits, requirements, deadline, contact details, application instructions |
 | `/login`            | Login                       | Sign-in for students and administrators                                                        |
 | `/register`         | Student registration        | Create a student account                                                                        |
-| `/about`            | About                       | Scope, limitations, route reference and security notes                                          |
+| `/about`            | About                       | Scope, limitations and how the platform works                                                   |
+| `/faqs`             | Frequently asked questions  | Grouped answers on listings, applying, grants, registration and accounts                         |
 
 ### Student (sign-in required, student role)
 

@@ -21,7 +21,7 @@ export interface TabsProps<T extends string> {
 export function Tabs<T extends string>({ tabs, active, onChange, className = '', label = 'Views' }: TabsProps<T>) {
   return (
     <div
-      className={`flex gap-1 overflow-x-auto border-b border-slate-200 dark:border-slate-800 ${className}`}
+      className={`flex gap-1 overflow-x-auto border-b border-slate-200 dark:border-ink-800 ${className}`}
       role="group"
       aria-label={label}
     >
@@ -41,7 +41,7 @@ export function Tabs<T extends string>({ tabs, active, onChange, className = '',
           >
             {tab.label}
             {tab.count !== undefined ? (
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600 dark:bg-ink-800 dark:text-slate-300">
                 {tab.count}
               </span>
             ) : null}

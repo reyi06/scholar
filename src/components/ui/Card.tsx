@@ -8,7 +8,7 @@ export interface CardProps {
 /** Plain white surface. No resting shadow, minimal radius. */
 export function Card({ className = '', children }: CardProps) {
   return (
-    <div className={`rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 ${className}`}>
+    <div className={`rounded-lg border border-slate-200 bg-white dark:border-ink-800 dark:bg-ink-900 ${className}`}>
       {children}
     </div>
   )
@@ -24,10 +24,10 @@ export interface CardHeaderProps {
 export function CardHeader({ title, description, actions, className = '' }: CardHeaderProps) {
   return (
     <div
-      className={`flex flex-col gap-3 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 ${className}`}
+      className={`flex flex-col gap-3 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-ink-800 ${className}`}
     >
       <div className="min-w-0">
-        <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white">{title}</h2>
+        <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">{title}</h2>
         {description ? (
           <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{description}</p>
         ) : null}
@@ -44,7 +44,7 @@ export function CardBody({ className = '', children }: CardProps) {
 export function CardFooter({ className = '', children }: CardProps) {
   return (
     <div
-      className={`flex flex-wrap items-center gap-2 border-t border-slate-200 px-5 py-4 dark:border-slate-800 ${className}`}
+      className={`flex flex-wrap items-center gap-2 border-t border-slate-200 px-5 py-4 dark:border-ink-800 ${className}`}
     >
       {children}
     </div>

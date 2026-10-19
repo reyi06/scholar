@@ -171,7 +171,7 @@ export function AdminAnnouncementsPage() {
       ) : null}
 
       {!list.error && announcements.length > 0 ? (
-        <ul className="divide-y divide-slate-200 dark:divide-slate-800">
+        <ul className="divide-y divide-slate-200 dark:divide-ink-800">
           {announcements.map((announcement) => (
             <li
               key={announcement.id}
@@ -185,7 +185,7 @@ export function AdminAnnouncementsPage() {
                   {announcement.pinned ? <Badge tone="gold">Pinned</Badge> : null}
                   <Badge tone="neutral">{ANNOUNCEMENT_AUDIENCE_LABELS[announcement.audience]}</Badge>
                 </div>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   {announcement.title}
                 </h3>
                 <p className="text-sm whitespace-pre-line text-slate-600 dark:text-slate-300">

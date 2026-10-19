@@ -140,7 +140,7 @@ export function ScholarshipDirectoryPage() {
       />
 
       {/* ------------------------------- Toolbar ------------------------------- */}
-      <div className="mt-6 border-y border-slate-200 py-4 dark:border-slate-800">
+      <div className="mt-6 border-y border-slate-200 py-4 dark:border-ink-800">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <div className="lg:flex-1">
             <SearchInput

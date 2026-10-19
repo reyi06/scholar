@@ -123,7 +123,7 @@ export function AdminApplicationsPage() {
     {
       key: 'referenceNo',
       header: 'Reference no.',
-      accessor: (row) => <span className="font-medium text-slate-900 dark:text-white">{row.referenceNo}</span>,
+      accessor: (row) => <span className="font-medium text-slate-900 dark:text-slate-100">{row.referenceNo}</span>,
     },
     {
       key: 'student',
@@ -267,7 +267,7 @@ export function AdminApplicationsPage() {
                 }
               />
             ) : (
-              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-ink-800 dark:bg-ink-900">
                 <DataTable
                   columns={columns}
                   rows={list.data.items}
@@ -352,14 +352,14 @@ export function AdminApplicationsPage() {
             )}
 
             <section>
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Motivation</h3>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Motivation</h3>
               <p className="mt-2 text-sm whitespace-pre-line text-slate-600 dark:text-slate-300">
                 {review.data.motivation || 'No motivation statement was provided.'}
               </p>
             </section>
 
             <section>
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Responses</h3>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Responses</h3>
               {review.data.responses.length === 0 ? (
                 <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                   This application did not include any additional responses.
@@ -377,7 +377,7 @@ export function AdminApplicationsPage() {
             </section>
 
             <section>
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Documents</h3>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Documents</h3>
               {review.data.documentNames.length === 0 ? (
                 <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                   No document names were listed with this application.
@@ -392,7 +392,7 @@ export function AdminApplicationsPage() {
             </section>
 
             <section>
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Timeline</h3>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Timeline</h3>
               {review.data.timeline.length === 0 ? (
                 <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                   This application has no recorded activity yet.
@@ -402,7 +402,7 @@ export function AdminApplicationsPage() {
                   {review.data.timeline.map((entry, index) => (
                     <li
                       key={`${entry.status}-${entry.at}-${index}`}
-                      className="flex flex-col gap-1 border-l-2 border-slate-200 pl-3 dark:border-slate-800"
+                      className="flex flex-col gap-1 border-l-2 border-slate-200 pl-3 dark:border-ink-800"
                     >
                       <div className="flex flex-wrap items-center gap-2">
                         <StatusBadge kind="application" status={entry.status} />
@@ -424,8 +424,8 @@ export function AdminApplicationsPage() {
               )}
             </section>
 
-            <section className="rounded-lg border border-slate-200 p-4 dark:border-slate-800">
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Record a decision</h3>
+            <section className="rounded-lg border border-slate-200 p-4 dark:border-ink-800">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Record a decision</h3>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 Each decision needs a short note. The note is stored on the timeline and a
                 notification is raised for the student in-app.

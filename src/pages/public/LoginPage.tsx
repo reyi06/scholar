@@ -49,7 +49,7 @@ export function LoginPage() {
 
   return (
     <div className="mx-auto max-w-sm px-5 py-16 sm:py-24">
-      <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">Sign in</h1>
+      <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Sign in</h1>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Access your applications, semester registration and grants.
       </p>
@@ -94,7 +94,7 @@ export function LoginPage() {
         </Link>
       </p>
 
-      <div className="mt-10 border-t border-slate-200 pt-5 dark:border-slate-800">
+      <div className="mt-10 border-t border-slate-200 pt-5 dark:border-ink-800">
         <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Test accounts</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {testAccounts.map((account) => (

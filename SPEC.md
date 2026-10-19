@@ -64,9 +64,9 @@ Browser ──► React SPA (Vite build, prerendered per route)
 | `SavedScholarship` | composite key (student, scholarship) |
 | `PlatformSettings` | single row, id `singleton` |
 
-## 5. Routes (26)
+## 5. Routes (27)
 
-**Public (6)** — `/`, `/scholarships`, `/scholarships/:id`, `/about`, `/login`,
+**Public (7)** - `/`, `/scholarships`, `/scholarships/:id`, `/about`, `/faqs`, `/login`,
 `/register`
 
 **Student (8)** — `/student/dashboard`, `/profile`, `/saved`, `/applications`,

@@ -170,7 +170,7 @@ export function AdminDashboardPage() {
             Nothing is waiting on a decision right now.
           </p>
         ) : (
-          <ul className="divide-y divide-slate-200 dark:divide-slate-800">
+          <ul className="divide-y divide-slate-200 dark:divide-ink-800">
             {pending.map((item) => (
               <li
                 key={item.to + item.sentence}
@@ -191,7 +191,7 @@ export function AdminDashboardPage() {
 
       <section
         aria-label="Key figures"
-        className="grid grid-cols-2 gap-x-8 gap-y-6 border-y border-slate-200 py-6 sm:grid-cols-4 dark:border-slate-800"
+        className="grid grid-cols-2 gap-x-8 gap-y-6 border-y border-slate-200 py-6 sm:grid-cols-4 dark:border-ink-800"
       >
         <StatCard
           label="Scholarships"
@@ -237,14 +237,14 @@ export function AdminDashboardPage() {
             description="Applications submitted by students will appear here."
           />
         ) : (
-          <ul className="divide-y divide-slate-200 dark:divide-slate-800">
+          <ul className="divide-y divide-slate-200 dark:divide-ink-800">
             {recentApplications.items.map((application) => (
               <li
                 key={application.id}
                 className="flex flex-wrap items-center justify-between gap-3 py-3.5 first:pt-0"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-900 dark:text-white">
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                     {application.referenceNo}
                   </p>
                   <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">

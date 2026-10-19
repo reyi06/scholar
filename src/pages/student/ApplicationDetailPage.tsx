@@ -210,7 +210,7 @@ export function ApplicationDetailPage() {
             {application.documentNames.length === 0 ? (
               <p className="text-sm text-slate-500 dark:text-slate-400">No documents were listed.</p>
             ) : (
-              <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+              <ul className="divide-y divide-slate-100 dark:divide-ink-800">
                 {application.documentNames.map((name) => (
                   <li
                     key={name}
@@ -234,9 +234,9 @@ export function ApplicationDetailPage() {
                 {application.timeline.map((entry, index) => (
                   <li
                     key={`${entry.status}-${entry.at}-${index}`}
-                    className="border-l border-slate-200 pl-4 dark:border-slate-800"
+                    className="border-l border-slate-200 pl-4 dark:border-ink-800"
                   >
-                    <p className="text-sm font-medium text-slate-900 dark:text-white">
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                       {APPLICATION_STATUS_LABELS[entry.status]}
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -253,7 +253,7 @@ export function ApplicationDetailPage() {
           </Section>
 
           {canWithdraw ? (
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-8 dark:border-slate-800">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-8 dark:border-ink-800">
               <p className="text-sm text-slate-500 dark:text-slate-400">
                 Withdrawing closes this application and cannot be undone.
               </p>

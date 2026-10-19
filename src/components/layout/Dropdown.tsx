@@ -64,7 +64,7 @@ export function Dropdown({
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label={label}
-        className="flex items-center rounded-lg transition hover:bg-slate-100 dark:hover:bg-slate-800"
+        className="flex items-center rounded-lg transition hover:bg-slate-100 dark:hover:bg-ink-800"
       >
         {trigger}
       </button>
@@ -73,12 +73,12 @@ export function Dropdown({
         <div
           role="menu"
           aria-label={label}
-          className={`absolute z-40 mt-2 w-64 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-float dark:border-slate-800 dark:bg-slate-900 ${
+          className={`absolute z-40 mt-2 w-64 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-float dark:border-ink-800 dark:bg-ink-900 ${
             align === 'right' ? 'right-0' : 'left-0'
           }`}
         >
           {header ? (
-            <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-800">{header}</div>
+            <div className="border-b border-slate-200 px-4 py-3 dark:border-ink-800">{header}</div>
           ) : null}
 
           {children}
@@ -92,7 +92,7 @@ export function Dropdown({
                     to={item.to}
                     role="menuitem"
                     onClick={() => setOpen(false)}
-                    className={`flex items-center gap-2.5 px-4 py-2 text-sm transition hover:bg-slate-50 dark:hover:bg-slate-800 ${
+                    className={`flex items-center gap-2.5 px-4 py-2 text-sm transition hover:bg-slate-50 dark:hover:bg-ink-800 ${
                       item.tone === 'danger'
                         ? 'text-rose-700 dark:text-rose-300'
                         : 'text-slate-700 dark:text-slate-200'
@@ -109,7 +109,7 @@ export function Dropdown({
                       setOpen(false)
                       item.onClick?.()
                     }}
-                    className={`flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm transition hover:bg-slate-50 dark:hover:bg-slate-800 ${
+                    className={`flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm transition hover:bg-slate-50 dark:hover:bg-ink-800 ${
                       item.tone === 'danger'
                         ? 'text-rose-700 dark:text-rose-300'
                         : 'text-slate-700 dark:text-slate-200'
@@ -123,7 +123,7 @@ export function Dropdown({
           ) : null}
 
           {footer ? (
-            <div className="border-t border-slate-200 px-4 py-2.5 dark:border-slate-800">{footer}</div>
+            <div className="border-t border-slate-200 px-4 py-2.5 dark:border-ink-800">{footer}</div>
           ) : null}
         </div>
       ) : null}

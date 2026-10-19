@@ -14,12 +14,12 @@ export function NotFoundPage() {
   const dashboardPath = user?.role === 'admin' ? '/admin/dashboard' : '/student/dashboard'
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-canvas px-5 py-16 text-center dark:bg-slate-950">
+    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-canvas px-5 py-16 text-center dark:bg-ink-950">
       <div className="space-y-2">
         <p className="text-xs font-medium tracking-wide text-slate-500 uppercase dark:text-slate-400">
           Error 404
         </p>
-        <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">
+        <h1 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
           Page not found
         </h1>
         <p className="mx-auto max-w-sm text-sm text-slate-500 dark:text-slate-400">

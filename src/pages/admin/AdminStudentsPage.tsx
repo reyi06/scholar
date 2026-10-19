@@ -159,7 +159,7 @@ export function AdminStudentsPage() {
       key: 'name',
       header: 'Student',
       render: (row) => (
-        <span className="font-medium text-slate-900 dark:text-white">
+        <span className="font-medium text-slate-900 dark:text-slate-100">
           {fullName(row.user.firstName, row.user.lastName)}
         </span>
       ),
@@ -340,7 +340,7 @@ export function AdminStudentsPage() {
                 }
               />
             ) : (
-              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-ink-800 dark:bg-ink-900">
                 <DataTable
                   columns={columns}
                   rows={data.items}

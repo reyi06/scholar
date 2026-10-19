@@ -137,7 +137,7 @@ export function StudentDashboardPage() {
             title="Application status"
             description="Counts across every application you have filed."
           >
-            <div className="grid grid-cols-2 gap-x-8 gap-y-6 border-y border-slate-200 py-6 sm:grid-cols-4 dark:border-slate-800">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-6 border-y border-slate-200 py-6 sm:grid-cols-4 dark:border-ink-800">
               <StatCard
                 label="All applications"
                 value={applications.length}
@@ -158,7 +158,7 @@ export function StudentDashboardPage() {
             {notifications.length === 0 ? (
               <p className="text-sm text-slate-500 dark:text-slate-400">No updates yet.</p>
             ) : (
-              <ul className="divide-y divide-slate-200 dark:divide-slate-800">
+              <ul className="divide-y divide-slate-200 dark:divide-ink-800">
                 {notifications.slice(0, 5).map((notification) => (
                   <li
                     key={notification.id}

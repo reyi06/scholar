@@ -60,7 +60,7 @@ function BreakdownTable({ title, description, rows, filename, metric = 'count' }
         const percent = maxValue > 0 ? Math.round((value / maxValue) * 100) : 0
         return (
           <div
-            className="h-1.5 w-full max-w-40 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
+            className="h-1.5 w-full max-w-40 overflow-hidden rounded-full bg-slate-100 dark:bg-ink-800"
             role="img"
             aria-label={`${row.label}: ${percent}% of the largest value`}
           >
@@ -105,7 +105,7 @@ function BreakdownTable({ title, description, rows, filename, metric = 'count' }
         </Button>
       }
     >
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-ink-800 dark:bg-ink-900">
         <DataTable columns={columns} rows={rows} getRowId={(row) => row.label} caption={title} />
       </div>
     </Section>
@@ -211,7 +211,7 @@ export function AdminReportsPage() {
         <>
           <section
             aria-label="Overview"
-            className="grid grid-cols-2 gap-x-8 gap-y-6 border-y border-slate-200 py-6 sm:grid-cols-3 lg:grid-cols-6 dark:border-slate-800"
+            className="grid grid-cols-2 gap-x-8 gap-y-6 border-y border-slate-200 py-6 sm:grid-cols-3 lg:grid-cols-6 dark:border-ink-800"
           >
             <StatCard
               label="Scholarships"

@@ -94,7 +94,7 @@ export function NotificationsPage() {
           action={<LinkButton to="/student/dashboard">Back to dashboard</LinkButton>}
         />
       ) : (
-        <ul className="divide-y divide-slate-200 dark:divide-slate-800">
+        <ul className="divide-y divide-slate-200 dark:divide-ink-800">
           {notifications.map((notification) => {
             const row = (
               <>
@@ -109,7 +109,7 @@ export function NotificationsPage() {
                     className={`text-sm ${
                       notification.read
                         ? 'text-slate-700 dark:text-slate-200'
-                        : 'font-medium text-slate-900 dark:text-white'
+                        : 'font-medium text-slate-900 dark:text-slate-100'
                     }`}
                   >
                     {notification.title}
@@ -130,7 +130,7 @@ export function NotificationsPage() {
                     onClick={() => {
                       if (!notification.read) void handleMarkRead(notification.id)
                     }}
-                    className="block rounded px-1 py-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                    className="block rounded px-1 py-4 transition-colors hover:bg-slate-50 dark:hover:bg-ink-800/60"
                   >
                     {row}
                   </Link>

@@ -138,7 +138,7 @@ export function AdminScholarshipsPage() {
       header: 'Scholarship',
       render: (row) => (
         <div className="flex flex-col">
-          <span className="font-medium text-slate-900 dark:text-white">{row.name}</span>
+          <span className="font-medium text-slate-900 dark:text-slate-100">{row.name}</span>
           <span className="text-xs text-slate-500 dark:text-slate-400">{row.provider}</span>
         </div>
       ),
@@ -296,7 +296,7 @@ export function AdminScholarshipsPage() {
                 }
               />
             ) : (
-              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-ink-800 dark:bg-ink-900">
                 <DataTable
                   columns={columns}
                   rows={data.items}
