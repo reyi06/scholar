@@ -146,7 +146,26 @@ src/
     └── NotFoundPage.tsx
 
 server/                         # Node HTTP API; owns the database
-├── index.ts                    # Router, routes, authorisation, business rules
+├── index.ts                    # Bootstrap only: dispatch, errors, listen
+├── http/
+│   ├── router.ts               # route(), match(), the route table
+│   ├── auth.ts                 # Sessions, requireUser/Role/OwnerOrAdmin
+│   └── responses.ts            # send, readJson, cookies, security headers
+├── routes/                     # One module per resource — 70 routes total
+│   ├── auth.ts                 # health, session, login, Google, OTP, register
+│   ├── scholarships.ts         # listings + saved
+│   ├── applications.ts         # applications + derived views
+│   ├── registrations.ts
+│   ├── grants.ts
+│   ├── documents.ts
+│   ├── announcements.ts
+│   ├── notifications.ts
+│   ├── students.ts
+│   ├── profile.ts
+│   ├── settings.ts
+│   ├── reports.ts              # reports + maintenance endpoints
+│   ├── audit.ts
+│   └── me.ts                   # export + erasure request
 ├── db.ts                       # Prisma client (PostgreSQL adapter)
 ├── mappers.ts                  # Row -> domain mapping
 ├── passwords.ts                # scrypt hashing
@@ -431,6 +450,28 @@ A real deployment must keep TLS on, change the default database password, set
 ## 11. Verification log
 
 Newest first. Record the command and its observed result.
+
+### 2026-10-20 - server split into modules (70 routes verified)
+
+- **`server/index.ts` went from ~2,500 lines to 93.** Routes live in
+  `server/routes/` (one module per resource) and register themselves on import;
+  shared helpers moved to `server/http/` (`router.ts`, `auth.ts`,
+  `responses.ts`). `index.ts` now owns only dispatch, error handling and
+  `listen`.
+- **Registration verified by counting, not by assuming**: 70 `route(...)` calls
+  across 15 modules — announcements 4, applications 10, audit 1, auth 10,
+  documents 6, grants 7, maintenance 2, me 2, notifications 4, profile 2,
+  registrations 5, reports 1, scholarships 9, settings 2, students 5.
+- **Live server check after the split**: health `ok`; login `200`; 14 published
+  listings; 10 applications; documents, audit, reports and stats all responding;
+  `/api/grants/total-released` still `60500`. Server stderr empty.
+- `npx tsc -b`, `oxlint` and `npm run build` clean — 22 prerendered pages.
+- **The 11-step rehearsal passed** end to end, and responsive sweeps were clean
+  for public, student and admin routes.
+- Two self-inflicted obstacles worth recording: the first generation wrote the
+  modules to the project root instead of `server/`, and a module-named-`auth.ts`
+  collision made `routes/auth.ts` skip its own helpers. Both were caught by
+  `tsc` immediately because every module is type-checked.
 
 ### 2026-10-20 - code review: a session bug, duplicated maps, conventional layout
 
@@ -1019,6 +1060,21 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-20 - server split into http/ and routes/
+
+- **`server/index.ts` reduced from ~2,500 lines to a 93-line bootstrap.** It
+  imports the route modules (which register themselves), applies security
+  headers, dispatches, handles errors and listens.
+- **`server/http/`** — `router.ts` (route table, `match`, `safeEqual`), `auth.ts`
+  (session cookie, `currentUser`, `startSession`, `endSession`, and the
+  `requireUser`/`requireRole`/`requireOwnerOrAdmin` helpers) and `responses.ts`
+  (`send`, `readJson`, `parseCookies`, `applySecurityHeaders`).
+- **`server/routes/`** — fifteen modules grouped by resource: auth,
+  scholarships, applications, registrations, grants, documents, announcements,
+  notifications, students, profile, settings, reports, audit, me, maintenance.
+- Behaviour is unchanged: the code was moved verbatim and each module's imports
+  were derived from what it actually references, so `noUnusedLocals` still holds.
 
 ### 2026-10-20 - session refresh fixed, shared tone maps, conventional layout
 
