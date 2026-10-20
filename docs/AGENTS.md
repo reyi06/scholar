@@ -40,16 +40,24 @@ npm run dev        # dev server -> http://localhost:5173
 npm run build      # type-check (tsc -b) then build to dist/
 npm run preview    # serve the production build locally
 npm run lint       # oxlint
+npm test           # vitest: 61 unit and component tests
 npm run check:responsive   # drive Chrome at 390/768/1280; needs dev + server
 npm run rehearse           # walk the demo script and time each step
 npm run db:reset           # drop, re-migrate and reseed
 ```
 
-There is **no unit-test runner configured**. Verification is manual and
-browser-driven — see the Verification log for the approach used (route sweeps,
-decoded QR output, HTTP-level checks, Lighthouse). `check:responsive` is the one
-scripted check; it reports horizontal overflow and missing headings per route,
-and writes screenshots to `tmp/responsive/`.
+`npm test` runs in about two seconds and needs no database: it covers the pure
+rules — document classification and upload validation, password hashing,
+failed-login throttling, form validation, reference numbering, Google auth
+authority, and the error boundary. Workflow rules that span the database and
+HTTP are covered by `check:responsive` and `rehearse`, not by unit tests.
+
+There is a **test suite**: `npm test` (Vitest + jsdom + Testing Library). It is
+deliberately database-free and covers the pure rules; verification of the whole
+system is still browser-driven — see the Verification log for the route sweeps,
+decoded QR output, HTTP-level checks and Lighthouse. `check:responsive` reports
+horizontal overflow and missing headings per route and writes screenshots to
+`tmp/responsive/`.
 
 Demo sign-in: student `maria.santos@example.com` / `student123`,
 administrator `admin@example.com` / `admin123`.
@@ -450,6 +458,25 @@ A real deployment must keep TLS on, change the default database password, set
 ## 11. Verification log
 
 Newest first. Record the command and its observed result.
+
+### 2026-10-20 - test suite added (61 tests, and a bug it caught immediately)
+
+- **`npm test`** — Vitest with jsdom, 8 files, **61 tests**, **2.5 s**, no
+  database required.
+- Coverage is the pure, high-consequence logic: document classification and
+  upload validation, password hashing (including malformed stored values and a
+  truncated digest), failed-login throttling, form validators, shared sign-up
+  details, reference numbering, Google auth authority, file-size formatting,
+  and the error boundary rendering a recovery screen instead of a blank page.
+- **The suite found a real defect on its first run.** `classifyDocument` only
+  matched keywords separated by spaces, so `barangay-clearance.jpg` and
+  `registration-form.pdf` were classified as **"other"**. Hyphens, underscores
+  and dots are at least as common as spaces in file names. The classifier now
+  normalises separators before matching, and the three failing tests pass.
+- I also confirmed the boundary actually catches: it was previously only
+  reasoned about, never made to throw.
+- `npx tsc -b` and `oxlint` clean with the tests included in
+  `tsconfig.server.json`, so test code is type-checked like the rest.
 
 ### 2026-10-20 - server split into modules (70 routes verified)
 
@@ -1060,6 +1087,21 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-20 - automated tests, and the classifier bug they exposed
+
+- **Vitest + jsdom + Testing Library**, with `vitest.config.ts` kept separate
+  from the app build so production never loads test configuration. `npm test`
+  and `npm run test:watch`.
+- **61 tests over 8 files**, chosen for consequence rather than coverage: a
+  wrong password must never verify, a document must not be filed under the wrong
+  requirement, a reference number must not collide, and a render failure must not
+  blank the page.
+- **`classifyDocument` fixed**: it expected spaces, so hyphenated and
+  underscored filenames (`barangay-clearance.jpg`, `registration-form.pdf`) fell
+  through to "other". Separators are now normalised before matching.
+- Tests are included in `tsconfig.server.json`, so they are type-checked with
+  `jsx` enabled; `noUnusedLocals` applies to them too.
 
 ### 2026-10-20 - throttling no longer trusts a client-supplied address
 

@@ -80,7 +80,14 @@ const CLASSIFICATION_KEYWORDS: [RegExp, DocumentClassification][] = [
  */
 export function classifyDocument(fileName: string, mimeType = ''): DocumentClassification {
   const stem = fileName.replace(/\.[^./\\]+$/, '')
-  const haystack = `${stem} ${mimeType}`.toLowerCase()
+
+  // File names use underscores, dots and dashes at least as often as spaces
+  // ("barangay-clearance.jpg", "cert_of_enrolment.pdf"). Normalising them means
+  // one keyword pattern has to cover every separator a student might use —
+  // without this, a hyphenated residency certificate classified as "other".
+  const normalised = stem.replace(/[._-]+/g, ' ')
+
+  const haystack = `${normalised} ${mimeType}`.toLowerCase()
   for (const [pattern, classification] of CLASSIFICATION_KEYWORDS) {
     if (pattern.test(haystack)) return classification
   }
