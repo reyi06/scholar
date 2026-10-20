@@ -1653,16 +1653,25 @@ chronological lists for announcements and notifications.
 
 ## 13. Open items / next steps
 
-1. **Connect a real backend.** Replace the bodies in `src/lib/api.ts` and set
-   `DEMO_MODE = false`. Then enforce every rule in section 8 server-side,
-   especially ownership and grant confirmation.
-2. **Replace the placeholder listings** with verified listings from real
-   providers, and swap the generic provider and school names for the real ones.
-3. **Add tests.** Nothing is installed; Vitest + React Testing Library is the
-   natural fit. The business rules in section 8 are the highest-value cases.
-4. **Add real authentication** (server-side, hashed credentials, no plain-text
-   passwords) and remove the demo credentials from the login screen.
-5. Consider a theme toggle (`@custom-variant dark`) if users ask for it.
-6. Consider a Prettier/`editorconfig` config if formatting should be enforced
-   beyond oxlint.
-7. `public/favicon.svg` is still the starter icon.
+What is genuinely left, in priority order. Items that have since been done —
+connecting the API, real server-side authentication, the theme toggle, the
+favicon — have been removed rather than left as stale instructions.
+
+1. **Replace the placeholder listings** with verified records from real
+   providers, and swap the generic provider and school names. This is the one
+   blocker to any public use.
+2. **Deploy.** `docs/DEPLOY.md` describes the three parts. For Supabase, change
+   `DATABASE_URL` to the direct connection string and run
+   `npx prisma migrate deploy`; the schema needs no change.
+3. **Wire a real email transport.** `server/mailer.ts` is the seam; the console
+   transport is for demonstrations only.
+4. **Add tests.** Nothing is installed; Vitest + React Testing Library is the
+   natural fit. The business rules in section 8 are the highest-value cases, and
+   `scripts/rehearse-demo.ts` shows the flows worth asserting.
+5. **Move throttling out of memory** if the API ever runs as more than one
+   process, and set `TRUST_PROXY=true` only behind a proxy that overwrites the
+   header.
+6. **Schedule the retention job.** `npm run db:prune-documents` defaults to a dry
+   run; nothing enforces the retention period until it is scheduled.
+7. Consider Prettier/`editorconfig` if formatting should be enforced beyond
+   oxlint. Source uses LF and the repo carries its own git identity.
