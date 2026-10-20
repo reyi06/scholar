@@ -24,13 +24,14 @@ Pampanga, Philippines. Written 2026-10-19; reflects commit `087e9b0`.
 | Build | Vite | 8.3.4 |
 | Styling | Tailwind CSS | 4.3.3 |
 | Language | TypeScript | 6.0.3 |
-| Database | SQLite via Prisma | 7.10.1 |
+| Database | PostgreSQL via Prisma | 7.10.1 |
 | Lint | oxlint | 1.88.0 |
 | Tests | — | none configured |
 
-**Runtime dependencies: 5.** `react`, `react-dom`, `react-router`,
-`@prisma/client`, `@prisma/adapter-better-sqlite3`. Icons, CSV export, dialogs,
-tables, validation, the PNG encoder and the HTTP router are all hand-written.
+**Runtime dependencies: 6.** `react`, `react-dom`, `react-router`,
+`@prisma/client`, `@prisma/adapter-pg`, `pg`, plus `qrcode-generator` for the
+share dialog. Icons, CSV export, dialogs, tables, validation, the PNG encoder
+and the HTTP router are all hand-written.
 
 ## 3. Architecture
 
@@ -196,10 +197,10 @@ Host needs an SPA fallback — `public/_redirects` (Netlify, Cloudflare Pages) a
 2. `GET /api/accounts` exposes seeded passwords.
 
 **Not built**
-- **Postgres migration.** The schema is still SQLite; the Supabase switch is
-  prepared but needs a connection string.
-- Document upload (requirements are text labels only).
-- Email of any kind — including password reset.
+- **Document upload (requirements are text labels only).** Superseded: uploads
+  and classification were added later; this line is stale.
+- **Email of any kind — including password reset.** Superseded: one-time codes
+  exist, with a console transport; a real provider is still not wired.
 - Filipino / Kapampangan translations.
 - Offline support is shell-only; data is not cached.
 - Tier 2: optimistic updates, undo, autosave, blur validation, printable

@@ -300,7 +300,7 @@ and routed to a completion step before any other student page opens.
 | Build | Vite 8, TypeScript 6 | Fast development server; static type checking across client, server and scripts |
 | Styling | Tailwind CSS 4 | Design tokens defined once in CSS; no separate stylesheet per page |
 | API | Node `http`, TypeScript | No framework dependency; the routing, sessions and authorisation are explicit and inspectable |
-| Persistence | Prisma 7 with SQLite; PostgreSQL as deployment target | Typed schema shared by client types, server and seed data |
+| Persistence | Prisma 7 with PostgreSQL (locally, and Supabase in deployment) | Typed schema shared by client types, server and seed data |
 | QR encoding | `qrcode-generator` | A standardised algorithm whose output cannot be verified by reading it |
 | Verification | `playwright-core` driving the installed Chrome | Real viewport sizes without downloading a browser |
 
@@ -515,8 +515,9 @@ to ask.
    sets a transport name.
 3. **Google sign-in requires external configuration.** Without an OAuth client
    the control is hidden, which is safe but means the feature is not visible.
-4. **The local database is SQLite.** The schema targets PostgreSQL for
-   deployment; the migration is pending a connection string.
+4. **The database requires a PostgreSQL server.** Tables are created by
+   migrations and the demonstration records by `npm run db:seed`; a fresh
+   checkout cannot simply be opened.
 5. **No automated test suite.** Rules are verified by scripted HTTP tests and
    browser sweeps rather than by a test runner.
 6. **Email verification is not a second factor.** It confirms reachability, not

@@ -184,7 +184,8 @@ Or one command if you add a script that runs both concurrently.
 
 ## Local-only alternative
 
-If every user is on the same office network, you can skip all of this: run the
-Node server on one machine, keep SQLite, and put it behind the office router.
-No Supabase, no hosting bill, no cross-origin problem, and backup is copying one
-file. For a single-office deployment that is genuinely the better answer.
+If every user is on the same office network, you can skip the hosted setup: run
+the Node server on one machine, keep PostgreSQL alongside it, and put it behind
+the office router. No Supabase, no hosting bill, no cross-origin problem — and
+backup is `pg_dump` to a file on a schedule. For a single-office deployment that
+is genuinely the better answer.

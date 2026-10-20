@@ -12,15 +12,16 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "node --env-file=.env prisma/seed.ts",
     "db:studio": "prisma studio",
-    "db:reset": "prisma migrate reset --force",
+    "db:reset": "node scripts/db-reset.ts",
     "prerender": "node --env-file=.env scripts/prerender.ts",
     "check:responsive": "node scripts/check-responsive.ts",
     "rehearse": "node scripts/rehearse-demo.ts",
     "db:prune-documents": "node --env-file=.env scripts/prune-documents.ts"
   },
   "dependencies": {
-    "@prisma/adapter-better-sqlite3": "^7.10.1",
+    "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
+    "pg": "^8.23.1",
     "qrcode-generator": "^2.0.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

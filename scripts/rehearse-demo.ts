@@ -154,8 +154,13 @@ async function main(): Promise<void> {
     await step('5  Profile and verification prompt', async () => {
       await page.goto(`${BASE}/student/profile`, { waitUntil: 'domcontentloaded' })
       await heading(page, /my profile/i)
+      // The sections render once the profile request resolves, not with the shell.
+      await page.waitForFunction(
+        () => /not confirmed/i.test(document.body.innerText),
+        undefined,
+        { timeout: 20_000 },
+      )
       const body = (await page.textContent('body')) ?? ''
-      expect(/not confirmed/i.test(body), 'email verification prompt missing')
       expect(/download my records/i.test(body), 'data-rights actions missing')
       return 'verification prompt and records actions present'
     })

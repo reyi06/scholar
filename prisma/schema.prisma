@@ -1,18 +1,20 @@
 // Pampanga GrantConnect — database schema.
 //
-// SQLite for local development. The model shapes mirror `src/types/index.ts`
-// one-for-one so the API layer can return objects the frontend already knows.
+// PostgreSQL, locally and in deployment (Supabase is PostgreSQL). The model
+// shapes mirror `src/types/index.ts` one-for-one so the API layer can return
+// objects the frontend already knows.
 //
-// SQLite has no array or JSON column type, so list- and object-valued fields
-// are stored as JSON in `String` columns and (de)serialised in
-// `server/mappers.ts`. Those fields are marked with `// JSON` below.
+// List- and object-valued fields are stored as JSON in `String` columns and
+// (de)serialised in `server/mappers.ts`. That keeps the domain types identical
+// across the client and the server; PostgreSQL's native `jsonb` would be the
+// alternative if querying inside those values ever became necessary.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   // The URL is supplied by prisma.config.ts (Prisma 7 reads it from there).
 }
 

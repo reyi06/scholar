@@ -72,23 +72,26 @@ Two backends are supported, chosen at startup by `VITE_API_BASE_URL`:
 | *unset*             | Browser storage. Every visitor gets their own copy of the records in `localStorage`; nothing is shared or durable. Useful for previewing the interface. |
 | `/api`              | The local API server and SQLite database described below. |
 
-### Local database (Prisma + SQLite)
+### Local database (Prisma + PostgreSQL)
 
-A small dependency-free Node API server (`server/index.ts`) owns the SQLite
-file. The browser never receives database credentials, and every authorisation
-rule — who may read an application, who may confirm a grant — is decided on the
-server, per request.
+A small dependency-free Node API server (`server/index.ts`) owns the PostgreSQL
+database. The browser never receives database credentials, and every
+authorisation rule — who may read an application, who may confirm a grant — is
+decided on the server, per request.
+
+Requirements: a running PostgreSQL instance and an empty database for the app.
+`DATABASE_URL` in `.env` points at it; Supabase works with the same variable.
 
 ```bash
 cp .env.example .env     # DATABASE_URL, API_PORT, VITE_API_BASE_URL
-npm run db:migrate       # create prisma/dev.db from prisma/schema.prisma
+npm run db:migrate       # apply the migrations
 npm run db:seed          # load the placeholder records
 npm run server           # API on :8787
 npm run dev              # front end on :5173, proxying /api to the server
 ```
 
 Useful extras: `npm run db:studio` (browse the data) and `npm run db:reset`
-(drop and re-migrate).
+(drop everything, re-migrate and reseed).
 
 Security properties this gives you that browser storage could not:
 

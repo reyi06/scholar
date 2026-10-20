@@ -165,7 +165,8 @@ application, an approval and a confirmed grant is the system's central claim.
 **This sequence has been rehearsed end to end against the production build:
 eleven steps, 5.6 seconds, all passing.** Re-run it before the defense with
 `npm run rehearse`, with `npm run preview` and `npm run server` already running.
-Back up `prisma/dev.db` first — the rehearsal creates and confirms a real grant.
+Back up the database first (`pg_dump`) — the rehearsal creates and confirms a
+real grant.
 
 ---
 
@@ -181,9 +182,8 @@ Stating these first is stronger than being asked.
   function and setting `MAIL_TRANSPORT`.
 - **Google sign-in needs a Google Cloud OAuth client.** Without one the button is
   hidden rather than broken.
-- **The database is SQLite locally.** The schema is written to move to PostgreSQL
-  (Supabase) without changing the application layer; that migration is pending
-  the connection string.
+- **The database is PostgreSQL**, locally and in deployment. Supabase uses the
+  same database engine and the same connection string; only the URL changes.
 - **Email verification is not a second factor.** It confirms reachability, not
   identity. Two-factor authentication is out of scope.
 - **Administrator accounts are created outside the interface** — there is
