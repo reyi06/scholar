@@ -1061,6 +1061,16 @@ through a real browser. Console was empty of errors on every page visited.
 
 Newest first. One entry per meaningful change.
 
+### 2026-10-20 - throttling no longer trusts a client-supplied address
+
+- **`requestOrigin()` read `x-forwarded-for` unconditionally**, so a caller could
+  send a different value on every request and never trip the per-address limit.
+  It now uses the socket address unless `TRUST_PROXY=true`, which a deployment
+  sets only when a reverse proxy actually overwrites the header. Documented in
+  `.env.example`.
+- Verified: six attempts with a rotating `X-Forwarded-For` still produced
+  `401 × 5` then `429`.
+
 ### 2026-10-20 - server split into http/ and routes/
 
 - **`server/index.ts` reduced from ~2,500 lines to a 93-line bootstrap.** It

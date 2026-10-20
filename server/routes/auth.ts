@@ -361,10 +361,23 @@ route('POST', '/api/auth/register', async ({ req, res }) => {
 /* One-time codes                                                      */
 /* ------------------------------------------------------------------ */
 
-/** The address a request came from, for throttling and the audit trail. */
+/**
+ * The address a request came from, for throttling and the audit trail.
+ *
+ * `x-forwarded-for` is client-controlled unless a proxy overwrites it, so
+ * trusting it unconditionally would let a caller defeat their own throttle by
+ * inventing a value per request. It is used only when the deployment declares a
+ * proxy in front (`TRUST_PROXY=true`); otherwise the socket address is the
+ * truth, and it cannot be forged.
+ */
 function requestOrigin(req: IncomingMessage): string | null {
-  const forwarded = req.headers['x-forwarded-for']
-  if (typeof forwarded === 'string' && forwarded) return forwarded.split(',')[0].trim()
+  if (process.env.TRUST_PROXY === 'true') {
+    const forwarded = req.headers['x-forwarded-for']
+    if (typeof forwarded === 'string' && forwarded) {
+      return forwarded.split(',')[0].trim()
+    }
+  }
+
   return req.socket.remoteAddress ?? null
 }
 

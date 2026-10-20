@@ -39,7 +39,7 @@ and the HTTP router are all hand-written.
 Browser ──► React SPA (Vite build, prerendered per route)
               │  src/lib/api.ts  ── the single data seam
               ├─► localStorage        (default; per-browser, not shared)
-              └─► /api ─► server/index.ts ─► Prisma ─► SQLite (prisma/dev.db)
+              └─► /api ─► server/routes/* ─► Prisma ─► PostgreSQL
 ```
 
 - **SPA** — 26 routes, `React.lazy` per page, one `Suspense` boundary.
