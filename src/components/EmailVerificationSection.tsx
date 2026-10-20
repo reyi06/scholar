@@ -49,7 +49,7 @@ export function EmailVerificationSection() {
     if (!user) return null
     setError(null)
     const updated = await authApi.verifyEmailCode(user.email, code.trim())
-    if (updated) refresh()
+    if (updated) void refresh()
     toast.success('Email confirmed', 'Your address is now verified.')
     setCode('')
     setSent(null)

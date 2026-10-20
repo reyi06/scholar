@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Badge, type BadgeTone } from '../../components/ui/Badge.tsx'
+import { Badge } from '../../components/ui/Badge.tsx'
 import { Button } from '../../components/ui/Button.tsx'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog.tsx'
 import { EmptyState } from '../../components/ui/EmptyState.tsx'
@@ -26,7 +26,8 @@ import {
   DOCUMENT_STATUSES,
 } from '../../lib/constants.ts'
 import { formatDate, formatFileSize } from '../../lib/format.ts'
-import type { DocumentClassification, DocumentStatus, StudentDocument } from '../../types/index.ts'
+import type { DocumentClassification, StudentDocument } from '../../types/index.ts'
+import { DOCUMENT_STATUS_TONES } from '../../lib/tones.ts'
 
 /**
  * The student's document library.
@@ -36,12 +37,6 @@ import type { DocumentClassification, DocumentStatus, StudentDocument } from '..
  * page is therefore grouped by classification: the question it answers is
  * "what have I supplied?", not "what did I send last time?".
  */
-
-const STATUS_TONES: Record<DocumentStatus, BadgeTone> = {
-  submitted: 'info',
-  verified: 'success',
-  rejected: 'danger',
-}
 
 export function DocumentsPage() {
   useDocumentTitle('My Documents')
@@ -220,7 +215,7 @@ export function DocumentsPage() {
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <Badge tone={STATUS_TONES[document.status]}>
+                        <Badge tone={DOCUMENT_STATUS_TONES[document.status]}>
                           {DOCUMENT_STATUSES.find((option) => option.value === document.status)?.label ??
                             document.status}
                         </Badge>

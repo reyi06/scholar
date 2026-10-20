@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Badge, type BadgeTone } from '../../components/ui/Badge.tsx'
+import { Badge } from '../../components/ui/Badge.tsx'
 import { EmptyState } from '../../components/ui/EmptyState.tsx'
 import { ErrorState, LoadingState } from '../../components/ui/States.tsx'
 import { PageHeader } from '../../components/ui/PageHeader.tsx'
@@ -13,6 +13,7 @@ import {
 } from '../../lib/constants.ts'
 import { formatDate } from '../../lib/format.ts'
 import type { Announcement, AnnouncementCategory } from '../../types/index.ts'
+import { ANNOUNCEMENT_CATEGORY_TONES } from '../../lib/tones.ts'
 
 /**
  * The announcement channel.
@@ -24,13 +25,6 @@ import type { Announcement, AnnouncementCategory } from '../../types/index.ts'
  * acted on differently, and a channel that mixes them forces every reader to
  * parse the body to discover which one they are looking at.
  */
-
-const CATEGORY_TONES: Record<AnnouncementCategory, BadgeTone> = {
-  advisory: 'warning',
-  deadline: 'brand',
-  result: 'success',
-  general: 'neutral',
-}
 
 export function AnnouncementsPage() {
   useDocumentTitle('Announcements')
@@ -95,7 +89,7 @@ function AnnouncementItem({ announcement }: { announcement: Announcement }) {
         >
           {formatDate(announcement.publishedAt)}
         </time>
-        <Badge tone={CATEGORY_TONES[announcement.category]}>
+        <Badge tone={ANNOUNCEMENT_CATEGORY_TONES[announcement.category]}>
           {ANNOUNCEMENT_CATEGORY_LABELS[announcement.category]}
         </Badge>
         {announcement.pinned ? <Badge tone="gold">Pinned</Badge> : null}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Badge, type BadgeTone } from '../../components/ui/Badge.tsx'
+import { Badge } from '../../components/ui/Badge.tsx'
 import { Button } from '../../components/ui/Button.tsx'
 import { Dialog } from '../../components/ui/Dialog.tsx'
 import { EmptyState } from '../../components/ui/EmptyState.tsx'
@@ -20,7 +20,8 @@ import {
   DOCUMENT_STATUS_LABELS,
 } from '../../lib/constants.ts'
 import { formatDate, formatFileSize, fullName } from '../../lib/format.ts'
-import type { DocumentStatus, DocumentRecord } from '../../types/index.ts'
+import type { DocumentRecord, DocumentStatus } from '../../types/index.ts'
+import { DOCUMENT_STATUS_TONES } from '../../lib/tones.ts'
 
 /**
  * Document review for the scholarship office.
@@ -30,12 +31,6 @@ import type { DocumentStatus, DocumentRecord } from '../../types/index.ts'
  * decision (accept or return it). Classification is shown because it decides
  * which requirement the file answers.
  */
-
-const STATUS_TONES: Record<DocumentStatus, BadgeTone> = {
-  submitted: 'info',
-  verified: 'success',
-  rejected: 'danger',
-}
 
 export function AdminDocumentsPage() {
   useDocumentTitle('Documents')
@@ -136,7 +131,7 @@ export function AdminDocumentsPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <Badge tone={STATUS_TONES[record.document.status]}>
+                  <Badge tone={DOCUMENT_STATUS_TONES[record.document.status]}>
                     {DOCUMENT_STATUS_LABELS[record.document.status]}
                   </Badge>
                   <a

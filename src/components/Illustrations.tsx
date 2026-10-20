@@ -7,7 +7,7 @@ import { useLayoutEffect, useRef } from 'react'
  * intentional rather than an approximation of something organic. `currentColor`
  * drives the stroke, so colour comes from the caller's classes.
  *
- * The reveal is described in `src/index.css`. Each shape is measured here and
+ * The reveal is described in `src/styles/index.css`. Each shape is measured here and
  * given a dash as long as itself, parked at offset 0. That makes the resting
  * state fully drawn, so the artwork is never invisible if JavaScript or
  * animations do not run - and it means `prefers-reduced-motion` needs no special

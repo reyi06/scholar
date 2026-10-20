@@ -28,18 +28,12 @@ import { useAsync, useAsyncAction } from '../../hooks/useAsync.ts'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
 import { useAuth } from '../../context/authContext.ts'
 import { useToast } from '../../context/toastContext.ts'
+import { ANNOUNCEMENT_CATEGORY_TONES } from '../../lib/tones.ts'
 import type {
   Announcement,
   AnnouncementAudience,
   AnnouncementCategory,
 } from '../../types/index.ts'
-
-const CATEGORY_TONES: Record<AnnouncementCategory, 'warning' | 'brand' | 'success' | 'neutral'> = {
-  advisory: 'warning',
-  deadline: 'brand',
-  result: 'success',
-  general: 'neutral',
-}
 
 interface AnnouncementFormState {
   title: string
@@ -215,7 +209,7 @@ export function AdminAnnouncementsPage() {
                   <span className="text-xs text-slate-500 dark:text-slate-400">
                     {formatDateTime(announcement.publishedAt)}
                   </span>
-                  <Badge tone={CATEGORY_TONES[announcement.category]}>
+                  <Badge tone={ANNOUNCEMENT_CATEGORY_TONES[announcement.category]}>
                     {ANNOUNCEMENT_CATEGORY_LABELS[announcement.category]}
                   </Badge>
                   {announcement.pinned ? <Badge tone="gold">Pinned</Badge> : null}

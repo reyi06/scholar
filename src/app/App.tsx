@@ -1,12 +1,12 @@
 import { Suspense, lazy, type ReactNode } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
-import { AdminLayout } from './components/layout/AdminLayout.tsx'
-import { ProtectedRoute } from './components/layout/ProtectedRoute.tsx'
-import { PublicLayout } from './components/layout/PublicLayout.tsx'
-import { ScrollToTop } from './components/ScrollToTop.tsx'
-import { StudentLayout } from './components/layout/StudentLayout.tsx'
-import { LoadingState } from './components/ui'
-import { useAuth } from './context/authContext.ts'
+import { AdminLayout } from '../components/layout/AdminLayout.tsx'
+import { ProtectedRoute } from '../components/layout/ProtectedRoute.tsx'
+import { PublicLayout } from '../components/layout/PublicLayout.tsx'
+import { ScrollToTop } from '../components/ScrollToTop.tsx'
+import { StudentLayout } from '../components/layout/StudentLayout.tsx'
+import { LoadingState } from '../components/ui'
+import { useAuth } from '../context/authContext.ts'
 
 /**
  * Route-level code splitting.
@@ -15,94 +15,94 @@ import { useAuth } from './context/authContext.ts'
  * never downloads the student or administrator areas. The layouts and route
  * guards stay eagerly imported because they render on almost every navigation.
  */
-const HomePage = lazy(async () => ({ default: (await import('./pages/public/HomePage.tsx')).HomePage }))
+const HomePage = lazy(async () => ({ default: (await import('../pages/public/HomePage.tsx')).HomePage }))
 const ScholarshipDirectoryPage = lazy(async () => ({
-  default: (await import('./pages/public/ScholarshipDirectoryPage.tsx')).ScholarshipDirectoryPage,
+  default: (await import('../pages/public/ScholarshipDirectoryPage.tsx')).ScholarshipDirectoryPage,
 }))
 const ScholarshipDetailPage = lazy(async () => ({
-  default: (await import('./pages/public/ScholarshipDetailPage.tsx')).ScholarshipDetailPage,
+  default: (await import('../pages/public/ScholarshipDetailPage.tsx')).ScholarshipDetailPage,
 }))
-const LoginPage = lazy(async () => ({ default: (await import('./pages/public/LoginPage.tsx')).LoginPage }))
-const RegisterPage = lazy(async () => ({ default: (await import('./pages/public/RegisterPage.tsx')).RegisterPage }))
-const AboutPage = lazy(async () => ({ default: (await import('./pages/public/AboutPage.tsx')).AboutPage }))
-const FaqPage = lazy(async () => ({ default: (await import('./pages/public/FaqPage.tsx')).FaqPage }))
+const LoginPage = lazy(async () => ({ default: (await import('../pages/public/LoginPage.tsx')).LoginPage }))
+const RegisterPage = lazy(async () => ({ default: (await import('../pages/public/RegisterPage.tsx')).RegisterPage }))
+const AboutPage = lazy(async () => ({ default: (await import('../pages/public/AboutPage.tsx')).AboutPage }))
+const FaqPage = lazy(async () => ({ default: (await import('../pages/public/FaqPage.tsx')).FaqPage }))
 const AnnouncementsPage = lazy(async () => ({
-  default: (await import('./pages/public/AnnouncementsPage.tsx')).AnnouncementsPage,
+  default: (await import('../pages/public/AnnouncementsPage.tsx')).AnnouncementsPage,
 }))
 const PrivacyPage = lazy(async () => ({
-  default: (await import('./pages/public/PrivacyPage.tsx')).PrivacyPage,
+  default: (await import('../pages/public/PrivacyPage.tsx')).PrivacyPage,
 }))
 const WelcomePage = lazy(async () => ({
-  default: (await import('./pages/public/WelcomePage.tsx')).WelcomePage,
+  default: (await import('../pages/public/WelcomePage.tsx')).WelcomePage,
 }))
 const ForgotPasswordPage = lazy(async () => ({
-  default: (await import('./pages/public/ForgotPasswordPage.tsx')).ForgotPasswordPage,
+  default: (await import('../pages/public/ForgotPasswordPage.tsx')).ForgotPasswordPage,
 }))
 
 const StudentDashboardPage = lazy(async () => ({
-  default: (await import('./pages/student/StudentDashboardPage.tsx')).StudentDashboardPage,
+  default: (await import('../pages/student/StudentDashboardPage.tsx')).StudentDashboardPage,
 }))
 const StudentProfilePage = lazy(async () => ({
-  default: (await import('./pages/student/StudentProfilePage.tsx')).StudentProfilePage,
+  default: (await import('../pages/student/StudentProfilePage.tsx')).StudentProfilePage,
 }))
 const SavedScholarshipsPage = lazy(async () => ({
-  default: (await import('./pages/student/SavedScholarshipsPage.tsx')).SavedScholarshipsPage,
+  default: (await import('../pages/student/SavedScholarshipsPage.tsx')).SavedScholarshipsPage,
 }))
 const ApplicationsPage = lazy(async () => ({
-  default: (await import('./pages/student/ApplicationsPage.tsx')).ApplicationsPage,
+  default: (await import('../pages/student/ApplicationsPage.tsx')).ApplicationsPage,
 }))
 const ApplicationDetailPage = lazy(async () => ({
-  default: (await import('./pages/student/ApplicationDetailPage.tsx')).ApplicationDetailPage,
+  default: (await import('../pages/student/ApplicationDetailPage.tsx')).ApplicationDetailPage,
 }))
 const SemesterRegistrationPage = lazy(async () => ({
-  default: (await import('./pages/student/SemesterRegistrationPage.tsx')).SemesterRegistrationPage,
+  default: (await import('../pages/student/SemesterRegistrationPage.tsx')).SemesterRegistrationPage,
 }))
-const MyGrantsPage = lazy(async () => ({ default: (await import('./pages/student/MyGrantsPage.tsx')).MyGrantsPage }))
+const MyGrantsPage = lazy(async () => ({ default: (await import('../pages/student/MyGrantsPage.tsx')).MyGrantsPage }))
 const DocumentsPage = lazy(async () => ({
-  default: (await import('./pages/student/DocumentsPage.tsx')).DocumentsPage,
+  default: (await import('../pages/student/DocumentsPage.tsx')).DocumentsPage,
 }))
 const NotificationsPage = lazy(async () => ({
-  default: (await import('./pages/student/NotificationsPage.tsx')).NotificationsPage,
+  default: (await import('../pages/student/NotificationsPage.tsx')).NotificationsPage,
 }))
 
 const AdminDashboardPage = lazy(async () => ({
-  default: (await import('./pages/admin/AdminDashboardPage.tsx')).AdminDashboardPage,
+  default: (await import('../pages/admin/AdminDashboardPage.tsx')).AdminDashboardPage,
 }))
 const AdminScholarshipsPage = lazy(async () => ({
-  default: (await import('./pages/admin/AdminScholarshipsPage.tsx')).AdminScholarshipsPage,
+  default: (await import('../pages/admin/AdminScholarshipsPage.tsx')).AdminScholarshipsPage,
 }))
 const AdminScholarshipFormPage = lazy(async () => ({
-  default: (await import('./pages/admin/AdminScholarshipFormPage.tsx')).AdminScholarshipFormPage,
+  default: (await import('../pages/admin/AdminScholarshipFormPage.tsx')).AdminScholarshipFormPage,
 }))
 const AdminStudentsPage = lazy(async () => ({
-  default: (await import('./pages/admin/AdminStudentsPage.tsx')).AdminStudentsPage,
+  default: (await import('../pages/admin/AdminStudentsPage.tsx')).AdminStudentsPage,
 }))
 const AdminApplicationsPage = lazy(async () => ({
-  default: (await import('./pages/admin/AdminApplicationsPage.tsx')).AdminApplicationsPage,
+  default: (await import('../pages/admin/AdminApplicationsPage.tsx')).AdminApplicationsPage,
 }))
 const AdminRegistrationsPage = lazy(async () => ({
-  default: (await import('./pages/admin/AdminRegistrationsPage.tsx')).AdminRegistrationsPage,
+  default: (await import('../pages/admin/AdminRegistrationsPage.tsx')).AdminRegistrationsPage,
 }))
 const AdminGrantsPage = lazy(async () => ({
-  default: (await import('./pages/admin/AdminGrantsPage.tsx')).AdminGrantsPage,
+  default: (await import('../pages/admin/AdminGrantsPage.tsx')).AdminGrantsPage,
 }))
 const AdminDocumentsPage = lazy(async () => ({
-  default: (await import('./pages/admin/AdminDocumentsPage.tsx')).AdminDocumentsPage,
+  default: (await import('../pages/admin/AdminDocumentsPage.tsx')).AdminDocumentsPage,
 }))
 const AdminActivityPage = lazy(async () => ({
-  default: (await import('./pages/admin/AdminActivityPage.tsx')).AdminActivityPage,
+  default: (await import('../pages/admin/AdminActivityPage.tsx')).AdminActivityPage,
 }))
 const AdminAnnouncementsPage = lazy(async () => ({
-  default: (await import('./pages/admin/AdminAnnouncementsPage.tsx')).AdminAnnouncementsPage,
+  default: (await import('../pages/admin/AdminAnnouncementsPage.tsx')).AdminAnnouncementsPage,
 }))
 const AdminReportsPage = lazy(async () => ({
-  default: (await import('./pages/admin/AdminReportsPage.tsx')).AdminReportsPage,
+  default: (await import('../pages/admin/AdminReportsPage.tsx')).AdminReportsPage,
 }))
 const AdminSettingsPage = lazy(async () => ({
-  default: (await import('./pages/admin/AdminSettingsPage.tsx')).AdminSettingsPage,
+  default: (await import('../pages/admin/AdminSettingsPage.tsx')).AdminSettingsPage,
 }))
 
-const NotFoundPage = lazy(async () => ({ default: (await import('./pages/NotFoundPage.tsx')).NotFoundPage }))
+const NotFoundPage = lazy(async () => ({ default: (await import('../pages/NotFoundPage.tsx')).NotFoundPage }))
 
 /**
  * Sends already-signed-in users away from the auth screens.
@@ -127,7 +127,7 @@ function GuestOnlyRoute({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
-export default function App() {
+export function App() {
   return (
     <>
       <ScrollToTop />

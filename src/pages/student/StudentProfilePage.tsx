@@ -241,7 +241,7 @@ export function StudentProfilePage() {
       lastName: account.lastName.trim(),
     })
     if (result) {
-      refresh()
+      void refresh()
       setEditingAccount(false)
       toast.success('Account name updated', 'Your account now shows the new name.')
     }

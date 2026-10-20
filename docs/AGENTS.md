@@ -19,10 +19,12 @@ It does two things:
    grantees, and confirmed grant records — with a separate administrator area
    for review and management.
 
-> **Scope note.** No backend is connected yet: data is served by a local browser
-> store (`src/lib/api.ts`), sign-in is checked locally, and there is no email or
-> document upload. The listings shipped in `src/data/sampleData.ts` are
-> placeholder records with generic provider names. See sections 8 and 9.
+> **Scope note.** A Node API and a PostgreSQL database back the application; the
+> browser talks only to that API, and every authorisation rule is decided on the
+> server. A browser-storage mode still exists when `VITE_API_BASE_URL` is unset,
+> which is useful for previewing the interface without a server. Email is
+> delivered by a console transport — codes print in the server log — and the
+> listings in `src/data/sampleData.ts` remain placeholders. See sections 8 and 9.
 
 ---
 
@@ -91,17 +93,23 @@ Package manager is **npm** (`package-lock.json` is committed).
 
 ```
 src/
-├── App.tsx                     # Route table + lazy page imports + route guards
-├── main.tsx                    # Entry: BrowserRouter > AuthProvider > ToastProvider
-├── index.css                   # Tailwind import + @theme design tokens
+├── app/
+│   ├── App.tsx                 # Route table + lazy page imports + route guards
+│   └── Providers.tsx           # Theme > Router > Auth > Toast, in that order
+├── main.tsx                    # Mounts <Providers><App /></Providers>
+├── styles/index.css            # Tailwind import + @theme design tokens
 ├── types/index.ts              # EVERY domain model (single source of truth)
 ├── data/
-│   ├── sampleData.ts           # Labelled sample records (clearly not real)
+│   ├── sampleData.ts           # Placeholder records (clearly not real)
 │   └── schema.ts               # DemoDatabase shape + seed builder + DB_VERSION
 ├── lib/
-│   ├── api.ts                  # Data-access layer — the backend seam
+│   ├── api.ts                  # Data-access seam (local storage <-> HTTP)
+│   ├── httpApi.ts              # The HTTP implementation of that seam
 │   ├── storage.ts              # localStorage wrapper (demo persistence)
 │   ├── constants.ts            # Option lists + label maps + municipalities
+│   ├── tones.ts                # Status -> badge colour, shared by every screen
+│   ├── documents.ts            # Upload rules + classifier (client and server)
+│   ├── studentDetails.ts       # Shared sign-up field validation
 │   ├── format.ts               # Date/currency/relative-time/text helpers
 │   ├── validation.ts           # Composable validators + validateForm
 │   ├── csv.ts                  # CSV serialisation + download
@@ -110,26 +118,57 @@ src/
 │   ├── useAsync.ts             # useAsync (load) + useAsyncAction (mutate)
 │   ├── useSavedScholarships.ts # Bookmarks, shared by 4 screens
 │   ├── useDebouncedValue.ts    # Debounce search inputs
+│   ├── useInView.ts            # Reveal-on-scroll
 │   └── useDocumentTitle.ts     # Per-page document title
 ├── context/
-│   ├── authContext.ts / AuthProvider.tsx    # Session (demo)
+│   ├── authContext.ts / AuthProvider.tsx    # Session
+│   ├── themeContext.ts / ThemeProvider.tsx  # Light and dark
 │   └── toastContext.ts / ToastProvider.tsx  # Toasts
 ├── components/
 │   ├── ui/                     # Design system (see section 6)
-│   ├── layout/                 # PublicLayout, DashboardLayout, Sidebars,
-│   │                           # ProtectedRoute, NotificationBell, Dropdown, navItems
+│   ├── layout/                 # Layouts, sidebars, guards, nav items
+│   ├── Illustrations.tsx       # Line art for the hero and process
+│   ├── Diagrams.tsx            # Site map + application lifecycle
+│   ├── ErrorBoundary.tsx       # Contains a render failure to the content area
+│   ├── ShareScholarship.tsx    # Link + QR share dialog
+│   ├── GoogleSignInButton.tsx  # GIS button, hidden when unconfigured
+│   ├── EmailVerificationSection.tsx
+│   ├── DataRightsSection.tsx   # Export + erasure request
+│   ├── StudentDetailsFields.tsx
 │   ├── ScholarshipCard.tsx     # The only scholarship card used anywhere
 │   ├── StatusBadge.tsx         # Domain status -> coloured badge
 │   ├── DeadlineBadge.tsx       # Deadline urgency
-│   ├── DemoBanner.tsx          # Standing "this is a demo" disclosure
 │   └── ScrollToTop.tsx
 └── pages/
-    ├── public/                 # HomePage, ScholarshipDirectoryPage,
-    │                           # ScholarshipDetailPage, LoginPage,
-    │                           # RegisterPage, AboutPage
-    ├── student/                # 8 pages (dashboard … notifications)
-    ├── admin/                  # 10 pages (dashboard … settings)
+    ├── public/                 # 11 routes
+    ├── student/                # 8 routes
+    ├── admin/                  # 12 routes
     └── NotFoundPage.tsx
+
+server/                         # Node HTTP API; owns the database
+├── index.ts                    # Router, routes, authorisation, business rules
+├── db.ts                       # Prisma client (PostgreSQL adapter)
+├── mappers.ts                  # Row -> domain mapping
+├── passwords.ts                # scrypt hashing
+├── ids.ts                      # Collision-free reference numbers
+├── httpError.ts                # Status-carrying error
+├── uploads.ts                  # Multipart reader + file store
+├── otp.ts                      # One-time codes
+├── throttle.ts                 # Failed-login counters
+├── googleAuth.ts               # ID-token verification (JWKS)
+├── mailer.ts                   # Transport seam (console by default)
+└── audit.ts                    # Append-only trail
+
+scripts/                        # Build and verification
+├── prerender.ts                # Static pages, sitemap, PWA assets
+├── check-responsive.ts         # 390/768/1280 sweep
+├── rehearse-demo.ts            # Scripted demonstration
+├── prune-documents.ts          # Retention
+└── db-reset.ts                 # Reset + reseed
+
+docs/                           # This file and the other project documents
+prisma/                         # Schema, migrations, seed
+public/                         # Static assets
 ```
 
 `public/` holds `favicon.svg` and `robots.txt`.
@@ -168,7 +207,7 @@ synchronous `setState` inside an effect is flagged by lint
 (`react/set-state-in-effect`).
 
 ### Routing
-`src/App.tsx` holds a flat route table. Every page is `React.lazy`-loaded so the
+`src/app/App.tsx` holds a flat route table. Every page is `React.lazy`-loaded so the
 public site does not ship the student/admin code. Route groups are wrapped in
 `<ProtectedRoute role="student"|"admin">`; there is a single `<Suspense>`
 boundary around `<Routes>`.
@@ -229,9 +268,9 @@ Only `useToast` comes from outside the barrel
 This is **v4, not v3**.
 
 - There is **no `tailwind.config.js` and no PostCSS config**. Do not add one.
-- Tokens live in the `@theme` block in `src/index.css`. Adding
+- Tokens live in the `@theme` block in `src/styles/index.css`. Adding
   `--color-x` there immediately creates `bg-x`, `text-x`, `border-x`, `outline-x`.
-- `src/index.css` must keep `@import 'tailwindcss';` as the first line.
+- `src/styles/index.css` must keep `@import 'tailwindcss';` as the first line.
 - Prefer utilities in JSX. There is no `App.css`; do not reintroduce per-page
   CSS files.
 - **Only use token names that exist.** The palette defines `brand-50..950` and
@@ -243,7 +282,7 @@ This is **v4, not v3**.
   `npx tailwindcss init`).
 
 ### Dark mode
-Class-based and user-toggleable. `@custom-variant dark` in `src/index.css`
+Class-based and user-toggleable. `@custom-variant dark` in `src/styles/index.css`
 points `dark:` variants at a `.dark` class on `<html>` instead of the OS
 setting:
 
@@ -282,7 +321,7 @@ conventions that get it there:
   `role="alert"` and are tied to the control via `aria-describedby`.
 - `Dialog` traps Tab, closes on Escape, locks scroll and restores focus.
 - `ConfirmDialog` guards every destructive or irreversible action.
-- Global `:focus-visible` styling lives in `src/index.css`.
+- Global `:focus-visible` styling lives in `src/styles/index.css`.
 
 ---
 
@@ -343,19 +382,34 @@ Two subtleties that are easy to regress:
 
 ## 9. Security posture (read before changing anything auth-related)
 
-`ProtectedRoute` and the role checks are **navigation, not security**. The whole
-application runs in the browser, so they can be bypassed with devtools, and the
-demo database (including plain-text demo passwords) sits in `localStorage`.
+**Route guards are navigation, not security.** `ProtectedRoute` and the
+`GuestOnlyRoute` checks decide what to render; they stop nobody who knows how to
+use developer tools. Every rule they appear to enforce is enforced again in
+`server/index.ts`, per request, which is the boundary that holds.
 
-A real deployment must:
+What is real, today:
 
-- authenticate on a server and store only hashed credentials,
-- enforce every authorisation rule server-side (especially application
-  ownership and grant confirmation),
-- keep private student information and uploaded documents off public routes,
-- never place secrets in `VITE_*` variables, which are bundled into the client.
+- Passwords are scrypt hashes with a per-user salt; no endpoint serves a password.
+- The session is a row in `Session`; the browser holds only an opaque identifier
+  in an **HttpOnly, SameSite=Lax** cookie, `Secure` outside development.
+- Ownership and role checks run on the server for every route, including
+  document downloads.
+- Uploaded files are stored under generated names and always served as
+  attachments.
+- Failed sign-ins are throttled per account and per address; one-time codes have
+  an expiry, an attempt cap, a resend cooldown and a per-purpose scope.
 
-Do not present the current implementation as secure.
+What is **not** production-ready:
+
+- The browser-storage mode (`VITE_API_BASE_URL` unset) keeps demo data, including
+  plain-text demo passwords, in `localStorage`. It is a preview mode, nothing more.
+- Throttling and rate limits are in-memory, so they reset with the process and do
+  not survive multiple instances.
+- There is no CSRF token; `SameSite=Lax` is the mitigation.
+- Administrator accounts are provisioned outside the interface.
+
+A real deployment must keep TLS on, change the default database password, set
+`COOKIE_SECURE`, and run an email transport instead of the console.
 
 ---
 
@@ -377,6 +431,28 @@ Do not present the current implementation as secure.
 ## 11. Verification log
 
 Newest first. Record the command and its observed result.
+
+### 2026-10-20 - code review: a session bug, duplicated maps, conventional layout
+
+- **Bug found by reading the auth path, not by a failing test.** `refresh()`
+  called `authApi.getCurrentUserSync()`, which returns `null` by design over
+  HTTP because the session is in an httpOnly cookie. Both call sites — saving
+  the account name and confirming an email address — therefore **signed the user
+  out in local state while the server session stayed valid**. `refresh()` now
+  re-fetches the session over HTTP and keeps the synchronous path only for
+  browser-storage mode. Its type is `() => Promise<void>` and call sites use
+  `void refresh()`.
+- **Duplicated status→colour maps consolidated.** Five copies across four pages
+  (three of the announcement category mapping, two of the document status
+  mapping) became `src/lib/tones.ts`. Colour is a semantic decision, so it now
+  sits beside the vocabulary rather than beside the markup.
+- **Project layout moved to a conventional shape**: `src/app/` (route table and
+  providers), `src/styles/index.css`, and project documents under `docs/`.
+- Verified after the move: `npx tsc -b`, `oxlint` and `npm run build` clean;
+  **the 11-step rehearsal passed**; responsive sweeps clean on public and admin
+  routes.
+- Dead-code scan: **0 files never imported**, **0 exported function names defined
+  twice**. The duplication found was data, not code.
 
 ### 2026-10-20 - PostgreSQL replaces SQLite (verified end to end)
 
@@ -943,6 +1019,27 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-20 - session refresh fixed, shared tone maps, conventional layout
+
+- **`AuthProvider.refresh()` was broken in HTTP mode.** It read
+  `getCurrentUserSync()`, which is `null` by design when the session lives in an
+  httpOnly cookie, so the two screens that refresh the user — saving the account
+  name and confirming an email — appeared to sign them out. It now asks the
+  server for the session, with the synchronous path kept for browser storage.
+- **`src/lib/tones.ts`** holds `ANNOUNCEMENT_CATEGORY_TONES` and
+  `DOCUMENT_STATUS_TONES`. Five copies lived in four pages, which allowed the
+  same category to be coloured differently on different screens.
+- **`src/app/`** — `App.tsx` moved there and a `Providers.tsx` extracted from
+  `main.tsx`, so the entry point is a mount call and the provider order lives in
+  one place. All `src/`-relative imports and the 33 lazy `import()` paths were
+  rewritten accordingly.
+- **`src/styles/index.css`** replaces `src/index.css`, matching the usual
+  Vite/React convention.
+- **`docs/`** now holds the project documents; `README.md` stays at the root and
+  points into `docs/`.
+- The AGENTS scope note and security section were rewritten: both still described
+  the era before the API existed.
 
 ### 2026-10-20 - PostgreSQL replaces SQLite
 

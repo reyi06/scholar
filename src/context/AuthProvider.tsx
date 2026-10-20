@@ -43,8 +43,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const refresh = useCallback(() => {
-    setUser(authApi.getCurrentUserSync())
+  /**
+   * Re-read the current user.
+   *
+   * The two modes genuinely differ here, and getting it wrong is not cosmetic:
+   * over HTTP the session lives in an httpOnly cookie, so `getCurrentUserSync`
+   * returns `null` by design. Using it would sign the user out in local state
+   * while the server session remained valid — saving a name or confirming an
+   * email would appear to log them out until the next page load.
+   */
+  const refresh = useCallback(async () => {
+    if (!USING_REMOTE_API) {
+      setUser(authApi.getCurrentUserSync())
+      return
+    }
+
+    const found = await authApi.getSession().catch(() => null)
+    setUser(found)
   }, [])
 
   // Ask once whether Google sign-in is available. A deployment without a

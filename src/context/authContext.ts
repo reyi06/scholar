@@ -13,7 +13,7 @@ export interface AuthContextValue {
   register: (input: RegisterInput) => Promise<User>
   logout: () => Promise<void>
   /** Re-read the user after a profile edit. */
-  refresh: () => void
+  refresh: () => Promise<void>
 
   /**
    * True when this deployment has a Google client id. The sign-in button is

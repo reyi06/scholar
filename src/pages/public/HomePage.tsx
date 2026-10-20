@@ -22,7 +22,7 @@ import { useAsync } from '../../hooks/useAsync.ts'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
 import { useInView } from '../../hooks/useInView.ts'
 import { useAuth } from '../../context/authContext.ts'
-import type { AnnouncementCategory } from '../../types/index.ts'
+import { ANNOUNCEMENT_CATEGORY_TONES } from '../../lib/tones.ts'
 
 const STEPS = [
   {
@@ -44,13 +44,6 @@ const STEPS = [
 
 /** How many advisories the home page teases before sending readers to the channel. */
 const ADVISORY_LIMIT = 3
-
-const ADVISORY_TONES: Record<AnnouncementCategory, 'warning' | 'brand' | 'success' | 'neutral'> = {
-  advisory: 'warning',
-  deadline: 'brand',
-  result: 'success',
-  general: 'neutral',
-}
 
 /**
  * Home page.
@@ -204,7 +197,7 @@ export function HomePage() {
                       >
                         {formatDate(advisory.publishedAt)}
                       </time>
-                      <Badge tone={ADVISORY_TONES[advisory.category]}>
+                      <Badge tone={ANNOUNCEMENT_CATEGORY_TONES[advisory.category]}>
                         {ANNOUNCEMENT_CATEGORY_LABELS[advisory.category]}
                       </Badge>
                       {advisory.pinned ? <Badge tone="gold">Pinned</Badge> : null}

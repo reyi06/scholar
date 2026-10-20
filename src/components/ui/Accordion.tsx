@@ -20,7 +20,7 @@ export interface AccordionProps {
  *
  * Using the platform element means keyboard interaction, screen-reader
  * semantics and in-page find-while-collapsed all work without extra code.
- * The rotating marker is styled by `.disclosure-marker` in `src/index.css`.
+ * The rotating marker is styled by `.disclosure-marker` in `src/styles/index.css`.
  */
 export function Accordion({ items, className = '' }: AccordionProps) {
   return (
