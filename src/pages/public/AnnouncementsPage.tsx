@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Badge } from '../../components/ui/Badge.tsx'
 import { EmptyState } from '../../components/ui/EmptyState.tsx'
-import { ErrorState, LoadingState } from '../../components/ui/States.tsx'
+import { ErrorState, LoadingList } from '../../components/ui/States.tsx'
 import { PageHeader } from '../../components/ui/PageHeader.tsx'
 import { Select } from '../../components/ui/Select.tsx'
 import { useAsync } from '../../hooks/useAsync.ts'
@@ -52,7 +52,7 @@ export function AnnouncementsPage() {
         }
       />
 
-      {state.loading ? <LoadingState label="Loading announcements…" /> : null}
+      {state.loading ? <LoadingList /> : null}
       {state.error ? <ErrorState message={state.error} onRetry={state.reload} /> : null}
 
       {!state.loading && !state.error && announcements.length === 0 ? (

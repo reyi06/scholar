@@ -3,7 +3,7 @@ import { Badge } from '../../components/ui/Badge.tsx'
 import { Button } from '../../components/ui/Button.tsx'
 import { Dialog } from '../../components/ui/Dialog.tsx'
 import { EmptyState } from '../../components/ui/EmptyState.tsx'
-import { ErrorState, LoadingState } from '../../components/ui/States.tsx'
+import { ErrorState, LoadingList } from '../../components/ui/States.tsx'
 import { Field } from '../../components/ui/Field.tsx'
 import { PageHeader } from '../../components/ui/PageHeader.tsx'
 import { Section } from '../../components/ui/Section.tsx'
@@ -95,7 +95,7 @@ export function AdminDocumentsPage() {
           />
         }
       >
-        {state.loading ? <LoadingState label="Loading documents…" /> : null}
+        {state.loading ? <LoadingList /> : null}
         {state.error ? <ErrorState message={state.error} onRetry={state.reload} /> : null}
 
         {!state.loading && !state.error && visible.length === 0 ? (

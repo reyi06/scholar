@@ -101,10 +101,21 @@ export function DataTable<T>({
   onRowClick,
 }: DataTableProps<T>) {
   if (loading) {
+    // Match the table that is about to replace this, so the header and rows do
+    // not shift when the data arrives.
     return (
-      <div className="space-y-2 py-2" role="status" aria-label="Loading table">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <Skeleton key={index} className="h-10 w-full" />
+      <div className="w-full" role="status" aria-label="Loading table">
+        <div className="flex gap-6 border-b border-slate-200 px-4 py-2.5 dark:border-ink-800">
+          {columns.map((column) => (
+            <Skeleton key={column.key} className="h-3 flex-1" />
+          ))}
+        </div>
+        {Array.from({ length: 5 }).map((_, row) => (
+          <div key={row} className="flex gap-6 border-b border-slate-100 px-4 py-3.5 dark:border-ink-800">
+            {columns.map((column) => (
+              <Skeleton key={column.key} className="h-4 flex-1" />
+            ))}
+          </div>
         ))}
       </div>
     )

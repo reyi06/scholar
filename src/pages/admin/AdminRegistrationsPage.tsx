@@ -8,7 +8,7 @@ import {
   EmptyState,
   ErrorState,
   Icon,
-  LoadingState,
+  LoadingTable,
   PageHeader,
   Pagination,
   SearchInput,
@@ -270,7 +270,7 @@ export function AdminRegistrationsPage() {
         {list.error ? (
           <ErrorState message={list.error} onRetry={list.reload} />
         ) : list.loading && !list.data ? (
-          <LoadingState label="Loading registrations…" />
+          <LoadingTable columns={6} />
         ) : list.data ? (
           <>
             {list.data.items.length === 0 ? (

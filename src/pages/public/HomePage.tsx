@@ -12,7 +12,7 @@ import {
   ErrorState,
   Icon,
   LinkButton,
-  LoadingState,
+  LoadingList,
   SearchInput,
 } from '../../components/ui'
 import { announcementsApi } from '../../lib/api.ts'
@@ -170,7 +170,7 @@ export function HomePage() {
           </div>
 
           {announcementsLoading ? (
-            <LoadingState label="Loading announcements…" className="!py-8" />
+            <LoadingList rows={2} className="!py-8" />
           ) : null}
 
           {announcementsError ? (

@@ -7,7 +7,7 @@ import {
   ErrorState,
   Input,
   LinkButton,
-  LoadingState,
+  LoadingDetail,
   PageHeader,
   Section,
   Select,
@@ -256,7 +256,7 @@ export function StudentProfilePage() {
       />
 
       {profile.loading ? (
-        <LoadingState label="Loading your profile…" />
+        <LoadingDetail />
       ) : profile.error ? (
         <ErrorState message={profile.error} onRetry={profile.reload} />
       ) : editingProfile ? (

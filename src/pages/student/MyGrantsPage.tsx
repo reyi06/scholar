@@ -3,7 +3,7 @@ import {
   EmptyState,
   ErrorState,
   LinkButton,
-  LoadingState,
+  LoadingTable,
   PageHeader,
   Table,
   TBody,
@@ -64,7 +64,7 @@ export function MyGrantsPage() {
       />
 
       {state.loading ? (
-        <LoadingState label="Loading your grants…" />
+        <LoadingTable columns={6} />
       ) : state.error ? (
         <ErrorState message={state.error} onRetry={state.reload} />
       ) : (

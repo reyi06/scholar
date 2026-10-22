@@ -3,7 +3,7 @@ import {
   EmptyState,
   ErrorState,
   LinkButton,
-  LoadingState,
+  LoadingDashboard,
   PageHeader,
   Section,
   StatCard,
@@ -121,7 +121,7 @@ export function StudentDashboardPage() {
       />
 
       {dashboard.loading ? (
-        <LoadingState label="Loading your dashboard…" />
+        <LoadingDashboard />
       ) : dashboard.error ? (
         <ErrorState message={dashboard.error} onRetry={dashboard.reload} />
       ) : (

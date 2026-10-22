@@ -10,7 +10,7 @@ import {
   ErrorState,
   Icon,
   Input,
-  LoadingState,
+  LoadingList,
   PageHeader,
   Select,
   Textarea,
@@ -186,7 +186,7 @@ export function AdminAnnouncementsPage() {
       {list.error ? <ErrorState message={list.error} onRetry={list.reload} /> : null}
 
       {!list.error && list.loading && list.data === null ? (
-        <LoadingState label="Loading announcements…" />
+        <LoadingList />
       ) : null}
 
       {!list.error && list.data && announcements.length === 0 ? (

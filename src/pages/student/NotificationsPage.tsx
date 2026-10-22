@@ -5,7 +5,7 @@ import {
   EmptyState,
   ErrorState,
   LinkButton,
-  LoadingState,
+  LoadingList,
   PageHeader,
 } from '../../components/ui'
 import { useAuth } from '../../context/authContext.ts'
@@ -84,7 +84,7 @@ export function NotificationsPage() {
       ) : null}
 
       {state.loading ? (
-        <LoadingState label="Loading your notifications…" />
+        <LoadingList />
       ) : state.error ? (
         <ErrorState message={state.error} onRetry={state.reload} />
       ) : notifications.length === 0 ? (

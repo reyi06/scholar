@@ -5,7 +5,7 @@ import { ProtectedRoute } from '../components/layout/ProtectedRoute.tsx'
 import { PublicLayout } from '../components/layout/PublicLayout.tsx'
 import { ScrollToTop } from '../components/ScrollToTop.tsx'
 import { StudentLayout } from '../components/layout/StudentLayout.tsx'
-import { LoadingState } from '../components/ui'
+import { LoadingPage, LoadingState } from '../components/ui'
 import { useAuth } from '../context/authContext.ts'
 
 /**
@@ -134,8 +134,8 @@ export function App() {
       {/* A single boundary covers every lazily loaded page. */}
       <Suspense
         fallback={
-          <div className="flex min-h-svh items-center justify-center bg-slate-50 dark:bg-ink-950">
-            <LoadingState label="Loading page…" />
+          <div className="min-h-svh bg-canvas dark:bg-ink-950">
+            <LoadingPage />
           </div>
         }
       >

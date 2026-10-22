@@ -10,7 +10,8 @@ import {
   EmptyState,
   ErrorState,
   LinkButton,
-  LoadingState,
+  LoadingDetail,
+  LoadingTable,
   PageHeader,
   Pagination,
   SearchInput,
@@ -253,7 +254,7 @@ export function AdminApplicationsPage() {
         {list.error ? (
           <ErrorState message={list.error} onRetry={list.reload} />
         ) : list.loading && !list.data ? (
-          <LoadingState label="Loading applications…" />
+          <LoadingTable columns={5} />
         ) : list.data ? (
           <>
             {list.data.items.length === 0 ? (
@@ -303,7 +304,7 @@ export function AdminApplicationsPage() {
           </Button>
         }
       >
-        {review.loading ? <LoadingState label="Loading application…" /> : null}
+        {review.loading ? <LoadingDetail /> : null}
         {review.error ? <ErrorState message={review.error} onRetry={review.reload} /> : null}
 
         {review.data && !review.loading ? (

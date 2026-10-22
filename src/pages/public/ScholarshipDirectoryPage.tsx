@@ -5,7 +5,7 @@ import {
   Button,
   EmptyState,
   ErrorState,
-  LoadingState,
+  LoadingCards,
   PageHeader,
   Pagination,
   SearchInput,
@@ -221,7 +221,7 @@ export function ScholarshipDirectoryPage() {
 
         <div className="mt-4">
           <h2 className="sr-only">Search Results</h2>
-          {loading ? <LoadingState label="Searching scholarships…" /> : null}
+          {loading ? <LoadingCards /> : null}
 
           {error ? <ErrorState message={error} onRetry={reload} /> : null}
 

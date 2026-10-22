@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Badge, type BadgeTone } from '../../components/ui/Badge.tsx'
 import { Button } from '../../components/ui/Button.tsx'
 import { EmptyState } from '../../components/ui/EmptyState.tsx'
-import { ErrorState, LoadingState } from '../../components/ui/States.tsx'
+import { ErrorState, LoadingList } from '../../components/ui/States.tsx'
 import { PageHeader } from '../../components/ui/PageHeader.tsx'
 import { Section } from '../../components/ui/Section.tsx'
 import { Select } from '../../components/ui/Select.tsx'
@@ -87,7 +87,7 @@ export function AdminActivityPage() {
         title={total === 0 ? 'Activity' : `${total} ${total === 1 ? 'Entry' : 'Entries'}`}
         description="Pinned to the newest first. A grant confirmation is the entry that matters most, because it is the act that released funds."
       >
-        {state.loading ? <LoadingState label="Loading activity…" /> : null}
+        {state.loading ? <LoadingList /> : null}
         {state.error ? <ErrorState message={state.error} onRetry={state.reload} /> : null}
 
         {!state.loading && !state.error && entries.length === 0 ? (

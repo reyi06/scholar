@@ -459,6 +459,30 @@ A real deployment must keep TLS on, change the default database password, set
 
 Newest first. Record the command and its observed result.
 
+### 2026-10-22 - page skeletons on every data screen
+
+- **`npm test`** — 9 files, **68 tests**, 3.1 s. Seven new tests cover the
+  skeleton shapes: card count, list rows, table header and cells, dashboard
+  blocks, the route-level page skeleton, and that a screen reader hears one
+  loading status rather than every grey block.
+- **`npx tsc -b`, `oxlint`, `npm run build`** — clean; 22 pages still
+  prerendered.
+- **`npm run rehearse`** — 11/11 steps in 7.4 s against the production preview,
+  including approval-without-grant and grant confirmation.
+- **28 page-level loading states across 25 screens replaced**, covering the
+  public directory and detail pages, the student dashboard and every student
+  list, and all twelve administrator screens. Each skeleton copies the layout
+  that is about to arrive (card grid, divided list, table, detail block,
+  dashboard), so the page does not jump when the data lands.
+- **Route-level loading** is now a page skeleton as well, instead of a centred
+  spinner: a first visit to a lazy route keeps its own shape while the chunk
+  arrives.
+- **`DataTable`** now draws a header row and cells in its loading state, which
+  improves every administrator table without touching the tables themselves.
+- Deliberately left as spinners: the session check (no page shape to hold yet)
+  and the small stored-records count inside Settings. `LoadingRows` was
+  superseded by `LoadingList` and removed.
+
 ### 2026-10-20 - test suite added (61 tests, and a bug it caught immediately)
 
 - **`npm test`** — Vitest with jsdom, 8 files, **61 tests**, **2.5 s**, no
@@ -1087,6 +1111,22 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-22 - skeleton pages instead of spinners
+
+- Added five page-shaped placeholders beside the existing states: `LoadingCards`,
+  `LoadingList`, `LoadingTable`, `LoadingDetail`, `LoadingDashboard`, plus
+  `LoadingPage` for route-level code splitting.
+- They reuse the `Skeleton` primitive and the existing layout language — card
+  border and padding, table header rows, section spacing — rather than a new
+  visual vocabulary. `Skeleton` now respects `prefers-reduced-motion`.
+- Swapped all 28 page-level `LoadingState` usages across 25 screens. Spinners
+  remain only where a page shape does not exist yet (session check) or the block
+  is genuinely small (a record count inside Settings).
+- `DataTable`'s loading state now mirrors its header and columns.
+- Skeleton blocks stay `aria-hidden`; one `role="status"` is announced per
+  screen, so assistive technology is told that content is loading without
+  reading a wall of empty boxes.
 
 ### 2026-10-20 - automated tests, and the classifier bug they exposed
 

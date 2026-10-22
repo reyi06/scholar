@@ -3,7 +3,7 @@ import { Badge } from '../../components/ui/Badge.tsx'
 import { Button } from '../../components/ui/Button.tsx'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog.tsx'
 import { EmptyState } from '../../components/ui/EmptyState.tsx'
-import { ErrorState, LoadingState } from '../../components/ui/States.tsx'
+import { ErrorState, LoadingList } from '../../components/ui/States.tsx'
 import { Field } from '../../components/ui/Field.tsx'
 import { Input } from '../../components/ui/Input.tsx'
 import { PageHeader } from '../../components/ui/PageHeader.tsx'
@@ -171,7 +171,7 @@ export function DocumentsPage() {
       </Section>
 
       <Section title="Your Documents">
-        {state.loading ? <LoadingState label="Loading your documents…" /> : null}
+        {state.loading ? <LoadingList /> : null}
         {state.error ? (
           <ErrorState message={state.error} onRetry={state.reload} />
         ) : null}

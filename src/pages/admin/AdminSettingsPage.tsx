@@ -7,6 +7,7 @@ import {
   DefinitionList,
   ErrorState,
   Input,
+  LoadingDetail,
   LoadingState,
   PageHeader,
   Section,
@@ -138,7 +139,7 @@ export function AdminSettingsPage() {
       {settings.error ? <ErrorState message={settings.error} onRetry={settings.reload} /> : null}
 
       {!settings.error && settings.loading && !form ? (
-        <LoadingState label="Loading settings…" />
+        <LoadingDetail />
       ) : null}
 
       {!settings.error && form ? (

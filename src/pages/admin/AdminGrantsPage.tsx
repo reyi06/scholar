@@ -10,7 +10,8 @@ import {
   ErrorState,
   Icon,
   Input,
-  LoadingState,
+  LoadingList,
+  LoadingTable,
   PageHeader,
   Pagination,
   SearchInput,
@@ -454,7 +455,7 @@ export function AdminGrantsPage() {
           </div>
         ) : awaiting.loading && awaiting.data === null ? (
           <div className="p-5">
-            <LoadingState label="Loading pending applications…" />
+            <LoadingList />
           </div>
         ) : awaitingList.length === 0 ? (
           <p className="px-5 py-4 text-sm text-slate-500 dark:text-slate-400">
@@ -561,7 +562,7 @@ export function AdminGrantsPage() {
         {list.error ? (
           <ErrorState message={list.error} onRetry={list.reload} />
         ) : list.loading && !list.data ? (
-          <LoadingState label="Loading grant records…" />
+          <LoadingTable columns={6} />
         ) : list.data ? (
           <>
             {list.data.items.length === 0 ? (

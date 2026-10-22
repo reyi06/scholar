@@ -1,5 +1,5 @@
 import { ScholarshipCard } from '../../components/ScholarshipCard.tsx'
-import { EmptyState, ErrorState, LinkButton, LoadingState, PageHeader } from '../../components/ui'
+import { EmptyState, ErrorState, LinkButton, LoadingCards, PageHeader } from '../../components/ui'
 import { useAuth } from '../../context/authContext.ts'
 import { useAsync } from '../../hooks/useAsync.ts'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
@@ -46,7 +46,7 @@ export function SavedScholarshipsPage() {
       />
 
       {saved.loading ? (
-        <LoadingState label="Loading your shortlist…" />
+        <LoadingCards />
       ) : saved.error ? (
         <ErrorState message={saved.error} onRetry={saved.reload} />
       ) : items.length === 0 ? (

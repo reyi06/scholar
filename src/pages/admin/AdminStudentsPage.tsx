@@ -10,7 +10,8 @@ import {
   ErrorState,
   Icon,
   Input,
-  LoadingState,
+  LoadingDetail,
+  LoadingTable,
   PageHeader,
   Pagination,
   SearchInput,
@@ -318,7 +319,7 @@ export function AdminStudentsPage() {
         </div>
 
         {loading ? (
-          <LoadingState label="Loading students…" />
+          <LoadingTable columns={6} />
         ) : error ? (
           <ErrorState message={error} onRetry={reload} />
         ) : data ? (
@@ -385,7 +386,7 @@ export function AdminStudentsPage() {
         }
       >
         {detail.loading ? (
-          <LoadingState label="Loading student record…" />
+          <LoadingDetail />
         ) : detail.error ? (
           <ErrorState message={detail.error} onRetry={detail.reload} />
         ) : detailRecord ? (

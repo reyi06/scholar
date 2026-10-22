@@ -8,7 +8,7 @@ import {
   ErrorState,
   Input,
   LinkButton,
-  LoadingState,
+  LoadingDetail,
   PageHeader,
   Section,
   Select,
@@ -322,7 +322,7 @@ export function AdminScholarshipFormPage() {
     return (
       <div className="space-y-10">
         <PageHeader title={title} breadcrumbs={breadcrumbs} />
-        <LoadingState label="Loading scholarship…" />
+        <LoadingDetail />
       </div>
     )
   }

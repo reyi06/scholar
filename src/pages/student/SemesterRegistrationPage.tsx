@@ -10,7 +10,7 @@ import {
   ErrorState,
   Input,
   LinkButton,
-  LoadingState,
+  LoadingList,
   PageHeader,
   Section,
   Select,
@@ -227,7 +227,7 @@ export function SemesterRegistrationPage() {
       />
 
       {state.loading ? (
-        <LoadingState label="Loading your registrations…" />
+        <LoadingList />
       ) : state.error ? (
         <ErrorState message={state.error} onRetry={state.reload} />
       ) : (

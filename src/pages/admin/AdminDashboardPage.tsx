@@ -3,7 +3,7 @@ import {
   EmptyState,
   ErrorState,
   LinkButton,
-  LoadingState,
+  LoadingDashboard,
   PageHeader,
   Section,
   StatCard,
@@ -64,7 +64,7 @@ export function AdminDashboardPage() {
     return (
       <div className="space-y-10">
         <PageHeader title="Admin Dashboard" description={description} />
-        <LoadingState label="Loading dashboard…" />
+        <LoadingDashboard />
       </div>
     )
   }

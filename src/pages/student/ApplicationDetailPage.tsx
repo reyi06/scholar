@@ -11,7 +11,7 @@ import {
   ErrorState,
   Icon,
   LinkButton,
-  LoadingState,
+  LoadingDetail,
   PageHeader,
   Section,
   Textarea,
@@ -132,7 +132,7 @@ export function ApplicationDetailPage() {
       />
 
       {state.loading ? (
-        <LoadingState label="Loading this application…" />
+        <LoadingDetail />
       ) : state.error ? (
         <ErrorState message={state.error} onRetry={state.reload} />
       ) : !application ? (

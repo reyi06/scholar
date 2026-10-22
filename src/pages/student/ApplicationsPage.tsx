@@ -6,7 +6,7 @@ import {
   EmptyState,
   ErrorState,
   LinkButton,
-  LoadingState,
+  LoadingList,
   PageHeader,
   Tabs,
   type TabItem,
@@ -102,7 +102,7 @@ export function ApplicationsPage() {
       />
 
       {state.loading ? (
-        <LoadingState label="Loading your applications…" />
+        <LoadingList />
       ) : state.error ? (
         <ErrorState message={state.error} onRetry={state.reload} />
       ) : (

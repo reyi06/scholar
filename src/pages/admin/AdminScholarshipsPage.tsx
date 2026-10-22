@@ -8,7 +8,7 @@ import {
   ErrorState,
   Icon,
   LinkButton,
-  LoadingState,
+  LoadingTable,
   PageHeader,
   Pagination,
   SearchInput,
@@ -272,7 +272,7 @@ export function AdminScholarshipsPage() {
         </div>
 
         {loading ? (
-          <LoadingState label="Loading scholarships…" />
+          <LoadingTable columns={6} />
         ) : error ? (
           <ErrorState message={error} onRetry={reload} />
         ) : data ? (

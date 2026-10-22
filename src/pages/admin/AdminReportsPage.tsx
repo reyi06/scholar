@@ -5,7 +5,7 @@ import {
   EmptyState,
   ErrorState,
   Icon,
-  LoadingState,
+  LoadingDashboard,
   PageHeader,
   Section,
   Select,
@@ -204,7 +204,7 @@ export function AdminReportsPage() {
       {reports.error ? <ErrorState message={reports.error} onRetry={reports.reload} /> : null}
 
       {!reports.error && reports.loading && !reports.data ? (
-        <LoadingState label="Loading reports…" />
+        <LoadingDashboard />
       ) : null}
 
       {!reports.error && reportData ? (

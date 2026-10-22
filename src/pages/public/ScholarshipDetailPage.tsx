@@ -16,7 +16,7 @@ import {
   ErrorState,
   Icon,
   LinkButton,
-  LoadingState,
+  LoadingDetail,
   PageHeader,
   Section,
   Textarea,
@@ -128,7 +128,7 @@ export function ScholarshipDetailPage() {
   if (loading) {
     return (
       <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8">
-        <LoadingState label="Loading scholarship…" />
+        <LoadingDetail />
       </div>
     )
   }
