@@ -91,21 +91,25 @@ export function LoadingTable({
     <div
       role="status"
       aria-label="Loading table"
-      className={`overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-ink-800 dark:bg-ink-900 ${className}`}
+      className={`overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-ink-800 dark:bg-ink-900 ${className}`}
     >
-      <div className="flex gap-6 border-b border-slate-200 px-4 py-3 dark:border-ink-800">
-        {Array.from({ length: columns }).map((_, index) => (
-          <Skeleton key={index} className="h-3 flex-1" />
-        ))}
-      </div>
-      <div className="divide-y divide-slate-100 dark:divide-ink-800">
-        {Array.from({ length: rows }).map((_, row) => (
-          <div key={row} className="flex gap-6 px-4 py-4">
-            {Array.from({ length: columns }).map((_, column) => (
-              <Skeleton key={column} className="h-4 flex-1" />
-            ))}
-          </div>
-        ))}
+      {/* Same minimum width as `Table`, so a phone scrolls rather than squeezing
+          six columns into an unreadable row of pills. */}
+      <div className="min-w-[44rem]">
+        <div className="flex gap-6 border-b border-slate-200 px-4 py-3 dark:border-ink-800">
+          {Array.from({ length: columns }).map((_, index) => (
+            <Skeleton key={index} className="h-3 flex-1" />
+          ))}
+        </div>
+        <div className="divide-y divide-slate-100 dark:divide-ink-800">
+          {Array.from({ length: rows }).map((_, row) => (
+            <div key={row} className="flex gap-6 px-4 py-4">
+              {Array.from({ length: columns }).map((_, column) => (
+                <Skeleton key={column} className="h-4 flex-1" />
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

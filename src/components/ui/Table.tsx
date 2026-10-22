@@ -104,19 +104,21 @@ export function DataTable<T>({
     // Match the table that is about to replace this, so the header and rows do
     // not shift when the data arrives.
     return (
-      <div className="w-full" role="status" aria-label="Loading table">
-        <div className="flex gap-6 border-b border-slate-200 px-4 py-2.5 dark:border-ink-800">
-          {columns.map((column) => (
-            <Skeleton key={column.key} className="h-3 flex-1" />
-          ))}
-        </div>
-        {Array.from({ length: 5 }).map((_, row) => (
-          <div key={row} className="flex gap-6 border-b border-slate-100 px-4 py-3.5 dark:border-ink-800">
+      <div className="w-full overflow-x-auto" role="status" aria-label="Loading table">
+        <div className="min-w-[44rem]">
+          <div className="flex gap-6 border-b border-slate-200 px-4 py-2.5 dark:border-ink-800">
             {columns.map((column) => (
-              <Skeleton key={column.key} className="h-4 flex-1" />
+              <Skeleton key={column.key} className="h-3 flex-1" />
             ))}
           </div>
-        ))}
+          {Array.from({ length: 5 }).map((_, row) => (
+            <div key={row} className="flex gap-6 border-b border-slate-100 px-4 py-3.5 dark:border-ink-800">
+              {columns.map((column) => (
+                <Skeleton key={column.key} className="h-4 flex-1" />
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     )
   }

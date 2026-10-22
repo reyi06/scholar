@@ -43,9 +43,10 @@ describe('page skeletons', () => {
     render(<LoadingTable rows={2} columns={3} />)
 
     const table = screen.getByRole('status')
-    expect(table.children[0].children.length).toBe(3) // header cells
-    expect(table.children[1].children.length).toBe(2) // body rows
-    expect(table.children[1].children[0].children.length).toBe(3) // cells in a row
+    const surface = table.firstElementChild as HTMLElement
+    expect(surface.children[0].children.length).toBe(3) // header cells
+    expect(surface.children[1].children.length).toBe(2) // body rows
+    expect((surface.children[1].children[0] as HTMLElement).children.length).toBe(3) // cells in a row
   })
 
   it('holds the dashboard shape: a summary row and recent activity', () => {

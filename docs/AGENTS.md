@@ -459,6 +459,20 @@ A real deployment must keep TLS on, change the default database password, set
 
 Newest first. Record the command and its observed result.
 
+### 2026-10-22 - skeleton pages checked in their real loading states
+
+- Drove the running dev server with the API throttled by 8 s so each skeleton
+  stayed on screen, at **390 and 1280 px**, in **light and dark**: directory,
+  listing detail, student applications, student dashboard, administrator
+  scholarships.
+- Every capture exposed **exactly one named status**, no readable placeholder
+  text, and **zero document overflow** at both widths.
+- **Found and fixed:** the table skeleton squeezed six columns into 390 px while
+  the real `Table` scrolls at `min-w-[44rem]`. `LoadingTable` and `DataTable`'s
+  loading state now use the same minimum width and overflow container, so the
+  shape matches the table that replaces it.
+- `npm test` 68/68, `npx tsc -b` clean.
+
 ### 2026-10-22 - page skeletons on every data screen
 
 - **`npm test`** — 9 files, **68 tests**, 3.1 s. Seven new tests cover the
@@ -1111,6 +1125,13 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-22 - table skeletons scroll like the table
+
+- `LoadingTable` and `DataTable`'s loading state now sit inside
+  `overflow-x-auto` with `min-w-[44rem]`, matching `Table`. On a phone the
+  skeleton had squeezed six columns into 390 px, which is not the layout the
+  data produces; the real table scrolls instead.
 
 ### 2026-10-22 - skeleton pages instead of spinners
 
