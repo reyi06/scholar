@@ -459,6 +459,31 @@ A real deployment must keep TLS on, change the default database password, set
 
 Newest first. Record the command and its observed result.
 
+### 2026-10-26 - security review with live probes
+
+- **No PHP exists in this project.** The only "PHP" strings are the peso
+  currency code and a comment about rejecting `.php` uploads. A PHP update has
+  no effect here.
+- `npm audit` reported one moderate `fast-uri` advisory reached through
+  Prisma's development tooling. `npm audit fix` moved it to 3.1.9; the audit
+  now reports **0 vulnerabilities**.
+- Four issues were confirmed against the running API, not just read:
+  - anonymous `GET /api/announcements?audience=admins` returned the staff-only
+    notice `ann_004`;
+  - anonymous `GET /api/scholarships/sch_015` returned a draft listing that
+    the directory correctly hides;
+  - Maria could mark the administrator's notification `ntf_006` as read;
+  - a 1.1 MB JSON body was accepted and buffered.
+- All four now fail safely: audience comes from the session, drafts return
+  `null` to non-admins, notification updates are owner-scoped, and bodies over
+  1 MB return 413.
+- CSV formula injection and `javascript:` provider links were also closed;
+  `tests/csv.test.ts` covers the former.
+- **`npm test` 71/71 (10 files), `tsc`, `oxlint`, build clean** (22 pages).
+- Open findings — test credentials in the bundle, `POST /api/grants` bypassing
+  the approval rule, missing transactions, UI-only deadline/profile checks,
+  races, and local binding — are written up in `docs/SECURITY-REVIEW.md`.
+
 ### 2026-10-22 - skeleton pages checked in their real loading states
 
 - Drove the running dev server with the API throttled by 8 s so each skeleton
@@ -1125,6 +1150,21 @@ through a real browser. Console was empty of errors on every page visited.
 ## 12. Change log
 
 Newest first. One entry per meaningful change.
+
+### 2026-10-26 - access-control and hardening fixes from a security review
+
+- **Announcement audience** is derived from the session, never the query
+  string. `?audience=admins` no longer leaks staff notices.
+- **Draft scholarships** return `null` from the detail endpoint unless the
+  caller is an administrator; ids are guessable.
+- **Notification read** is scoped to the owner (`id + userId`).
+- **JSON bodies** are capped at 1 MB (`413`); uploads were already capped.
+- **CSV exports** neutralise formula-leading cells, with a unit test.
+- **Provider links** must be `http`/`https`; `javascript:` is rejected.
+- **Malformed cookie escapes** no longer turn a bad request into a 500.
+- `npm audit fix` updates `fast-uri`; zero advisories remain.
+- Full findings, severities and the pre-deployment checklist are in
+  `docs/SECURITY-REVIEW.md`.
 
 ### 2026-10-22 - table skeletons scroll like the table
 

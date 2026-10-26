@@ -21,9 +21,20 @@ export function send(res: ServerResponse, status: number, body: unknown): void {
   res.end(payload)
 }
 
+/** Generous for any form in this application; small enough to bound memory. */
+const MAX_JSON_BYTES = 1_000_000
+
 export async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> {
   const chunks: Buffer[] = []
-  for await (const chunk of req) chunks.push(chunk as Buffer)
+  let size = 0
+  for await (const chunk of req) {
+    const buffer = chunk as Buffer
+    size += buffer.length
+    // Without this, one caller can make the process buffer an arbitrarily large
+    // body before parsing even begins.
+    if (size > MAX_JSON_BYTES) throw new HttpError(413, 'That request is too large.')
+    chunks.push(buffer)
+  }
   if (chunks.length === 0) return {}
   try {
     const parsed: unknown = JSON.parse(Buffer.concat(chunks).toString('utf8'))
@@ -38,7 +49,16 @@ export function parseCookies(req: IncomingMessage): Record<string, string> {
   if (!header) return {}
   return header.split(';').reduce<Record<string, string>>((acc, part) => {
     const index = part.indexOf('=')
-    if (index > 0) acc[part.slice(0, index).trim()] = decodeURIComponent(part.slice(index + 1).trim())
+    if (index > 0) {
+      const name = part.slice(0, index).trim()
+      const raw = part.slice(index + 1).trim()
+      try {
+        acc[name] = decodeURIComponent(raw)
+      } catch {
+        // A malformed percent-escape is a bad request, not a reason to fail the
+        // whole call with a 500.
+      }
+    }
     return acc
   }, {})
 }

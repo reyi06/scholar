@@ -17,13 +17,13 @@ import { toAnnouncement } from '../mappers.ts'
 /* ================================================================== */
 
 route('GET', '/api/announcements', async ({ res, query, user }) => {
-  const audience = query.get('audience')
+  // Audience comes from the session, never from the query string. Asking for
+  // `?audience=admins` as an anonymous visitor used to return staff notices.
   const category = query.get('category')
   const where: Record<string, unknown> = {}
 
-  if (audience === 'students') where.audience = { in: ['all', 'students'] }
-  else if (audience === 'admins') where.audience = { in: ['all', 'admins'] }
-  else if (!user) where.audience = 'all'
+  if (user?.role === 'student') where.audience = { in: ['all', 'students'] }
+  else if (user?.role !== 'admin') where.audience = 'all'
 
   if (category && category !== 'all') where.category = category
 

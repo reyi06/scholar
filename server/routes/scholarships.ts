@@ -107,9 +107,15 @@ route('GET', '/api/scholarships/options', async ({ res, user }) => {
   send(res, 200, rows)
 })
 
-route('GET', '/api/scholarships/:id', async ({ res, params }) => {
+route('GET', '/api/scholarships/:id', async ({ res, params, user }) => {
   const row = await prisma.scholarship.findUnique({ where: { id: params.id } })
-  send(res, 200, row ? toScholarship(row) : null)
+  // The list hides drafts, so the detail must too: ids are short and guessable,
+  // and a draft may contain an unannounced programme or contact details.
+  if (!row || (row.status === 'draft' && user?.role !== 'admin')) {
+    send(res, 200, null)
+    return
+  }
+  send(res, 200, toScholarship(row))
 })
 
 route('GET', '/api/scholarships/counts-by-type', async ({ res }) => {
@@ -128,6 +134,25 @@ function scholarshipData(body: Record<string, unknown>) {
   const text = (key: string): string | undefined =>
     typeof body[key] === 'string' ? (body[key] as string) : undefined
 
+  // An administrator supplies this, but a `javascript:` URL in an href is still
+  // executable. Only full http(s) addresses are accepted; the interface renders
+  // the stored value directly.
+  const externalUrl = (): string | null | undefined => {
+    if (body.externalUrl === undefined) return undefined
+    const value = text('externalUrl')?.trim()
+    if (!value) return null
+    let parsed: URL
+    try {
+      parsed = new URL(value)
+    } catch {
+      throw new HttpError(400, 'The provider link must be a full http or https address.')
+    }
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      throw new HttpError(400, 'The provider link must use http or https.')
+    }
+    return parsed.toString()
+  }
+
   return {
     name: text('name'),
     provider: text('provider'),
@@ -140,7 +165,7 @@ function scholarshipData(body: Record<string, unknown>) {
     requirements: list('requirements') ? stringifyArray(body.requirements as string[]) : undefined,
     deadline: text('deadline'),
     applicationMode: text('applicationMode'),
-    externalUrl: body.externalUrl === undefined ? undefined : (text('externalUrl') || null),
+    externalUrl: externalUrl(),
     contact: body.contact ? stringifyObject(body.contact) : undefined,
     instructions: list('instructions') ? stringifyArray(body.instructions as string[]) : undefined,
     status: text('status'),

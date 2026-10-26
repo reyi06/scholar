@@ -9,7 +9,13 @@
 /** Escape a single CSV cell per RFC 4180. */
 function escapeCell(value: unknown): string {
   if (value === null || value === undefined) return ''
-  const text = String(value)
+  let text = String(value)
+
+  // Spreadsheet formula injection: Excel and LibreOffice execute a cell that
+  // begins with =, +, -, @, a tab or a carriage return. A student's name is
+  // enough to reach this path. The apostrophe forces text.
+  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`
+
   if (/[",\r\n]/.test(text)) {
     return `"${text.replace(/"/g, '""')}"`
   }

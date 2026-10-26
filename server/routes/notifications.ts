@@ -42,7 +42,12 @@ route('POST', '/api/notifications/read-all', async ({ res, user }) => {
 })
 
 route('POST', '/api/notifications/:id/read', async ({ res, params, user }) => {
-  requireUser(user)
-  await prisma.notification.update({ where: { id: params.id }, data: { read: true } }).catch(() => undefined)
+  const signedIn = requireUser(user)
+  // Scoped to the owner: an id alone must not let one account mark another
+  // account's notification as read.
+  await prisma.notification.updateMany({
+    where: { id: params.id, userId: signedIn.id },
+    data: { read: true },
+  })
   send(res, 200, { ok: true })
 })
