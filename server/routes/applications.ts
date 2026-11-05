@@ -12,6 +12,7 @@ import { route } from '../http/router.ts'
 import { HttpError } from '../httpError.ts'
 import { createId, nextReference } from '../ids.ts'
 import { stringifyArray, stringifyObject, toApplication } from '../mappers.ts'
+import { applicationDecisionAllowed, isPastDeadline, isUniqueViolation } from '../rules.ts'
 
 /* ================================================================== */
 /* Applications                                                        */
@@ -87,9 +88,25 @@ route('POST', '/api/applications', async ({ req, res, user }) => {
   const scholarshipId = String(body.scholarshipId ?? '')
   const asDraft = Boolean(body.asDraft)
 
-  const scholarship = await prisma.scholarship.findUnique({ where: { id: scholarshipId } })
+  if (!student.profileComplete) {
+    throw new HttpError(409, 'Complete your student profile before applying.')
+  }
+
+  const [scholarship, settings] = await Promise.all([
+    prisma.scholarship.findUnique({ where: { id: scholarshipId } }),
+    prisma.platformSettings.findUnique({ where: { id: 'singleton' } }),
+  ])
   if (!scholarship) throw new HttpError(404, 'That scholarship listing no longer exists.')
   if (scholarship.status !== 'open') throw new HttpError(409, 'This listing is not accepting applications.')
+  if (scholarship.applicationMode !== 'internal') {
+    throw new HttpError(409, 'This listing is handled by the provider, not through the portal.')
+  }
+  if (settings && !settings.applicationsOpen) {
+    throw new HttpError(409, 'Applications are currently closed.')
+  }
+  if (isPastDeadline(scholarship.deadline)) {
+    throw new HttpError(409, 'The deadline for this listing has passed.')
+  }
 
   const existing = await prisma.application.findFirst({
     where: { studentId: student.id, scholarshipId },
@@ -98,52 +115,114 @@ route('POST', '/api/applications', async ({ req, res, user }) => {
     throw new HttpError(409, 'You already have an application for this scholarship.')
   }
 
-  const existingRefs = (await prisma.application.findMany({ select: { referenceNo: true } })).map(
-    (row) => row.referenceNo,
-  )
-
   const now = new Date()
-  const created = await prisma.application.create({
-    data: {
-      id: createId('app'),
-      referenceNo: nextReference('APP', existingRefs),
-      scholarshipId,
-      studentId: student.id,
-      status: asDraft ? 'draft' : 'submitted',
-      submittedAt: now,
-      updatedAt: now,
-      motivation: String(body.motivation ?? ''),
-      responses: stringifyObject(body.responses ?? []),
-      documentNames: stringifyArray(Array.isArray(body.documentNames) ? (body.documentNames as string[]) : []),
-      timeline: asDraft
-        ? undefined
-        : {
-            create: [
-              {
-                id: createId('tle'),
-                status: 'submitted',
-                at: now,
-                note: 'Application submitted through the portal.',
-              },
-            ],
-          },
-    },
-    include: { timeline: true },
-  })
-
-  if (!asDraft) {
-    await prisma.notification.create({
-      data: {
-        id: createId('ntf'),
-        userId: student.id,
-        title: 'Application submitted',
-        body: `Your application ${created.referenceNo} was recorded as submitted.`,
-        createdAt: new Date(),
-        link: `/student/applications/${created.id}`,
+  const fields = {
+    motivation: String(body.motivation ?? ''),
+    responses: stringifyObject(body.responses ?? []),
+    documentNames: stringifyArray(Array.isArray(body.documentNames) ? (body.documentNames as string[]) : []),
+  }
+  const submittedTimeline = {
+    create: [
+      {
+        id: createId('tle'),
+        status: 'submitted',
+        at: now,
+        note: 'Application submitted through the portal.',
       },
-    })
+    ],
   }
 
+  // A draft already exists: finish that one instead of starting a second. The
+  // database also enforces one row per student and listing.
+  if (existing) {
+    const updated = await prisma.$transaction(async (tx) => {
+      const row = await tx.application.update({
+        where: { id: existing.id },
+        data: {
+          ...fields,
+          status: asDraft ? 'draft' : 'submitted',
+          submittedAt: asDraft ? existing.submittedAt : now,
+          updatedAt: now,
+          ...(asDraft ? {} : { timeline: submittedTimeline }),
+        },
+        include: { timeline: { orderBy: { at: 'asc' } } },
+      })
+
+      if (!asDraft) {
+        await tx.notification.create({
+          data: {
+            id: createId('ntf'),
+            userId: student.id,
+            title: 'Application submitted',
+            body: `Your application ${row.referenceNo} was recorded as submitted.`,
+            createdAt: now,
+            link: `/student/applications/${row.id}`,
+          },
+        })
+      }
+      return row
+    })
+
+    send(res, 200, toApplication(updated))
+    return
+  }
+
+  let created: Awaited<ReturnType<typeof prisma.application.create>> | null = null
+
+  for (let attempt = 0; attempt < 3 && !created; attempt += 1) {
+    const existingRefs = (await prisma.application.findMany({ select: { referenceNo: true } })).map(
+      (row) => row.referenceNo,
+    )
+
+    try {
+      created = await prisma.$transaction(async (tx) => {
+        const row = await tx.application.create({
+          data: {
+            id: createId('app'),
+            referenceNo: nextReference('APP', existingRefs),
+            scholarshipId,
+            studentId: student.id,
+            status: asDraft ? 'draft' : 'submitted',
+            submittedAt: now,
+            updatedAt: now,
+            ...fields,
+            timeline: asDraft ? undefined : submittedTimeline,
+          },
+          include: { timeline: true },
+        })
+
+        if (!asDraft) {
+          await tx.notification.create({
+            data: {
+              id: createId('ntf'),
+              userId: student.id,
+              title: 'Application submitted',
+              body: `Your application ${row.referenceNo} was recorded as submitted.`,
+              createdAt: now,
+              link: `/student/applications/${row.id}`,
+            },
+          })
+        }
+        return row
+      })
+    } catch (error) {
+      if (!isUniqueViolation(error)) throw error
+
+      // Losing a concurrent duplicate is a 409. Losing a reference-number race
+      // is retried with a freshly computed number.
+      const duplicate = await prisma.application.findFirst({
+        where: { studentId: student.id, scholarshipId },
+      })
+      if (duplicate) {
+        throw new HttpError(409, 'You already have an application for this scholarship.')
+      }
+      if (attempt === 2) {
+        throw new HttpError(409, 'Could not allocate a reference number. Please try again.')
+      }
+    }
+  }
+
+  if (!created) throw new HttpError(409, 'Could not create the application. Please try again.')
   send(res, 201, toApplication(created))
 })
 
@@ -177,33 +256,72 @@ route('PATCH', '/api/applications/:id', async ({ req, res, params, user }) => {
   const asDraft = Boolean(body.asDraft)
   const now = new Date()
 
-  const updated = await prisma.application.update({
-    where: { id: params.id },
-    data: {
-      motivation: typeof body.motivation === 'string' ? body.motivation : existing.motivation,
-      responses: body.responses ? stringifyObject(body.responses) : existing.responses,
-      documentNames: Array.isArray(body.documentNames)
-        ? stringifyArray(body.documentNames as string[])
-        : existing.documentNames,
-      status: asDraft ? 'draft' : 'submitted',
-      submittedAt: asDraft ? existing.submittedAt : now,
-      updatedAt: now,
-      ...(asDraft
-        ? {}
-        : {
-            timeline: {
-              create: [
-                {
-                  id: createId('tle'),
-                  status: 'submitted',
-                  at: now,
-                  note: 'Application submitted through the portal.',
-                },
-              ],
-            },
-          }),
-    },
-    include: { timeline: { orderBy: { at: 'asc' } } },
+  // Saving a draft is harmless; submitting it has to clear the same gates as a
+  // first submission, or a draft becomes a way around the deadline.
+  if (!asDraft) {
+    if (!student.profileComplete) {
+      throw new HttpError(409, 'Complete your student profile before submitting.')
+    }
+    const [scholarship, settings] = await Promise.all([
+      prisma.scholarship.findUnique({ where: { id: existing.scholarshipId } }),
+      prisma.platformSettings.findUnique({ where: { id: 'singleton' } }),
+    ])
+    if (!scholarship) throw new HttpError(404, 'That scholarship listing no longer exists.')
+    if (scholarship.status !== 'open' || scholarship.applicationMode !== 'internal') {
+      throw new HttpError(409, 'This listing is not accepting applications through the portal.')
+    }
+    if (isPastDeadline(scholarship.deadline)) {
+      throw new HttpError(409, 'The deadline for this listing has passed.')
+    }
+    if (settings && !settings.applicationsOpen) {
+      throw new HttpError(409, 'Applications are currently closed.')
+    }
+  }
+
+  const updated = await prisma.$transaction(async (tx) => {
+    const row = await tx.application.update({
+      where: { id: params.id },
+      data: {
+        motivation: typeof body.motivation === 'string' ? body.motivation : existing.motivation,
+        responses: body.responses ? stringifyObject(body.responses) : existing.responses,
+        documentNames: Array.isArray(body.documentNames)
+          ? stringifyArray(body.documentNames as string[])
+          : existing.documentNames,
+        status: asDraft ? 'draft' : 'submitted',
+        submittedAt: asDraft ? existing.submittedAt : now,
+        updatedAt: now,
+        ...(asDraft
+          ? {}
+          : {
+              timeline: {
+                create: [
+                  {
+                    id: createId('tle'),
+                    status: 'submitted',
+                    at: now,
+                    note: 'Application submitted through the portal.',
+                  },
+                ],
+              },
+            }),
+      },
+      include: { timeline: { orderBy: { at: 'asc' } } },
+    })
+
+    if (!asDraft) {
+      await tx.notification.create({
+        data: {
+          id: createId('ntf'),
+          userId: student.id,
+          title: 'Application submitted',
+          body: `Your application ${row.referenceNo} was recorded as submitted.`,
+          createdAt: now,
+          link: `/student/applications/${row.id}`,
+        },
+      })
+    }
+
+    return row
   })
 
   send(res, 200, toApplication(updated))
@@ -225,34 +343,53 @@ route('POST', '/api/applications/:id/status', async ({ req, res, params, user })
   const note = String(body.note ?? '').trim()
   if (note.length < 5) throw new HttpError(400, 'Add a short note explaining the decision.')
 
-  const existing = await prisma.application.findUnique({ where: { id: params.id } })
+  const existing = await prisma.application.findUnique({
+    where: { id: params.id },
+    include: { grant: true },
+  })
   if (!existing) throw new HttpError(404, 'That application no longer exists.')
+  if (existing.grant) {
+    throw new HttpError(
+      409,
+      'This application already has a confirmed grant. Its decision is part of the financial record and cannot be changed.',
+    )
+  }
+  if (!applicationDecisionAllowed(existing.status, status, false)) {
+    throw new HttpError(
+      409,
+      `An application marked ${existing.status.replace(/-/g, ' ')} cannot move to ${status.replace(/-/g, ' ')}.`,
+    )
+  }
 
   const actor = `${admin.firstName} ${admin.lastName}`
   const now = new Date()
   const label = status.replace(/-/g, ' ')
 
-  const updated = await prisma.application.update({
-    where: { id: params.id },
-    data: {
-      status,
-      reviewNotes: note,
-      reviewedBy: actor,
-      updatedAt: now,
-      timeline: { create: [{ id: createId('tle'), status, at: now, note, actor }] },
-    },
-    include: { timeline: { orderBy: { at: 'asc' } } },
-  })
+  const updated = await prisma.$transaction(async (tx) => {
+    const row = await tx.application.update({
+      where: { id: params.id },
+      data: {
+        status,
+        reviewNotes: note,
+        reviewedBy: actor,
+        updatedAt: now,
+        timeline: { create: [{ id: createId('tle'), status, at: now, note, actor }] },
+      },
+      include: { timeline: { orderBy: { at: 'asc' } } },
+    })
 
-  await prisma.notification.create({
-    data: {
-      id: createId('ntf'),
-      userId: existing.studentId,
-      title: `Application ${label}`,
-      body: `Your application ${existing.referenceNo} is now marked as ${label}.`,
-      createdAt: now,
-      link: `/student/applications/${existing.id}`,
-    },
+    await tx.notification.create({
+      data: {
+        id: createId('ntf'),
+        userId: existing.studentId,
+        title: `Application ${label}`,
+        body: `Your application ${existing.referenceNo} is now marked as ${label}.`,
+        createdAt: now,
+        link: `/student/applications/${existing.id}`,
+      },
+    })
+
+    return row
   })
 
   await recordAudit({
@@ -304,9 +441,28 @@ route('POST', '/api/applications/:id/withdraw', async ({ res, params, user }) =>
 })
 
 route('DELETE', '/api/applications/:id', async ({ res, params, user }) => {
-  requireRole(user, 'admin')
-  const existing = await prisma.application.findUnique({ where: { id: params.id } })
+  const admin = requireRole(user, 'admin')
+  const existing = await prisma.application.findUnique({
+    where: { id: params.id },
+    include: { grant: true },
+  })
   if (!existing) throw new HttpError(404, 'That application no longer exists.')
+  if (existing.grant) {
+    throw new HttpError(
+      409,
+      'This application has a confirmed grant. Remove the grant only if that is the intended financial correction.',
+    )
+  }
+
+  await recordAudit({
+    actor: admin,
+    action: 'application.deleted',
+    entityType: 'application',
+    entityId: existing.id,
+    summary: `Deleted application ${existing.referenceNo}`,
+    detail: { studentId: existing.studentId, scholarshipId: existing.scholarshipId, status: existing.status },
+  })
+
   await prisma.application.delete({ where: { id: params.id } })
   send(res, 200, { ok: true })
 })

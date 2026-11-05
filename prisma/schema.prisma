@@ -1,4 +1,4 @@
-// Pampanga GrantConnect — database schema.
+// Scholar (formerly Pampanga GrantConnect) — database schema.
 //
 // PostgreSQL, locally and in deployment (Supabase is PostgreSQL). The model
 // shapes mirror `src/types/index.ts` one-for-one so the API layer can return
@@ -163,6 +163,9 @@ model Application {
   @@index([studentId])
   @@index([scholarshipId])
   @@index([status])
+  // One application per student per listing. The route also checks, but a
+  // concurrent pair of requests must lose at the database, not both insert.
+  @@unique([studentId, scholarshipId])
 }
 
 model ApplicationTimelineEntry {
@@ -206,6 +209,7 @@ model SemesterRegistration {
 
   @@index([studentId])
   @@index([status])
+  @@unique([studentId, academicYear, semester])
 }
 
 /* ------------------------------------------------------------------ */

@@ -9,6 +9,7 @@ import { prisma } from '../db.ts'
 import { requireUser } from '../http/auth.ts'
 import { readJson, send } from '../http/responses.ts'
 import { route } from '../http/router.ts'
+import { HttpError } from '../httpError.ts'
 import { createId } from '../ids.ts'
 import { toApplication, toDocument, toGrant, toProfile, toRegistration } from '../mappers.ts'
 
@@ -94,6 +95,19 @@ route('POST', '/api/me/erasure-request', async ({ req, res, user }) => {
   const body = await readJson(req)
   const reason = String(body.reason ?? '').trim()
 
+  const recent = await prisma.auditEntry.findFirst({
+    where: {
+      action: 'data.erasure_requested',
+      entityType: 'user',
+      entityId: signedIn.id,
+      at: { gte: new Date(Date.now() - 24 * 60 * 60_000) },
+    },
+    select: { id: true },
+  })
+  if (recent) {
+    throw new HttpError(429, 'You have already requested erasure in the last 24 hours.')
+  }
+
   const name = `${signedIn.firstName} ${signedIn.lastName}`.trim()
 
   await recordAudit({
@@ -106,7 +120,7 @@ route('POST', '/api/me/erasure-request', async ({ req, res, user }) => {
   })
 
   const admins = await prisma.user.findMany({ where: { role: 'admin' }, select: { id: true } })
-  await Promise.all(
+  await prisma.$transaction(
     admins.map((admin) =>
       prisma.notification.create({
         data: {

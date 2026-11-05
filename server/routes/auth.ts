@@ -18,12 +18,13 @@ import {
 import { parseCookies, readJson, send } from '../http/responses.ts'
 import { route } from '../http/router.ts'
 import { HttpError } from '../httpError.ts'
+import { isUniqueViolation } from '../rules.ts'
 import { createId } from '../ids.ts'
 import { buildOtpMessage, mailTransport, settleDeliveryDelay } from '../mailer.ts'
 import { toUser } from '../mappers.ts'
 import { OTP_POLICY, checkAddressAllowance, consumeCode, issueCode, pruneExpiredCodes } from '../otp.ts'
 import { hashPassword, verifyPassword } from '../passwords.ts'
-import { clearLoginFailures, loginThrottle, recordLoginFailure } from '../throttle.ts'
+import { clearLoginFailures, loginThrottle, recordLoginFailure, recordRegistration, registrationThrottle } from '../throttle.ts'
 import type { IncomingMessage } from 'node:http'
 
 /* ================================================================== */
@@ -313,42 +314,65 @@ route('POST', '/api/auth/register', async ({ req, res }) => {
     throw new HttpError(400, 'Please complete every required field.')
   }
 
+  const origin = requestOrigin(req)
+  const throttle = registrationThrottle(origin)
+  if (throttle.blocked) {
+    res.setHeader('Retry-After', String(throttle.retryAfterSeconds))
+    const minutes = Math.max(1, Math.ceil(throttle.retryAfterSeconds / 60))
+    throw new HttpError(429, `Too many registration attempts. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`)
+  }
+
   // The student details are a prerequisite, not a later profile edit, so they
   // are validated here rather than trusted from the form.
   const details = readStudentDetails(body)
+
+  // Counted before the existence check, so probing addresses is limited too.
+  recordRegistration(origin)
 
   const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } })
   if (existing) throw new HttpError(409, 'An account with that email address already exists.')
 
   const id = createId('usr')
-  const created = await prisma.user.create({
-    data: {
-      id,
-      email,
-      passwordHash: hashPassword(password),
-      role: 'student',
-      firstName,
-      lastName,
-      // A self-registered account starts unconfirmed. The Google route sets
-      // this true, because Google is the authority for the addresses it issues.
-      emailVerified: false,
-    },
-  })
+  let created: Awaited<ReturnType<typeof prisma.user.create>>
+  try {
+    created = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          id,
+          email,
+          passwordHash: hashPassword(password),
+          role: 'student',
+          firstName,
+          lastName,
+          // A self-registered account starts unconfirmed. The Google route sets
+          // this true, because Google is the authority for the addresses it issues.
+          emailVerified: false,
+        },
+      })
 
-  await prisma.studentProfile.create({
-    data: { userId: id, ...details },
-  })
+      await tx.studentProfile.create({
+        data: { userId: id, ...details },
+      })
 
-  await prisma.notification.create({
-    data: {
-      id: createId('ntf'),
-      userId: id,
-      title: 'Welcome to Scholar',
-      body: 'Complete your student profile to improve your scholarship matches.',
-      createdAt: new Date(),
-      link: '/student/profile',
-    },
-  })
+      await tx.notification.create({
+        data: {
+          id: createId('ntf'),
+          userId: id,
+          title: 'Welcome to Scholar',
+          body: 'Complete your student profile to improve your scholarship matches.',
+          createdAt: new Date(),
+          link: '/student/profile',
+        },
+      })
+
+      return user
+    })
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw new HttpError(409, 'An account with that email address already exists.')
+    }
+    throw error
+  }
 
   await startSession(res, id)
   send(res, 201, { user: toUser(created) })

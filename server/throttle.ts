@@ -96,3 +96,51 @@ export function recordLoginFailure(email: string, address: string | null): void 
 export function clearLoginFailures(email: string): void {
   accountFailures.delete(email)
 }
+
+/* ------------------------------------------------------------------ */
+/* Registration                                                        */
+/* ------------------------------------------------------------------ */
+
+const REGISTRATION_LIMIT = 10
+const REGISTRATION_WINDOW_MS = 60 * 60_000
+const registrationAttempts = new Map<string, number[]>()
+
+/**
+ * Registration is not authenticated, so an address allowance is the only
+ * practical limit on account spam. Ten per hour is generous for a household and
+ * small enough to make bulk creation unattractive. In memory, like the login
+ * counters, so it is a single-process control.
+ */
+export function registrationThrottle(address: string | null): ThrottleVerdict {
+  if (!address) return { blocked: false, retryAfterSeconds: 0 }
+
+  const now = Date.now()
+  const recent = (registrationAttempts.get(address) ?? []).filter(
+    (at) => now - at < REGISTRATION_WINDOW_MS,
+  )
+
+  if (recent.length >= REGISTRATION_LIMIT) {
+    return {
+      blocked: true,
+      retryAfterSeconds: Math.ceil((REGISTRATION_WINDOW_MS - (now - recent[0])) / 1000),
+    }
+  }
+
+  return { blocked: false, retryAfterSeconds: 0 }
+}
+
+export function recordRegistration(address: string | null): void {
+  if (!address) return
+  const now = Date.now()
+  const recent = (registrationAttempts.get(address) ?? []).filter(
+    (at) => now - at < REGISTRATION_WINDOW_MS,
+  )
+  recent.push(now)
+  registrationAttempts.set(address, recent)
+
+  if (registrationAttempts.size > 2000) {
+    for (const [key, times] of registrationAttempts) {
+      if (times.every((at) => now - at >= REGISTRATION_WINDOW_MS)) registrationAttempts.delete(key)
+    }
+  }
+}

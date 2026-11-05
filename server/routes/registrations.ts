@@ -4,6 +4,7 @@
  * Moved verbatim; behaviour is unchanged.
  */
 
+import { recordAudit } from '../audit.ts'
 import { prisma } from '../db.ts'
 import { requireOwnerOrAdmin, requireRole, requireUser } from '../http/auth.ts'
 import { readJson, send } from '../http/responses.ts'
@@ -11,6 +12,7 @@ import { route } from '../http/router.ts'
 import { HttpError } from '../httpError.ts'
 import { createId, nextReference } from '../ids.ts'
 import { toRegistration } from '../mappers.ts'
+import { isUniqueViolation, registrationDecisionAllowed } from '../rules.ts'
 
 /* ================================================================== */
 /* Semester registrations                                              */
@@ -100,10 +102,14 @@ route('POST', '/api/registrations', async ({ req, res, user }) => {
     throw new HttpError(400, 'General weighted average must be between 1.00 and 5.00.')
   }
 
-  // Registration is for existing grantees only.
-  const grantCount = await prisma.grant.count({ where: { studentId: student.id } })
-  if (grantCount === 0) {
-    throw new HttpError(403, 'Semester registration is only available to students with a confirmed grant.')
+  // Registration keeps an existing grant active. A completed or suspended
+  // grant is not something a new term can be registered against.
+  const activeGrant = await prisma.grant.findFirst({
+    where: { studentId: student.id, status: 'active' },
+    select: { id: true },
+  })
+  if (!activeGrant) {
+    throw new HttpError(403, 'Semester registration is only available to students with an active confirmed grant.')
   }
 
   const duplicate = await prisma.semesterRegistration.findFirst({
@@ -113,40 +119,63 @@ route('POST', '/api/registrations', async ({ req, res, user }) => {
     throw new HttpError(409, `You already have a registration for ${semester}, AY ${academicYear}.`)
   }
 
-  const existingRefs = (
-    await prisma.semesterRegistration.findMany({ select: { referenceNo: true } })
-  ).map((row) => row.referenceNo)
-
   const now = new Date()
-  const created = await prisma.semesterRegistration.create({
-    data: {
-      id: createId('reg'),
-      referenceNo: nextReference('REG', existingRefs),
-      studentId: student.id,
-      academicYear,
-      semester,
-      school,
-      course,
-      yearLevel,
-      unitsEnrolled,
-      gwa,
-      status: 'pending',
-      submittedAt: now,
-      updatedAt: now,
-    },
-  })
 
-  await prisma.notification.create({
-    data: {
-      id: createId('ntf'),
-      userId: student.id,
-      title: 'Semester registration submitted',
-      body: `Registration ${created.referenceNo} is pending verification.`,
-      createdAt: now,
-      link: '/student/semester-registration',
-    },
-  })
+  let created: Awaited<ReturnType<typeof prisma.semesterRegistration.create>> | null = null
 
+  for (let attempt = 0; attempt < 3 && !created; attempt += 1) {
+    const existingRefs = (
+      await prisma.semesterRegistration.findMany({ select: { referenceNo: true } })
+    ).map((row) => row.referenceNo)
+
+    try {
+      created = await prisma.$transaction(async (tx) => {
+        const row = await tx.semesterRegistration.create({
+          data: {
+            id: createId('reg'),
+            referenceNo: nextReference('REG', existingRefs),
+            studentId: student.id,
+            academicYear,
+            semester,
+            school,
+            course,
+            yearLevel,
+            unitsEnrolled,
+            gwa,
+            status: 'pending',
+            submittedAt: now,
+            updatedAt: now,
+          },
+        })
+
+        await tx.notification.create({
+          data: {
+            id: createId('ntf'),
+            userId: student.id,
+            title: 'Semester registration submitted',
+            body: `Registration ${row.referenceNo} is pending verification.`,
+            createdAt: now,
+            link: '/student/semester-registration',
+          },
+        })
+
+        return row
+      })
+    } catch (error) {
+      if (!isUniqueViolation(error)) throw error
+
+      if (isUniqueViolation(error, 'referenceNo')) {
+        if (attempt === 2) {
+          throw new HttpError(409, 'Could not allocate a reference number. Please try again.')
+        }
+        continue
+      }
+
+      throw new HttpError(409, `You already have a registration for ${semester}, AY ${academicYear}.`)
+    }
+  }
+
+  if (!created) throw new HttpError(409, 'Could not create the registration. Please try again.')
   send(res, 201, toRegistration(created))
 })
 
@@ -163,29 +192,58 @@ route('POST', '/api/registrations/:id/status', async ({ req, res, params, user }
     throw new HttpError(400, 'Give a reason for rejecting the registration.')
   }
 
-  const existing = await prisma.semesterRegistration.findUnique({ where: { id: params.id } })
+  const existing = await prisma.semesterRegistration.findUnique({
+    where: { id: params.id },
+    include: { grants: { select: { id: true } } },
+  })
   if (!existing) throw new HttpError(404, 'That registration no longer exists.')
+  if (existing.grants.length > 0) {
+    throw new HttpError(
+      409,
+      'A grant depends on this registration. Its verification is part of the financial record and cannot be changed.',
+    )
+  }
+  if (!registrationDecisionAllowed(existing.status, status)) {
+    throw new HttpError(
+      409,
+      `A ${existing.status} registration cannot be marked ${status}.`,
+    )
+  }
+  if (remarks.length > 2000) throw new HttpError(400, 'Keep the remarks under 2,000 characters.')
 
   const now = new Date()
-  const updated = await prisma.semesterRegistration.update({
-    where: { id: params.id },
-    data: {
-      status,
-      remarks: remarks || existing.remarks,
-      verifiedBy: `${admin.firstName} ${admin.lastName}`,
-      updatedAt: now,
-    },
+  const updated = await prisma.$transaction(async (tx) => {
+    const row = await tx.semesterRegistration.update({
+      where: { id: params.id },
+      data: {
+        status,
+        remarks: remarks || existing.remarks,
+        verifiedBy: `${admin.firstName} ${admin.lastName}`,
+        updatedAt: now,
+      },
+    })
+
+    await tx.notification.create({
+      data: {
+        id: createId('ntf'),
+        userId: row.studentId,
+        title: `Semester registration ${status}`,
+        body: `Registration ${row.referenceNo} is now marked as ${status}.`,
+        createdAt: now,
+        link: '/student/semester-registration',
+      },
+    })
+
+    return row
   })
 
-  await prisma.notification.create({
-    data: {
-      id: createId('ntf'),
-      userId: updated.studentId,
-      title: `Semester registration ${status}`,
-      body: `Registration ${updated.referenceNo} is now marked as ${status}.`,
-      createdAt: now,
-      link: '/student/semester-registration',
-    },
+  await recordAudit({
+    actor: admin,
+    action: 'registration.decided',
+    entityType: 'registration',
+    entityId: existing.id,
+    summary: `Marked registration ${existing.referenceNo} as ${status}`,
+    detail: { from: existing.status, to: status, studentId: existing.studentId, remarks: remarks || null },
   })
 
   send(res, 200, toRegistration(updated))

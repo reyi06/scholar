@@ -275,6 +275,15 @@ async function main(): Promise<void> {
     await step('11 Activity trail', async () => {
       await page.goto(`${BASE}/admin/activity`, { waitUntil: 'domcontentloaded' })
       await heading(page, /activity/i)
+      // The heading renders before the audit request settles; wait for the
+      // entries themselves or this races the network on a slow run.
+      await page.waitForFunction(
+        () =>
+          /application\.decided/i.test(document.body.innerText) &&
+          /grant\.confirmed/i.test(document.body.innerText),
+        null,
+        { timeout: 10_000 },
+      )
       const body = (await page.textContent('body')) ?? ''
       expect(/application\.decided/i.test(body), 'the decision is not in the trail')
       expect(/grant\.confirmed/i.test(body), 'the grant confirmation is not in the trail')

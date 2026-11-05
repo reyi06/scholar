@@ -26,6 +26,9 @@ uploads/
 # Generated verification artefacts (responsive screenshots, scratch scripts).
 tmp/
 
+# Capstone paper build intermediates (PDFs, page previews, extracted text).
+docs/paper/build/
+
 # Local environment files — never commit secrets.
 .env
 .env.*

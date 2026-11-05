@@ -12,6 +12,103 @@ import { route } from '../http/router.ts'
 import { HttpError } from '../httpError.ts'
 import { createId, nextReference } from '../ids.ts'
 import { toGrant } from '../mappers.ts'
+import { isUniqueViolation } from '../rules.ts'
+import type { User } from '../../src/types/index.ts'
+
+const GRANT_STATUSES = ['active', 'completed', 'suspended'] as const
+
+/**
+ * Create a grant record from an application that is already approved.
+ *
+ * Both the explicit confirmation route and the administrator's manual form go
+ * through here, so neither can create a grant that is not attached to an
+ * approved application. The grant and its notification are one transaction.
+ */
+async function createGrantRecord(input: {
+  admin: User
+  application: { id: string; studentId: string; scholarshipId: string }
+  amount: number
+  academicYear: string
+  semester: string
+  remarks: string | null
+  status?: string
+  releasedAt?: Date
+}) {
+  const { admin, application, amount, academicYear, semester, remarks } = input
+  const now = new Date()
+
+  let created: Awaited<ReturnType<typeof prisma.grant.create>> | null = null
+
+  for (let attempt = 0; attempt < 3 && !created; attempt += 1) {
+    const existingRefs = (await prisma.grant.findMany({ select: { referenceNo: true } })).map(
+      (row) => row.referenceNo,
+    )
+
+    try {
+      created = await prisma.$transaction(async (tx) => {
+        const row = await tx.grant.create({
+          data: {
+            id: createId('grt'),
+            referenceNo: nextReference('GRT', existingRefs),
+            studentId: application.studentId,
+            scholarshipId: application.scholarshipId,
+            applicationId: application.id,
+            academicYear,
+            semester,
+            amountCentavos: Math.round(amount * 100),
+            status: input.status ?? 'active',
+            releasedAt: input.releasedAt ?? now,
+            confirmedBy: `${admin.firstName} ${admin.lastName}`,
+            remarks,
+          },
+        })
+
+        await tx.notification.create({
+          data: {
+            id: createId('ntf'),
+            userId: application.studentId,
+            title: 'Grant record confirmed',
+            body: `A grant of ${amount.toLocaleString('en-PH')} was confirmed for ${semester}, AY ${academicYear}.`,
+            createdAt: now,
+            link: '/student/grants',
+          },
+        })
+
+        return row
+      })
+    } catch (error) {
+      if (!isUniqueViolation(error)) throw error
+
+      // A reference-number collision is retried with a fresh sequence. A
+      // collision on applicationId is a genuine second confirmation.
+      if (isUniqueViolation(error, 'referenceNo')) {
+        if (attempt === 2) {
+          throw new HttpError(409, 'Could not allocate a reference number. Please try again.')
+        }
+        continue
+      }
+      throw new HttpError(409, 'A grant record has already been confirmed for this application.')
+    }
+  }
+
+  if (!created) throw new HttpError(409, 'Could not create the grant record. Please try again.')
+
+  await recordAudit({
+    actor: admin,
+    action: 'grant.confirmed',
+    entityType: 'grant',
+    entityId: created.id,
+    summary: `Confirmed ${created.referenceNo} for ${amount.toLocaleString('en-PH')} (${semester}, AY ${academicYear})`,
+    detail: {
+      amount,
+      applicationId: application.id,
+      studentId: application.studentId,
+      scholarshipId: application.scholarshipId,
+    },
+  })
+
+  return created
+}
 
 /* ================================================================== */
 /* Confirmed grants                                                    */
@@ -87,10 +184,13 @@ route('POST', '/api/grants/confirm', async ({ req, res, user }) => {
   const amount = Number(body.amount)
   const academicYear = String(body.academicYear ?? '').trim()
   const semester = String(body.semester ?? '').trim()
+  const remarks =
+    typeof body.remarks === 'string' && body.remarks.trim() ? body.remarks.trim() : null
 
   if (!applicationId) throw new HttpError(400, 'Choose an application to confirm.')
   if (!Number.isFinite(amount) || amount <= 0) throw new HttpError(400, 'Enter the amount to release.')
   if (!academicYear || !semester) throw new HttpError(400, 'Choose the academic year and semester.')
+  if (remarks && remarks.length > 2000) throw new HttpError(400, 'Keep the remarks under 2,000 characters.')
 
   const application = await prisma.application.findUnique({ where: { id: applicationId } })
   if (!application) throw new HttpError(404, 'That application no longer exists.')
@@ -101,52 +201,13 @@ route('POST', '/api/grants/confirm', async ({ req, res, user }) => {
   const already = await prisma.grant.findUnique({ where: { applicationId } })
   if (already) throw new HttpError(409, 'A grant record has already been confirmed for this application.')
 
-  const existingRefs = (await prisma.grant.findMany({ select: { referenceNo: true } })).map(
-    (row) => row.referenceNo,
-  )
-
-  const now = new Date()
-  const created = await prisma.grant.create({
-    data: {
-      id: createId('grt'),
-      referenceNo: nextReference('GRT', existingRefs),
-      studentId: application.studentId,
-      scholarshipId: application.scholarshipId,
-      applicationId,
-      academicYear,
-      semester,
-      amountCentavos: Math.round(amount * 100),
-      status: 'active',
-      releasedAt: now,
-      confirmedBy: `${admin.firstName} ${admin.lastName}`,
-      remarks: typeof body.remarks === 'string' && body.remarks.trim() ? body.remarks.trim() : null,
-    },
-  })
-
-  await prisma.notification.create({
-    data: {
-      id: createId('ntf'),
-      userId: application.studentId,
-      title: 'Grant record confirmed',
-      body: `A grant of ${amount.toLocaleString('en-PH')} was confirmed for ${semester}, AY ${academicYear}.`,
-      createdAt: now,
-      link: '/student/grants',
-    },
-  })
-
-  // The act that releases funds. This is the entry an audit is really for.
-  await recordAudit({
-    actor: admin,
-    action: 'grant.confirmed',
-    entityType: 'grant',
-    entityId: created.id,
-    summary: `Confirmed ${created.referenceNo} for ${amount.toLocaleString('en-PH')} (${semester}, AY ${academicYear})`,
-    detail: {
-      amount,
-      applicationId,
-      studentId: application.studentId,
-      scholarshipId: application.scholarshipId,
-    },
+  const created = await createGrantRecord({
+    admin,
+    application,
+    amount,
+    academicYear,
+    semester,
+    remarks,
   })
 
   send(res, 201, toGrant(created))
@@ -161,51 +222,91 @@ route('POST', '/api/grants', async ({ req, res, user }) => {
   const amount = Number(body.amount)
   const academicYear = String(body.academicYear ?? '').trim()
   const semester = String(body.semester ?? '').trim()
+  const status = String(body.status ?? 'active')
+  const releasedAt = body.releasedAt ? new Date(String(body.releasedAt)) : new Date()
+  const remarks =
+    typeof body.remarks === 'string' && body.remarks.trim() ? body.remarks.trim() : null
 
   if (!studentId || !scholarshipId) throw new HttpError(400, 'Choose a student and a scholarship.')
   if (!Number.isFinite(amount) || amount <= 0) throw new HttpError(400, 'Enter the amount to release.')
   if (!academicYear || !semester) throw new HttpError(400, 'Choose the academic year and semester.')
+  if (!GRANT_STATUSES.includes(status as (typeof GRANT_STATUSES)[number])) {
+    throw new HttpError(400, 'Choose a valid grant status.')
+  }
+  if (Number.isNaN(releasedAt.getTime())) throw new HttpError(400, 'Enter a valid release date.')
+  if (remarks && remarks.length > 2000) throw new HttpError(400, 'Keep the remarks under 2,000 characters.')
 
-  const existingRefs = (await prisma.grant.findMany({ select: { referenceNo: true } })).map(
-    (row) => row.referenceNo,
-  )
+  // A manual record is still a grant. It must point at an approved application
+  // that does not already have one, exactly like the confirmation route.
+  const application = await prisma.application.findFirst({
+    where: { studentId, scholarshipId, status: 'approved', grant: null },
+    orderBy: { submittedAt: 'desc' },
+  })
+  if (!application) {
+    throw new HttpError(
+      409,
+      'A grant can only be recorded for an approved application that does not already have one.',
+    )
+  }
 
-  const created = await prisma.grant.create({
-    data: {
-      id: createId('grt'),
-      referenceNo: nextReference('GRT', existingRefs),
-      studentId,
-      scholarshipId,
-      academicYear,
-      semester,
-      amountCentavos: Math.round(amount * 100),
-      status: (String(body.status ?? 'active') as string),
-      releasedAt: body.releasedAt ? new Date(String(body.releasedAt)) : new Date(),
-      confirmedBy: `${admin.firstName} ${admin.lastName}`,
-      remarks: typeof body.remarks === 'string' && body.remarks.trim() ? body.remarks.trim() : null,
-    },
+  const created = await createGrantRecord({
+    admin,
+    application,
+    amount,
+    academicYear,
+    semester,
+    remarks,
+    status,
+    releasedAt,
   })
 
   send(res, 201, toGrant(created))
 })
 
 route('PATCH', '/api/grants/:id', async ({ req, res, params, user }) => {
-  requireRole(user, 'admin')
+  const admin = requireRole(user, 'admin')
   const body = await readJson(req)
   const existing = await prisma.grant.findUnique({ where: { id: params.id } })
   if (!existing) throw new HttpError(404, 'That grant record no longer exists.')
 
+  const amountCentavos =
+    body.amount === undefined ? existing.amountCentavos : Math.round(Number(body.amount) * 100)
+  if (!Number.isFinite(amountCentavos) || amountCentavos <= 0) {
+    throw new HttpError(400, 'Enter a valid amount.')
+  }
+
+  const status = body.status ? String(body.status) : existing.status
+  if (!GRANT_STATUSES.includes(status as (typeof GRANT_STATUSES)[number])) {
+    throw new HttpError(400, 'Choose a valid grant status.')
+  }
+
+  const academicYear = body.academicYear ? String(body.academicYear).trim() : existing.academicYear
+  const semester = body.semester ? String(body.semester).trim() : existing.semester
+  if (!academicYear || !semester) throw new HttpError(400, 'Choose the academic year and semester.')
+
+  const remarks =
+    body.remarks === undefined ? existing.remarks : String(body.remarks).trim() || null
+  if (remarks && remarks.length > 2000) throw new HttpError(400, 'Keep the remarks under 2,000 characters.')
+
   const updated = await prisma.grant.update({
     where: { id: params.id },
-    data: {
-      amountCentavos:
-        body.amount === undefined
-          ? existing.amountCentavos
-          : Math.round(Number(body.amount) * 100),
-      academicYear: body.academicYear ? String(body.academicYear) : existing.academicYear,
-      semester: body.semester ? String(body.semester) : existing.semester,
-      status: body.status ? String(body.status) : existing.status,
-      remarks: body.remarks === undefined ? existing.remarks : String(body.remarks),
+    data: { amountCentavos, academicYear, semester, status, remarks },
+  })
+
+  await recordAudit({
+    actor: admin,
+    action: 'grant.updated',
+    entityType: 'grant',
+    entityId: existing.id,
+    summary: `Updated grant ${existing.referenceNo}`,
+    detail: {
+      before: {
+        amountCentavos: existing.amountCentavos,
+        academicYear: existing.academicYear,
+        semester: existing.semester,
+        status: existing.status,
+      },
+      after: { amountCentavos, academicYear, semester, status },
     },
   })
 
@@ -213,9 +314,24 @@ route('PATCH', '/api/grants/:id', async ({ req, res, params, user }) => {
 })
 
 route('DELETE', '/api/grants/:id', async ({ res, params, user }) => {
-  requireRole(user, 'admin')
+  const admin = requireRole(user, 'admin')
   const existing = await prisma.grant.findUnique({ where: { id: params.id } })
   if (!existing) throw new HttpError(404, 'That grant record no longer exists.')
+
+  await recordAudit({
+    actor: admin,
+    action: 'grant.deleted',
+    entityType: 'grant',
+    entityId: existing.id,
+    summary: `Deleted grant ${existing.referenceNo}`,
+    detail: {
+      studentId: existing.studentId,
+      scholarshipId: existing.scholarshipId,
+      amountCentavos: existing.amountCentavos,
+      status: existing.status,
+    },
+  })
+
   await prisma.grant.delete({ where: { id: params.id } })
   send(res, 200, { ok: true })
 })

@@ -4,6 +4,7 @@
  * Moved verbatim; behaviour is unchanged.
  */
 
+import { recordAudit } from '../audit.ts'
 import { prisma } from '../db.ts'
 import { requireRole } from '../http/auth.ts'
 import { readJson, send } from '../http/responses.ts'
@@ -36,6 +37,9 @@ route('GET', '/api/announcements', async ({ res, query, user }) => {
 })
 
 const ANNOUNCEMENT_CATEGORY_VALUES = ['advisory', 'deadline', 'result', 'general']
+const ANNOUNCEMENT_AUDIENCES = ['all', 'students', 'admins'] as const
+const MAX_TITLE = 200
+const MAX_BODY = 5000
 
 route('POST', '/api/announcements', async ({ req, res, user }) => {
   const admin = requireRole(user, 'admin')
@@ -45,10 +49,17 @@ route('POST', '/api/announcements', async ({ req, res, user }) => {
 
   if (title.length < 5) throw new HttpError(400, 'Give the announcement a longer title.')
   if (text.length < 10) throw new HttpError(400, 'Give the announcement a longer body.')
+  if (title.length > MAX_TITLE) throw new HttpError(400, `Keep the title under ${MAX_TITLE} characters.`)
+  if (text.length > MAX_BODY) throw new HttpError(400, `Keep the body under ${MAX_BODY} characters.`)
 
   const category = String(body.category ?? 'general')
   if (!ANNOUNCEMENT_CATEGORY_VALUES.includes(category)) {
     throw new HttpError(400, 'Choose a valid announcement category.')
+  }
+
+  const audience = String(body.audience ?? 'all')
+  if (!ANNOUNCEMENT_AUDIENCES.includes(audience as (typeof ANNOUNCEMENT_AUDIENCES)[number])) {
+    throw new HttpError(400, 'Choose a valid audience.')
   }
 
   const created = await prisma.announcement.create({
@@ -57,11 +68,19 @@ route('POST', '/api/announcements', async ({ req, res, user }) => {
       title,
       body: text,
       category,
-      audience: String(body.audience ?? 'all'),
+      audience,
       pinned: Boolean(body.pinned),
       publishedAt: new Date(),
       author: `${admin.firstName} ${admin.lastName}`,
     },
+  })
+
+  await recordAudit({
+    actor: admin,
+    action: 'announcement.published',
+    entityType: 'announcement',
+    entityId: created.id,
+    summary: `Published “${created.title}” for ${audience}`,
   })
 
   send(res, 201, toAnnouncement(created))
@@ -77,10 +96,17 @@ route('PATCH', '/api/announcements/:id', async ({ req, res, params, user }) => {
   const text = body.body === undefined ? existing.body : String(body.body).trim()
   if (title.length < 5) throw new HttpError(400, 'Give the announcement a longer title.')
   if (text.length < 10) throw new HttpError(400, 'Give the announcement a longer body.')
+  if (title.length > MAX_TITLE) throw new HttpError(400, `Keep the title under ${MAX_TITLE} characters.`)
+  if (text.length > MAX_BODY) throw new HttpError(400, `Keep the body under ${MAX_BODY} characters.`)
 
   const category = body.category === undefined ? existing.category : String(body.category)
   if (!ANNOUNCEMENT_CATEGORY_VALUES.includes(category)) {
     throw new HttpError(400, 'Choose a valid announcement category.')
+  }
+
+  const audience = body.audience === undefined ? existing.audience : String(body.audience)
+  if (!ANNOUNCEMENT_AUDIENCES.includes(audience as (typeof ANNOUNCEMENT_AUDIENCES)[number])) {
+    throw new HttpError(400, 'Choose a valid audience.')
   }
 
   const updated = await prisma.announcement.update({
@@ -89,7 +115,7 @@ route('PATCH', '/api/announcements/:id', async ({ req, res, params, user }) => {
       title,
       body: text,
       category,
-      audience: body.audience ? String(body.audience) : existing.audience,
+      audience,
       pinned: body.pinned === undefined ? existing.pinned : Boolean(body.pinned),
     },
   })
@@ -98,9 +124,18 @@ route('PATCH', '/api/announcements/:id', async ({ req, res, params, user }) => {
 })
 
 route('DELETE', '/api/announcements/:id', async ({ res, params, user }) => {
-  requireRole(user, 'admin')
+  const admin = requireRole(user, 'admin')
   const existing = await prisma.announcement.findUnique({ where: { id: params.id } })
   if (!existing) throw new HttpError(404, 'That announcement no longer exists.')
+
+  await recordAudit({
+    actor: admin,
+    action: 'announcement.deleted',
+    entityType: 'announcement',
+    entityId: existing.id,
+    summary: `Deleted “${existing.title}”`,
+  })
+
   await prisma.announcement.delete({ where: { id: params.id } })
   send(res, 200, { ok: true })
 })

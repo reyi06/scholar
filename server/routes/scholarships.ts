@@ -11,6 +11,7 @@ import { route } from '../http/router.ts'
 import { HttpError } from '../httpError.ts'
 import { createId } from '../ids.ts'
 import { stringifyArray, stringifyObject, toScholarship } from '../mappers.ts'
+import { isIsoDate } from '../rules.ts'
 
 /* ================================================================== */
 /* Scholarships                                                        */
@@ -134,6 +135,29 @@ function scholarshipData(body: Record<string, unknown>) {
   const text = (key: string): string | undefined =>
     typeof body[key] === 'string' ? (body[key] as string) : undefined
 
+  const status = text('status')
+  if (status !== undefined && !['open', 'closed', 'draft'].includes(status)) {
+    throw new HttpError(400, 'Choose a valid listing status.')
+  }
+
+  const applicationMode = text('applicationMode')
+  if (applicationMode !== undefined && !['internal', 'external'].includes(applicationMode)) {
+    throw new HttpError(400, 'Choose a valid application mode.')
+  }
+
+  const type = text('type')
+  if (
+    type !== undefined &&
+    !['provincial', 'municipal', 'national', 'educational', 'private'].includes(type)
+  ) {
+    throw new HttpError(400, 'Choose a valid scholarship type.')
+  }
+
+  const deadline = text('deadline')
+  if (deadline !== undefined && deadline !== '' && !isIsoDate(deadline)) {
+    throw new HttpError(400, 'The deadline must be a real date in YYYY-MM-DD form.')
+  }
+
   // An administrator supplies this, but a `javascript:` URL in an href is still
   // executable. Only full http(s) addresses are accepted; the interface renders
   // the stored value directly.
@@ -156,19 +180,19 @@ function scholarshipData(body: Record<string, unknown>) {
   return {
     name: text('name'),
     provider: text('provider'),
-    type: text('type'),
+    type,
     municipality: text('municipality'),
     educationLevels: list('educationLevels') ? stringifyArray(body.educationLevels as string[]) : undefined,
     description: text('description'),
     benefits: list('benefits') ? stringifyArray(body.benefits as string[]) : undefined,
     eligibility: list('eligibility') ? stringifyArray(body.eligibility as string[]) : undefined,
     requirements: list('requirements') ? stringifyArray(body.requirements as string[]) : undefined,
-    deadline: text('deadline'),
-    applicationMode: text('applicationMode'),
+    deadline,
+    applicationMode,
     externalUrl: externalUrl(),
     contact: body.contact ? stringifyObject(body.contact) : undefined,
     instructions: list('instructions') ? stringifyArray(body.instructions as string[]) : undefined,
-    status: text('status'),
+    status,
     featured: typeof body.featured === 'boolean' ? body.featured : undefined,
     tags: list('tags') ? stringifyArray(body.tags as string[]) : undefined,
   }

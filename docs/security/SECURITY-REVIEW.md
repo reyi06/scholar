@@ -101,6 +101,22 @@ than turning a bad request into a 500.
 `prisma → @prisma/dev → ajv`. It is development tooling, not application
 runtime, but it was fixed with `npm audit fix`. `npm audit` now reports zero.
 
+## Follow-up fixes — 5 November 2026
+
+The route-level items B–E were closed after the review:
+
+| Area | Change |
+|---|---|
+| Apply gates | `POST /api/applications` and draft submission now check the deadline, `profileComplete`, `applicationMode === 'internal'` and `applicationsOpen`. |
+| One application | A second POST reuses and updates the existing draft instead of inserting another. `@@unique([studentId, scholarshipId])` is enforced by a migration. |
+| Registrations | Only an **active** grant qualifies; `@@unique([studentId, academicYear, semester])` is enforced; reference collisions are retried. |
+| Grants | Manual creation now requires an approved application without a grant. Confirm and manual creation share one transactional helper. PATCH validates amount/status; PATCH and DELETE are audited. |
+| Decisions | Explicit transition maps for applications and registrations; a granted application or verified registration is locked. |
+| Transactions | Registration, application, decision, grant, semester registration and erasure notifications are wrapped in `prisma.$transaction`. |
+| Validation | Announcement audience and length; scholarship status, deadline, mode and type; grant amount and status. |
+| Abuse | Registration is limited to 10 attempts per address per hour; erasure requests to one per 24 hours. |
+| Tests | 10 new rule tests; the suite is 81 tests over 11 files. |
+
 ## Still open — needs a product decision
 
 These are real, but fixing them changes behaviour or deployment, so they are
@@ -117,36 +133,9 @@ Before any real deployment: gate the buttons on a build flag
 (`VITE_DEMO_MODE`), stop seeding those accounts, and rebuild. The demo copy
 should keep them; a deployment must not.
 
-### B. `POST /api/grants` bypasses "approval is not a grant" — Medium
+### B–E. Closed
 
-`POST /api/grants` creates a grant for any student and scholarship without an
-approved application. It is admin-only, but it contradicts the central
-invariant and writes no audit entry.
-
-Choose one: remove the route, or require an approved application and record a
-`grant.created` audit entry. As it stands, a panel can reasonably ask why the
-rule has an exception.
-
-### C. No multi-write transactions — Medium
-
-Register, apply, confirm a grant and decide an application each perform
-several writes in sequence. A crash between them leaves partial state (an
-account without a profile, a grant without its notification or audit entry).
-Wrap the multi-write flows in `prisma.$transaction`.
-
-### D. Application rules enforced only in the UI — Medium
-
-`POST /api/applications` checks the listing is `open`, but not that the
-deadline has passed, and not `profileComplete`. A crafted request bypasses
-both. This is lab 5 in `docs/STUDY-GUIDE.md`.
-
-### E. Race conditions — Low–Medium
-
-- Two applications for the same student+listing can both pass the
-  `findFirst` check; there is no unique constraint on that pair.
-- Reference numbers are read from existing rows and then inserted. The unique
-  index stops duplicates, but the loser receives a 500 rather than a retry.
-- Semester registrations have the same shape.
+See the follow-up table above. The remaining open items are A, F and G.
 
 ### F. Local exposure — Medium in the demo context
 
@@ -160,21 +149,20 @@ both. This is lab 5 in `docs/STUDY-GUIDE.md`.
 
 ### G. Smaller items
 
-- Login throttling is in memory: correct for one process, ineffective across
-  instances. The per-address counter is not cleared by a successful login, so a
-  shared NAT can be locked out by unrelated failures.
-- Registration has no rate limit, and `409` reveals whether an email is
-  registered. Low impact, but worth a decision.
+- Login and registration throttling are in memory: correct for one process,
+  ineffective across instances. The per-address login counter is not cleared by
+  a successful login, so a shared NAT can be locked out by unrelated failures.
+- Registration is now throttled, but `409` still reveals whether an email is
+  registered. That is a deliberate UX trade-off; changing it needs an email
+  flow that does not exist yet.
 - No CSRF token; the defence is `SameSite=Lax` plus JSON-only bodies. Adequate
   for same-origin use, not defence in depth.
 - Upload MIME types are declared by the client. Stored names, `nosniff` and
   `Content-Disposition: attachment` contain the consequence, but magic-byte
   sniffing would be stronger.
-- `PATCH /api/grants/:id` has no audit entry; `recordAudit` is fire-and-forget,
-  so a trail can have gaps. Both are deliberate, but should be explained.
-- The application status route accepts any valid decision at any time
-  (rejected → approved). If corrections are intended, say so; otherwise add
-  transition rules.
+- `recordAudit` remains fire-and-forget by design: an audit write must not fail
+  a legitimate action, but a trail can have silent gaps. Grant, decision and
+  deletion entries now exist.
 - `GET /api/settings` and `GET /api/grants/total-released` are public. They
   expose the current term, contact address and an aggregate total. Confirm that
   is intended.
@@ -219,8 +207,7 @@ configuration review, not a certification.
    `X-Forwarded-For`.
 4. Give PostgreSQL a real password and a private network; no `trust`.
 5. Bind the API to loopback, or firewall it from everything but the proxy.
-6. Add transactions to the multi-write flows.
-7. Enforce deadline and profile completeness on the server.
-8. Decide the fate of `POST /api/grants`.
-9. Add registration throttling.
-10. Run the rehearsal and the study-guide labs against the deployed build.
+6. Decide whether registration should keep the explicit "email already exists"
+   response, or move to an email-based flow.
+7. Add a magic-byte upload check if untrusted files will be accepted at scale.
+8. Run the rehearsal and the study-guide labs against the deployed build.

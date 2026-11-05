@@ -3,9 +3,13 @@
 A web-based scholarship information and student grant management system for the
 province of Pampanga, Philippines.
 
-Built with React, Vite, TypeScript and Tailwind CSS. The interface runs entirely
-in the browser against a local data store; no backend is connected yet, so
-`src/lib/api.ts` is the seam where one would be added.
+React, Vite, TypeScript and Tailwind CSS on the front; a dependency-free Node API
+and a PostgreSQL database behind it. The browser never touches the database — it
+calls `src/lib/api.ts`, which talks HTTP to `server/` when `VITE_API_BASE_URL` is
+set and falls back to browser storage when it is not. See
+[Data layer](#data-layer) for which mode does what, and
+[`docs/AGENTS.md`](docs/AGENTS.md#9-security-posture-read-before-changing-anything-auth-related)
+for the security boundary.
 
 Scholarship listings currently shipped with the application are placeholder
 records used to populate the interface. Replace them with verified provider
@@ -17,15 +21,16 @@ information before publishing.
 
 - [Stack](#stack)
 - [Getting started](#getting-started)
-- [Local data layer](#local-data-layer)
+- [Data layer](#data-layer)
 - [Test accounts](#test-accounts)
 - [Environment variables](#environment-variables)
 - [Route documentation](#route-documentation)
 - [Project structure](#project-structure)
 - [Architecture](#architecture)
-- [Connecting a real backend](#connecting-a-real-backend)
 - [Product rules](#product-rules)
+- [Deploying](#deploying)
 - [Current scope](#current-scope)
+- [Documentation](#documentation)
 
 ---
 
@@ -38,39 +43,67 @@ information before publishing.
 | Tailwind CSS  | 4.3     |
 | TypeScript    | 6.0     |
 | React Router  | 8.4     |
+| Node.js       | 24      |
+| PostgreSQL    | 17      |
+| Prisma        | 7.10    |
+| Vitest        | 5.0     |
 | oxlint        | 1.88    |
 
-Dependencies are deliberately minimal: React, React DOM and React Router are the
-only runtime packages. Icons, CSV export, dialogs, tables and form validation
-are all implemented in this repository rather than pulled in.
+Dependencies are deliberately minimal. The client runtime is React, React DOM,
+React Router and `qrcode-generator`; the server adds `@prisma/client`,
+`@prisma/adapter-pg` and `pg`. Icons, CSV export, dialogs, tables, form
+validation, multipart uploads, password hashing, one-time codes, JWT/JWKS
+verification and the HTTP router are all implemented in this repository rather
+than pulled in. `qrcode-generator` is the one exception, because an encoder
+whose output is wrong looks exactly like one that works — see
+[`docs/AGENTS.md`](docs/AGENTS.md) §3.
 
 ## Getting started
 
 ```bash
-npm install     # install dependencies
-npm run dev     # start the dev server at http://localhost:5173
+npm install          # install dependencies
+npm run db:migrate   # apply the migrations (needs PostgreSQL + DATABASE_URL)
+npm run db:seed      # load the placeholder records
+npm run server       # API on :8787
+npm run dev          # front end on :5173, proxying /api to the server
 ```
 
-| Script            | Purpose                                |
-| ----------------- | -------------------------------------- |
-| `npm run dev`     | Dev server with hot module replacement |
-| `npm run build`   | Type-check, then build to `dist/`      |
-| `npm run preview` | Serve the production build locally     |
-| `npm run lint`    | Lint with oxlint                       |
+The demonstration build runs `npm run server` and `npm run preview` (:4173)
+instead — the dev server serves modules unbundled and is slower to demonstrate.
 
-There is no test runner configured.
+| Script                     | Purpose                                              |
+| -------------------------- | ---------------------------------------------------- |
+| `npm run dev`              | Dev server with hot module replacement               |
+| `npm run build`            | Type-check, build, then prerender every public route  |
+| `npm run preview`          | Serve the production build locally                   |
+| `npm test`                 | Vitest: 71 tests over 10 files, no database needed    |
+| `npm run lint`             | Lint with oxlint                                     |
+| `npm run server`           | The Node API on `API_PORT` (default 8787)            |
+| `npm run db:migrate`       | Apply Prisma migrations                              |
+| `npm run db:seed`          | Load the placeholder records                         |
+| `npm run db:reset`         | Drop, re-migrate and reseed                          |
+| `npm run db:studio`        | Browse the database                                  |
+| `npm run db:prune-documents` | Retention job (dry run by default)                 |
+| `npm run check:responsive` | Drive Chrome at 390/768/1280; needs server + preview  |
+| `npm run rehearse`         | Walk the demonstration script and time each step     |
 
 ## Data layer
 
 The interface never reads the database directly. `src/lib/api.ts` is the single
-seam; every screen calls it.
-
-Two backends are supported, chosen at startup by `VITE_API_BASE_URL`:
+seam; every screen calls it. Which implementation it delegates to is decided
+once, at **build time**, by `VITE_API_BASE_URL` — Vite inlines the value, so
+changing it requires a rebuild, not a restart.
 
 | `VITE_API_BASE_URL` | Behaviour |
 | ------------------- | --------- |
-| *unset*             | Browser storage. Every visitor gets their own copy of the records in `localStorage`; nothing is shared or durable. Useful for previewing the interface. |
-| `/api`              | The local API server and SQLite database described below. |
+| `/api` (what `.env.example` sets) | HTTP. The browser calls `server/`, which owns PostgreSQL. Sessions, passwords, ownership and role checks are enforced per request. |
+| *unset* | Browser storage. Every visitor gets their own copy of the records in `localStorage`; nothing is shared or durable, and sign-in is checked in the browser. Useful for previewing the interface without a database. |
+
+**This is not a fallback that happens silently at runtime.** If a build is made
+without the variable, the resulting bundle is a self-contained demo and the API
+is never contacted; if it is made with the variable, every screen requires a
+running server. The shipped `dist/` is built with `/api` — you can confirm it by
+searching the bundle for the base URL.
 
 ### Local database (Prisma + PostgreSQL)
 
@@ -119,9 +152,13 @@ signed-in user to the login screen on every refresh.
 
 ## Test accounts
 
-Sign-in uses the seeded accounts listed below. Passwords are stored in plain text
-in the data layer because there is no backend yet; replace this with server-side
-verification before deploying.
+Sign-in uses the seeded accounts listed below.
+
+Over HTTP they are real database rows with **scrypt hashes** and a server-side
+session (`server/passwords.ts`, `server/http/auth.ts`); the browser never sees a
+hash. In browser-storage mode the same credentials are checked in the browser and
+ship in the bundle — fine for a demonstration, and one of the reasons that mode
+must not be deployed. Either way, remove the demo accounts before public use.
 
 | Role          | Email                       | Password     |
 | ------------- | --------------------------- | ------------ |
@@ -135,21 +172,28 @@ the password `student123`).
 
 ## Environment variables
 
-**None are required.** The application runs with no configuration.
+**None are required for the browser-storage demo.** A build made without a
+`.env` runs entirely in the browser. The API, the seeded database and the
+demonstration all need the first three:
 
-If you connect a backend, follow this convention — Vite only exposes variables
-prefixed with `VITE_`, and every one of them ends up in the client bundle, so
-**never put secrets in them**:
+| Variable | Default | Used by | Purpose |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | — | API, Prisma CLI, seed | PostgreSQL connection string. Migrations want the **direct** port (5432), not a pooler. |
+| `API_PORT` | `8787` | API | Port the Node server listens on. |
+| `VITE_API_BASE_URL` | *unset* | Build | `/api` selects the API. Unset selects browser storage. |
+| `SITE_URL` | `https://example.com` | `npm run build` | Canonical URLs, Open Graph tags and `sitemap.xml`. |
+| `GOOGLE_CLIENT_ID` | *empty* | API | Enables Google sign-in. Empty hides the button rather than offering a broken one. |
+| `GOOGLE_CLIENT_SECRET` | *empty* | — | Not used: the ID-token flow has no code to exchange. |
+| `UPLOAD_DIR` | `./uploads` | API | Where uploaded documents are written. |
+| `MAIL_TRANSPORT` | `console` | API | `console` prints messages and codes to the server log. Any other value fails loudly until a transport is implemented. |
+| `TRUST_PROXY` | `false` | API | Set `true` **only** behind a proxy that overwrites `x-forwarded-for`. |
 
-```bash
-# .env.local  (not committed)
-VITE_API_BASE_URL=https://api.example.gov.ph
-VITE_USE_MOCK_API=false
-```
+Copy `.env.example` to `.env` to start. `.env` and `.env.local` are git-ignored.
 
-`.env` and `.env.local` are not committed. Read values with
-`import.meta.env.VITE_API_BASE_URL` and always provide a sensible fallback so
-the app still boots in demo mode.
+Vite only exposes variables prefixed with `VITE_`, and **every one of them ends
+up in the client bundle** — never put a secret in one. Everything else in the
+table is server-side only.
+
 
 ## Route documentation
 
@@ -199,41 +243,64 @@ Any other URL renders the 404 page.
 ## Project structure
 
 ```
-src/
-├── App.tsx                  # Route table
-├── main.tsx                 # Entry: BrowserRouter + providers
-├── index.css                # Tailwind import + design tokens
-├── types/index.ts           # Every domain model
+src/                        # React application
+├── app/                    # Route table (App.tsx) and Providers.tsx
+├── main.tsx                # Entry: mounts <Providers><App /></Providers>
+├── styles/index.css        # Tailwind import + @theme design tokens
+├── types/index.ts          # Every domain model, shared with the server
 ├── data/
-│   ├── sampleData.ts        # Seed records for the local store
-│   └── schema.ts            # Local store shape + seed builder
+│   ├── sampleData.ts       # Placeholder records
+│   └── schema.ts           # Browser-store shape + seed builder
 ├── lib/
-│   ├── api.ts               # Data-access layer (the backend seam)
-│   ├── storage.ts           # localStorage wrapper
-│   ├── constants.ts         # Option lists and label maps
-│   ├── format.ts            # Date, currency and text formatting
-│   ├── validation.ts        # Composable validators
-│   ├── csv.ts               # CSV export for reports
-│   └── id.ts                # Id / reference-number helpers
-├── hooks/                   # useAsync, useAsyncAction, useDebouncedValue, useSavedScholarships
-├── context/                 # Auth and toast providers
+│   ├── api.ts              # Data-access seam (picks the implementation)
+│   ├── httpApi.ts          # The HTTP implementation of that seam
+│   ├── storage.ts          # localStorage wrapper (browser-storage mode)
+│   ├── constants.ts        # Option lists, label maps, municipalities
+│   ├── tones.ts            # Status → badge tone
+│   ├── documents.ts        # Upload rules + classifier (client and server)
+│   ├── studentDetails.ts   # Shared sign-up field validation
+│   ├── format.ts           # Date, currency and text formatting
+│   ├── validation.ts       # Composable validators
+│   ├── csv.ts              # CSV export for reports
+│   └── id.ts               # Id / reference-number helpers
+├── hooks/                  # useAsync, useSavedScholarships, useDebouncedValue …
+├── context/                # Auth, theme and toast providers
 ├── components/
-│   ├── ui/                  # Reusable design-system primitives
-│   ├── layout/              # Navbars, sidebars, route guards
-│   ├── ScholarshipCard.tsx  # Shared listing card
-│   ├── StatusBadge.tsx      # Domain status → coloured badge
-│   └── DeadlineBadge.tsx    # Deadline urgency indicator
-└── pages/
-    ├── public/              # Public routes
-    ├── student/             # Student routes
-    ├── admin/               # Administrator routes
-    └── NotFoundPage.tsx
+│   ├── ui/                 # Design-system primitives
+│   ├── layout/             # Layouts, sidebars, route guards
+│   └── …                   # ScholarshipCard, StatusBadge, ShareScholarship …
+└── pages/                  # public/, student/, admin/, NotFoundPage.tsx
+
+server/                     # Node API — the only thing that touches the database
+├── index.ts                # Bootstrap: security headers, dispatch, listen
+├── http/                   # router.ts, auth.ts (sessions + guards), responses.ts
+├── routes/                 # One module per resource
+├── db.ts                   # Prisma client (PostgreSQL adapter)
+├── mappers.ts              # Row → domain type
+├── passwords.ts            # scrypt hashing
+├── otp.ts                  # One-time codes
+├── throttle.ts             # Failed-login counters
+├── uploads.ts              # Multipart reader + file store
+├── googleAuth.ts           # ID-token verification (JWKS, RS256)
+├── mailer.ts               # Transport seam (console by default)
+└── audit.ts                # Append-only trail
+
+prisma/                     # schema.prisma, migrations, seed.ts
+scripts/                    # prerender, db-reset, prune-documents,
+                            # check-responsive, rehearse-demo
+tests/                      # Vitest: 71 tests over 10 files
+docs/                       # Spec, plan, deployment, security, defense, paper
+public/                     # Icons, manifest, _redirects
 ```
+
+Generated and git-ignored: `dist/` (the build), `uploads/` (student documents),
+`tmp/` (screenshots and scratch files), `docs/paper/build/` (paper intermediates).
+
 
 ## Architecture
 
 **Design system.** `src/components/ui/index.ts` is the barrel every page imports
-from. Tokens live in `src/index.css` under Tailwind v4's `@theme` block, so there
+from. Tokens live in `src/styles/index.css` under Tailwind v4's `@theme` block, so there
 is no `tailwind.config.js`. Adding `--color-x` there immediately creates
 `bg-x`, `text-x`, `border-x` and so on.
 
@@ -275,17 +342,34 @@ contexts.
 Errors are rendered inline and associated with their control through
 `aria-describedby`.
 
-## Connecting a real backend
+## Switching data sources
 
-1. Add `VITE_API_BASE_URL` (see [Environment variables](#environment-variables)).
-2. Keep `src/types/index.ts` as the contract.
-3. In `src/lib/api.ts`, replace the body of each method with a `fetch` call.
-   The signatures are already async and already throw `Error` with
-   user-presentable messages.
-4. Move the seeded sign-in credentials out of the client and verify them
-   server-side.
-5. Enforce every rule server-side, especially ownership on application reads,
-   role checks, and the rule that a grant requires explicit confirmation.
+Both sources are complete and already implemented; nothing needs to be written
+to move between them.
+
+| Want | Do |
+| --- | --- |
+| The real thing (database, server-side sessions and authorisation) | Set `VITE_API_BASE_URL=/api`, run PostgreSQL + `npm run server`, then rebuild and restart the dev server |
+| A UI preview with no database | Leave `VITE_API_BASE_URL` unset, rebuild, and open the site — it seeds `localStorage` on first load |
+| Reset the browser demo | `demoApi.reset()` is exposed in the admin settings screen |
+
+`src/types/index.ts` is the contract both sides share; a new field belongs there
+first. Whatever the mode, `ProtectedRoute` is navigation, not security — the
+rules that matter are re-checked in `server/http/auth.ts` and each route module.
+
+Before a real deployment, in this order:
+
+1. Replace the placeholder listings and the demo accounts (rule 1).
+2. Set `MAIL_TRANSPORT` to a real transport; the console transport prints
+   one-time codes to the server log by design.
+3. Set `COOKIE_SECURE=true` and serve over TLS, so the session cookie is not
+   transmissible in the clear.
+4. Move `UPLOAD_DIR` outside the build directory, or uploads vanish on the next
+   deploy.
+5. Schedule `npm run db:prune-documents`; retention is unenforced until it runs.
+6. Work through `docs/security/SECURITY-REVIEW.md` — it lists the findings that
+   remain open, with severities.
+
 
 ## Product rules
 
@@ -372,24 +456,49 @@ sets that header for Vercel. Set the same header on any other host.
 
 ## Current scope
 
-What is not built yet, and what that means in practice:
+What exists, and what deliberately does not. This section previously described
+the browser-only build, which is why it claimed there was no backend; it now
+describes the repository.
 
-- **No backend.** Everything runs in the browser; `src/lib/api.ts` is the seam
-  where a server would be connected.
-- **Authentication is local.** Sign-in is checked against seeded accounts held in
-  the browser, and passwords sit in plain text. Replace with server-side
-  verification before deploying.
-- **Authorisation is navigation-only.** `ProtectedRoute` shapes the interface; it
-  is not a security boundary and can be bypassed with developer tools. Enforce
-  every rule server-side as well.
-- **No email, SMS or push.** Notifications are in-app only.
-- **No document upload.** Requirements are recorded as text labels; no file is
-  transmitted or stored.
-- **No payments.** Grant amounts are records, not disbursements.
-- **Storage is browser-local.** Clearing site data removes everything.
-- **No Inter webfont load.** The font stack names `Inter` first and falls back to
-  the system UI font, so no third-party request is made.
+**Built and verified:** a Node API over PostgreSQL with 15 route modules; sessions
+as scrypt-hashed passwords plus an httpOnly cookie; per-request ownership and
+role checks; document upload, classification and administrator review; one-time
+code email verification; optional Google sign-in with a profile-completion step;
+an audit trail of administrative acts; data-subject export and erasure requests;
+a retention job; QR-code sharing of listings; reports with CSV export; and a
+prerendered, installable front end.
 
-Next steps: replace the placeholder listings with verified provider data, connect
-a backend, move authentication and authorisation server-side, and add tests
-around the rules above.
+**Not built, or limited on purpose:**
+
+- **Email is a console transport.** One-time codes print in the server log; no
+  message leaves the machine until `MAIL_TRANSPORT` is implemented.
+- **No SMS or push.** In-app notifications only.
+- **No payments.** A grant record is evidence of a decision, not a disbursement.
+- **Uploads live on local disk** (`UPLOAD_DIR`), which a deployment must point at
+  persistent storage.
+- **Throttling is in memory**, so it resets with the process and does not hold
+  across instances. There is no CSRF token; `SameSite=Lax` is the mitigation.
+- **Browser-storage mode is a preview.** With `VITE_API_BASE_URL` unset, demo
+  data and demo passwords live in `localStorage`, and authorisation is
+  navigation only.
+- **Listings and provider names are placeholders**, and the demo accounts still
+  exist. Both must go before public use.
+- **No Inter webfont load.** The stack names Inter and falls back to the system
+  UI font, so no third-party request is made.
+
+The research behind what to do next, phase by phase, is in
+[`docs/plan/PLAN.md`](docs/plan/PLAN.md); the live list is §13 of
+[`docs/AGENTS.md`](docs/AGENTS.md).
+
+## Documentation
+
+| Document | Read it for |
+| --- | --- |
+| [`docs/README.md`](docs/README.md) | Index of everything below |
+| [`docs/AGENTS.md`](docs/AGENTS.md) | Conventions, business rules, security posture, and the change/verification logs |
+| [`docs/spec/SPEC.md`](docs/spec/SPEC.md) | Product and technical specification |
+| [`docs/plan/PLAN.md`](docs/plan/PLAN.md) | Standards-driven improvement plan |
+| [`docs/deployment/DEPLOY.md`](docs/deployment/DEPLOY.md) | Deploying the three parts |
+| [`docs/security/SECURITY-REVIEW.md`](docs/security/SECURITY-REVIEW.md) | Findings, severities, pre-deployment checklist |
+| [`docs/defense/`](docs/defense) | Defense brief, system documentation, study guide |
+| [`docs/paper/README.md`](docs/paper/README.md) | Rebuilding the capstone paper and its figures |

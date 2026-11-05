@@ -38,17 +38,18 @@ and the HTTP router are all hand-written.
 ```
 Browser ──► React SPA (Vite build, prerendered per route)
               │  src/lib/api.ts  ── the single data seam
-              ├─► localStorage        (default; per-browser, not shared)
+              ├─► localStorage        (browser-storage build only; per-browser, not shared)
               └─► /api ─► server/routes/* ─► Prisma ─► PostgreSQL
 ```
 
 - **SPA** — 26 routes, `React.lazy` per page, one `Suspense` boundary.
 - **API** — dependency-free Node `http` server with a hand-rolled router,
   session cookies and per-request authorisation.
-- **Database** — 12 models; list-valued fields stored as JSON strings because
-  SQLite has no array type, mapped in `server/mappers.ts`.
+- **Database** - 15 models; list-valued fields are stored as JSON strings for
+  parity between the client and server types and mapped in `server/mappers.ts`
+  (the reason is recorded in the `schema.prisma` header).
 
-## 4. Data model (12 models)
+## 4. Data model (15 models)
 
 | Model | Notes |
 |---|---|
@@ -217,4 +218,4 @@ Host needs an SPA fallback — `public/_redirects` (Netlify, Cloudflare Pages) a
 - `GET /api/accounts` is gone; the server no longer serves passwords. Test
   credentials live in the client bundle, which is equivalent for a demo but must
   be deleted before deployment.
-- Supabase was chosen as the target database; see `DEPLOY.md`.
+- Supabase was chosen as the target database; see `docs/deployment/DEPLOY.md`.
