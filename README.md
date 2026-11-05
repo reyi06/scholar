@@ -8,7 +8,7 @@ and a PostgreSQL database behind it. The browser never touches the database — 
 calls `src/lib/api.ts`, which talks HTTP to `server/` when `VITE_API_BASE_URL` is
 set and falls back to browser storage when it is not. See
 [Data layer](#data-layer) for which mode does what, and
-[`docs/AGENTS.md`](docs/AGENTS.md#9-security-posture-read-before-changing-anything-auth-related)
+[`docs/security/SECURITY-REVIEW.md`](docs/security/SECURITY-REVIEW.md)
 for the security boundary.
 
 Scholarship listings currently shipped with the application are placeholder
@@ -55,8 +55,7 @@ React Router and `qrcode-generator`; the server adds `@prisma/client`,
 validation, multipart uploads, password hashing, one-time codes, JWT/JWKS
 verification and the HTTP router are all implemented in this repository rather
 than pulled in. `qrcode-generator` is the one exception, because an encoder
-whose output is wrong looks exactly like one that works — see
-[`docs/AGENTS.md`](docs/AGENTS.md) §3.
+whose output is wrong looks exactly like one that works.
 
 ## Getting started
 
@@ -288,13 +287,13 @@ server/                     # Node API — the only thing that touches the datab
 prisma/                     # schema.prisma, migrations, seed.ts
 scripts/                    # prerender, db-reset, prune-documents,
                             # check-responsive, rehearse-demo
-tests/                      # Vitest: 71 tests over 10 files
-docs/                       # Spec, plan, deployment, security, defense, paper
+tests/                      # Vitest: 81 tests over 11 files
+docs/                       # Spec, deployment and security
 public/                     # Icons, manifest, _redirects
 ```
 
-Generated and git-ignored: `dist/` (the build), `uploads/` (student documents),
-`tmp/` (screenshots and scratch files), `docs/paper/build/` (paper intermediates).
+Generated and git-ignored: `dist/` (the build), `uploads/` (student documents)
+and `tmp/` (screenshots and scratch files).
 
 
 ## Architecture
@@ -317,9 +316,9 @@ is no `tailwind.config.js`. Adding `--color-x` there immediately creates
 - **Metrics are text.** `StatCard` is a label and a value with no card chrome,
   and takes no `icon`. Group several in a bordered band or with `StatRow`.
 - **One primary action per page;** everything else is `outline` or `ghost`.
-- **Dark mode is class-based and user-toggleable** (see `docs/AGENTS.md`). Every text
-  colour needs its `dark:` counterpart — a light-only `text-slate-500` fails
-  contrast on `slate-950`.
+- **Dark mode is class-based and user-toggleable.** Every text colour needs its
+  `dark:` counterpart — a light-only `text-slate-500` fails contrast on
+  `slate-950`.
 - **Progressive disclosure** via `Accordion`, `Dialog`, `Tabs` and `hideLabel`
   for compact filter toolbars.
 
@@ -486,19 +485,14 @@ prerendered, installable front end.
 - **No Inter webfont load.** The stack names Inter and falls back to the system
   UI font, so no third-party request is made.
 
-The research behind what to do next, phase by phase, is in
-[`docs/plan/PLAN.md`](docs/plan/PLAN.md); the live list is §13 of
-[`docs/AGENTS.md`](docs/AGENTS.md).
+The remaining pre-deployment items are recorded in the
+[security review](docs/security/SECURITY-REVIEW.md).
 
 ## Documentation
 
 | Document | Read it for |
 | --- | --- |
 | [`docs/README.md`](docs/README.md) | Index of everything below |
-| [`docs/AGENTS.md`](docs/AGENTS.md) | Conventions, business rules, security posture, and the change/verification logs |
 | [`docs/spec/SPEC.md`](docs/spec/SPEC.md) | Product and technical specification |
-| [`docs/plan/PLAN.md`](docs/plan/PLAN.md) | Standards-driven improvement plan |
 | [`docs/deployment/DEPLOY.md`](docs/deployment/DEPLOY.md) | Deploying the three parts |
 | [`docs/security/SECURITY-REVIEW.md`](docs/security/SECURITY-REVIEW.md) | Findings, severities, pre-deployment checklist |
-| [`docs/defense/`](docs/defense) | Defense brief, system documentation, study guide |
-| [`docs/paper/README.md`](docs/paper/README.md) | Rebuilding the capstone paper and its figures |
