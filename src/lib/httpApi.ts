@@ -66,28 +66,48 @@ const REQUEST_TIMEOUT_MS = 20_000
 /** A file takes longer to move than a JSON body, so it gets its own budget. */
 const UPLOAD_TIMEOUT_MS = 60_000
 
+/**
+ * A reverse proxy or a mobile network can reset a single connection, which
+ * surfaces here as a bare network error rather than an HTTP status. A GET is
+ * safe to repeat, so one retry turns a visible "could not load" into a slow
+ * load. Anything with a body is not retried: a repeat could duplicate a write.
+ */
+const RETRY_DELAY_MS = 250
+
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  let response: Response
-  try {
-    response = await fetch(`${BASE}${path}`, {
-      method,
-      // Sends the httpOnly session cookie. Requires the API to be same-origin,
-      // which the dev proxy and the production rewrite both arrange.
-      credentials: 'include',
-      headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
-      body: body === undefined ? undefined : JSON.stringify(body),
-      // A request that never settles would leave the UI on a spinner forever.
-      // Failing loudly is better than an indefinite wait.
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-    })
-  } catch (cause: unknown) {
-    if (cause instanceof DOMException && cause.name === 'TimeoutError') {
-      throw new Error('The server took too long to respond. Please try again.')
+  const attempts = method === 'GET' ? 2 : 1
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    let response: Response
+    try {
+      response = await fetch(`${BASE}${path}`, {
+        method,
+        // Sends the httpOnly session cookie. Requires the API to be same-origin,
+        // which the dev proxy and the production rewrite both arrange.
+        credentials: 'include',
+        headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+        body: body === undefined ? undefined : JSON.stringify(body),
+        // A request that never settles would leave the UI on a spinner forever.
+        // Failing loudly is better than an indefinite wait.
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      })
+    } catch (cause: unknown) {
+      if (cause instanceof DOMException && cause.name === 'TimeoutError') {
+        throw new Error('The server took too long to respond. Please try again.')
+      }
+      // Transport failure: worth one more try before telling the user.
+      if (attempt < attempts) {
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
+        continue
+      }
+      throw new Error('Could not reach the server. Check your connection and try again.')
     }
-    throw new Error('Could not reach the server. Check your connection and try again.')
+
+    // Server errors are answers, not transport faults, so they are not retried.
+    return parseResponse<T>(response)
   }
 
-  return parseResponse<T>(response)
+  throw new Error('Could not reach the server. Check your connection and try again.')
 }
 
 /**
