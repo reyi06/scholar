@@ -1,7 +1,10 @@
-# Scholar — Specification
+# Specification
 
-Scholarship information and student grant management for the province of
-Pampanga, Philippines. Written 2026-10-19; reflects commit `087e9b0`.
+Scholarship information and student grant management for the Province of
+Pampanga, Philippines. This is the product and scope summary; implementation
+detail is in `docs/architecture/ARCHITECTURE.md`.
+
+Status: 14 November 2026.
 
 ---
 
@@ -9,213 +12,167 @@ Pampanga, Philippines. Written 2026-10-19; reflects commit `087e9b0`.
 
 | | |
 |---|---|
-| Purpose | Consolidate scholarship listings and track student applications, semester registration and confirmed grants |
-| Audiences | Students, scholarship administrators, and the general public |
-| Surfaces | Public directory · Student area · Administrator area |
-| Data | 15 placeholder scholarship listings, 5 users, 10 applications, 4 registrations, 5 grants, 6 announcements |
+| Purpose | Publish scholarship listings and track applications, requirements, semester registration and confirmed grants |
+| Users | Students, scholarship administrators, public visitors |
+| Surfaces | Public directory, student area, administrator area |
+| Demo data | Placeholder listings, demo accounts, sample applications and grants |
+
+### In scope
+
+- Search and filter listings; save a shortlist; share a listing by QR code.
+- Register, sign in, verify an address, reset a password, optional Google sign-in.
+- Apply to an internal listing, save a draft, track a status timeline.
+- Upload, classify and reuse student documents.
+- Administrator review, registration verification, grant confirmation, reports,
+  announcements, documents, activity trail and settings.
+- Semester registration for students with an active grant.
+
+### Out of scope
+
+- Real provider integrations or automatic deadline feeds.
+- Payments or disbursement rails.
+- A public API for third parties.
+- Native mobile apps.
+- Filipino or Kapampangan translation.
+
+**Placeholder listings are not verified provider data.** They must be replaced
+before public use.
+
+---
 
 ## 2. Stack
 
-| Layer | Technology | Version |
-|---|---|---|
-| Runtime | Node.js | 24.21.0 |
-| UI | React | 19.3.1 |
-| Routing | React Router | 8.4.0 |
-| Build | Vite | 8.3.4 |
-| Styling | Tailwind CSS | 4.3.3 |
-| Language | TypeScript | 6.0.3 |
-| Database | PostgreSQL via Prisma | 7.10.1 |
-| Lint | oxlint | 1.88.0 |
-| Tests | — | none configured |
-
-**Runtime dependencies: 6.** `react`, `react-dom`, `react-router`,
-`@prisma/client`, `@prisma/adapter-pg`, `pg`, plus `qrcode-generator` for the
-share dialog. Icons, CSV export, dialogs, tables, validation, the PNG encoder
-and the HTTP router are all hand-written.
-
-## 3. Architecture
-
-```
-Browser ──► React SPA (Vite build, prerendered per route)
-              │  src/lib/api.ts  ── the single data seam
-              ├─► localStorage        (browser-storage build only; per-browser, not shared)
-              └─► /api ─► server/routes/* ─► Prisma ─► PostgreSQL
-```
-
-- **SPA** — 26 routes, `React.lazy` per page, one `Suspense` boundary.
-- **API** — dependency-free Node `http` server with a hand-rolled router,
-  session cookies and per-request authorisation.
-- **Database** - 15 models; list-valued fields are stored as JSON strings for
-  parity between the client and server types and mapped in `server/mappers.ts`
-  (the reason is recorded in the `schema.prisma` header).
-
-## 4. Data model (15 models)
-
-| Model | Notes |
+| Layer | Technology |
 |---|---|
-| `User` | id, email (unique), scrypt `passwordHash`, role, name |
-| `Session` | server-side; browser holds only an httpOnly cookie |
-| `StudentProfile` | 1:1 with User; enrolment, guardian, income |
-| `Scholarship` | listing; `applicationMode` internal/external |
-| `Application` | unique `referenceNo`; status, timeline |
-| `ApplicationTimelineEntry` | append-only review history |
-| `SemesterRegistration` | existing grantees only |
-| `Grant` | `applicationId` is **unique** — one grant per application |
-| `Announcement` | audience-scoped notices |
-| `Notification` | `userId: null` means broadcast |
-| `SavedScholarship` | composite key (student, scholarship) |
-| `PlatformSettings` | single row, id `singleton` |
+| Runtime | Node.js 24 |
+| UI | React 19.2, React Router 8.4 |
+| Build | Vite 8.3, TypeScript 6.0 |
+| Styling | Tailwind CSS 4.3 |
+| API | Node `http`, no framework |
+| Data | PostgreSQL 17, Prisma 7.10 with `@prisma/adapter-pg` |
+| Tests | Vitest 5, jsdom, Testing Library |
+| Lint | oxlint |
+| CI | GitHub Actions `verify` |
 
-## 5. Routes (27)
+Runtime dependencies: React, React DOM, React Router, Prisma client, the
+PostgreSQL adapter, `pg` and `qrcode-generator` (the share dialog). Everything
+else, including the router, multipart parser, CSV export, icons, dialogs, forms
+and PNG encoder, is in this repository.
 
-**Public (7)** - `/`, `/scholarships`, `/scholarships/:id`, `/about`, `/faqs`, `/login`,
-`/register`
+---
 
-**Student (8)** — `/student/dashboard`, `/profile`, `/saved`, `/applications`,
-`/applications/:id`, `/semester-registration`, `/grants`, `/notifications`
+## 3. Routes
 
-**Administrator (11)** — `/admin/dashboard`, `/scholarships`,
-`/scholarships/new`, `/scholarships/:id/edit`, `/students`, `/applications`,
-`/registrations`, `/grants`, `/announcements`, `/reports`, `/settings`
+**33 routes plus a not-found page.**
 
-**Catch-all (1)** — `*` → 404
+| Area | Count | Routes |
+|---|---:|---|
+| Public | 11 | `/`, `/scholarships`, `/scholarships/:id`, `/about`, `/faqs`, `/announcements`, `/privacy`, `/welcome`, `/login`, `/register`, `/forgot-password` |
+| Student | 9 | dashboard, profile, saved, applications, application detail, semester registration, grants, documents, notifications |
+| Administrator | 13 | dashboard, scholarships, new/edit scholarship, students, applications, registrations, grants, documents, activity, announcements, reports, settings |
+| Fallback | 1 | `*` → not found |
 
-## 6. API surface (51 endpoints)
+Every page is lazy-loaded under one `Suspense` boundary. Student and admin
+routes are guarded by role and by an authenticated session.
 
-| Group | Endpoints |
+---
+
+## 4. Data
+
+**15 models.** See `prisma/schema.prisma` and `docs/architecture/ARCHITECTURE.md`.
+
+| Group | Models |
 |---|---|
-| Health | `GET /api/health` |
-| Auth | `GET session` · `POST login` · `POST logout` · `POST register` · `GET /api/accounts` |
-| Scholarships | `GET /api/scholarships` · `GET options` · `GET :id` |
-| Saved | `GET /api/saved` · `GET ids` · `POST :scholarshipId/toggle` |
-| Applications | `GET` · `GET :id` · `POST` · `PATCH :id` · `POST :id/status` · `POST :id/withdraw` · `DELETE :id` · `GET awaiting-grant` · `GET counts` |
-| Profile | `GET /api/profile` · `PATCH /api/profile` |
-| Registrations | `GET` · `GET :id` · `GET counts` · `POST` · `POST :id/status` |
-| Grants | `GET` · `GET :id` · `GET total-released` · `POST` · `POST confirm` · `PATCH :id` · `DELETE :id` |
-| Announcements | `GET` · `POST` · `PATCH :id` · `DELETE :id` |
-| Notifications | `GET` · `GET unread-count` · `POST read-all` · `POST :id/read` |
-| Students | `GET` · `GET count` · `GET :id` · `PATCH :id` · `DELETE :id` |
-| Settings | `GET /api/settings` · `PATCH /api/settings` |
-| Reports | `GET /api/reports` (overview + 5 breakdowns) |
-| Maintenance | `POST /api/reset` (501 — delegated to `npm run db:seed`) |
+| Identity | `User`, `Session`, `StudentProfile`, `EmailVerification` |
+| Catalogue | `Scholarship`, `SavedScholarship` |
+| Process | `Application`, `ApplicationTimelineEntry`, `SemesterRegistration`, `Grant` |
+| Supporting | `StudentDocument`, `Announcement`, `Notification`, `AuditEntry`, `PlatformSettings` |
 
-## 7. Design system
+Key rules are database constraints where possible:
 
-**Tokens** (`src/index.css`, 22 variables): maroon `brand-50…950` as the single
-accent, `gold-100…800` reserved for featured/pinned markers and the masthead
-rule, `canvas` for the near-white page, one `shadow-float` used only by dialogs.
+- one application per student and listing;
+- one grant per application;
+- one semester registration per student and term;
+- unique public reference numbers.
 
-**25 UI components**: Accordion, Alert, Badge, Button, Card, Checkbox,
-ConfirmDialog, DefinitionList, Dialog, EmptyState, Field, Icon, Input,
-PageHeader, Pagination, SearchInput, Section, Select, Skeleton, Spinner,
-StatCard, States, Table, Tabs, Textarea.
+Money is stored as integer centavos. List fields are JSON text and mapped at the
+server boundary.
 
-**Rules** — `Section` over `Card` for grouping; flat surfaces, no resting
-shadow; metrics as text not tiles; one primary action per page; progressive
-disclosure; container `max-w-6xl`; type scale h1 24 → section 16 → body 14 →
-meta 12; **dark mode** class-based and toggleable.
+---
 
-## 8. Business rules enforced
+## 5. API
 
-| # | Rule | Where |
-|---|---|---|
-| 1 | Grants require explicit administrative confirmation | `POST /api/grants/confirm` is the only path; approving an application never creates a grant |
-| 2 | Internal vs provider-handled applications stay distinct | `Scholarship.applicationMode` |
-| 3 | External application links shown when supplied | Detail page |
-| 4 | Semester registration is for existing grantees | `POST /api/registrations` returns 403 with no confirmed grant |
-| 5 | Students reach only their own records | `requireOwnerOrAdmin` on every student-scoped read |
-| 6 | Only administrators manage listings, reviews, grants | `requireRole(user, 'admin')` |
-| 7 | Login cannot enumerate accounts | Wrong password and unknown email return a byte-identical 401 |
-| 8 | Review decisions need a note | `POST /api/applications/:id/status` rejects a note under 5 characters |
-| 9 | Reference numbers never collide | `nextReference()` reads existing numbers from the database |
+**70 endpoints** in 15 route modules. A grouped map, conventions, status codes
+and upload rules are in `docs/architecture/API.md`.
 
-## 9. Security posture
+The API is same-origin, JSON, session-cookie based, and uses explicit
+authorisation guards. There is no CORS, no CSRF token, no raw SQL and no
+server-side rendering.
 
-**Implemented** — scrypt password hashing (`node:crypto`); httpOnly session
-cookies; server-side authorisation; ownership checks; Prisma parameterised
-queries; no credentials reach the browser; API never cached by the service
-worker.
+---
 
-**Not implemented** — rate limiting, CSRF tokens, security headers, audit log,
-account lockout, email verification, password reset, 2FA.
+## 6. Business rules
 
-**Known exposure** — `GET /api/accounts` returns the seeded credentials in plain
-text so the login screen can offer them. **Delete before deploying.**
+1. A grant requires an explicit confirmation by an administrator, from an
+   approved application with no existing grant. Approval alone never creates a
+   grant.
+2. An application requires a complete profile, an open internal listing, a
+   deadline that has not passed, and the platform's applications switch on.
+3. A student has one application per listing; a draft is updated in place.
+4. Decisions follow an explicit transition map; a grant locks the decision.
+5. Semester registration requires an **active** grant and is one per term.
+6. A student reaches only their own applications, documents, grants and
+   registrations. Administrators are checked by role.
+7. Verified documents and registrations are locked; changes require an
+   administrator.
+8. Announcement audience is derived from the session, never the query string.
+9. Login and registration are throttled; one-time codes are hashed and
+   attempt-limited.
+10. Every consequential act is audited, including grant changes and staff
+    document access.
 
-## 10. Build & deploy
+---
 
-```bash
-npm run dev        # Vite on :5173, proxies /api
-npm run server     # API on :8787
-npm run db:migrate # create prisma/dev.db
-npm run db:seed    # load placeholder records
-npm run build      # tsc -b → vite build → prerender
-```
+## 7. Non-functional requirements
 
-`scripts/prerender.ts` writes one HTML file per public route with real
-`<title>`, description, canonical and Open Graph tags; regenerates `sitemap.xml`
-(19 URLs incl. all listings) and `robots.txt`; draws `og-image.png` (1200×630),
-`icon-192/512` and `apple-touch-icon` with a hand-written PNG encoder; emits the
-service worker. `SITE_URL` sets the origin.
+| Area | Target |
+|---|---|
+| Accessibility | WCAG 2.2 AA; keyboard, focus, 24 px targets, reduced motion |
+| Responsive | 390, 768 and 1280 px; no horizontal page overflow |
+| Themes | Light and dark; class-based, before first paint |
+| Performance | API interactions measured in single-digit milliseconds locally; page work kept off long tasks |
+| Security | scrypt passwords, HttpOnly sessions, server-side authorisation, CSP, no raw SQL |
+| Privacy | Privacy notice and consent, data export, erasure request, staff access audited |
+| Reliability | 81 unit/component tests, 11-step rehearsal, CI on every PR |
 
-Host needs an SPA fallback — `public/_redirects` (Netlify, Cloudflare Pages) and
-`vercel.json` (Vercel) are included.
+---
 
-## 11. Code inventory
-
-| Area | Files | Lines |
-|---|---|---|
-| Pages | 25 | 7,067 |
-| Components (25 UI + 16 layout/domain) | 41 | 2,537 |
-| Lib (api, validation, format, csv, storage, ids, constants, serviceWorker) | 8 | 1,758 |
-| Data (seed records, schema) | 2 | 1,142 |
-| Server | 5 | 1,656 |
-| Types | 1 | 295 |
-| Context | 6 | 268 |
-| Hooks | 4 | 193 |
-| Prerender script | 1 | 371 |
-| Prisma seed | 1 | 232 |
-| **Total** | **~94** | **~15,500** |
-
-## 12. Verification status
+## 8. Verification
 
 | Check | Result |
 |---|---|
-| `npm run lint` | clean |
-| `tsc -b` (app + server + scripts) | clean |
-| `npm run build` | clean; 290 kB app bundle (86 kB gzip) |
-| Lighthouse, light + dark, 8 pages | Accessibility / Best Practices / SEO **100**, zero failures |
-| Every route smoke-tested | renders, empty console |
-| Prerendered pages | 19 written; one `<title>`, one `description`, full OG set |
-| Service worker | 1 registration, scope `/` |
-| API over real HTTP | ownership 403, role 403, no account enumeration, session lifecycle |
-| Tests | **none** |
+| Unit/component tests | 81 tests, 11 files |
+| Type-check | `tsc -b` clean |
+| Lint | `oxlint` clean |
+| Build | 22 pages prerendered (14 published listings) |
+| Rehearsal | 11/11 steps |
+| Dependency audit | 0 known advisories |
+| CI | `verify` green; `main` protected |
 
-## 13. Known gaps
+---
 
-**Blockers before a public domain**
-1. Listings are invented — generic providers, fabricated eligibility and deadlines.
-2. `GET /api/accounts` exposes seeded passwords.
+## 9. Known gaps
 
-**Not built**
-- **Document upload (requirements are text labels only).** Superseded: uploads
-  and classification were added later; this line is stale.
-- **Email of any kind — including password reset.** Superseded: one-time codes
-  exist, with a console transport; a real provider is still not wired.
-- Filipino / Kapampangan translations.
-- Offline support is shell-only; data is not cached.
-- Tier 2: optimistic updates, undo, autosave, blur validation, printable
-  receipt, bulk actions, fuzzy search, sortable columns, command palette.
-- Tier 3: rate limiting, CSRF, security headers, audit log, privacy notice,
-  error tracking, analytics.
-- i18n scaffolding, and the `PRODUCT.md` / `DESIGN.md` that the Impeccable
-  skill expects.
+- Demo accounts still exist and are visible in the demo build. Gate them before
+  deployment.
+- Scholarship listings are placeholder records, not verified data.
+- Email uses a console transport; no real provider is wired.
+- Google sign-in is hidden without an OAuth client id.
+- Browser-storage mode remains as a build-time option; it is not the deployment
+  path.
+- Throttles are in memory, so they assume one API process.
+- Audit writes are fire-and-forget.
+- No deployment has been performed yet.
+- List fields stored as JSON text are not queryable in SQL.
 
-**Resolved since the first draft**
-- The client is wired to the API (`src/lib/httpApi.ts`), with the source chosen
-  by `VITE_API_BASE_URL`. Verified across all 16 student and administrator
-  pages against a running server.
-- `GET /api/accounts` is gone; the server no longer serves passwords. Test
-  credentials live in the client bundle, which is equivalent for a demo but must
-  be deleted before deployment.
-- Supabase was chosen as the target database; see `docs/deployment/DEPLOY.md`.
+The pre-deployment checklist is in `docs/security/SECURITY-REVIEW.md`.

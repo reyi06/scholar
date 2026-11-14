@@ -6,7 +6,7 @@ province of Pampanga, Philippines.
 React, Vite, TypeScript and Tailwind CSS on the front; a dependency-free Node API
 and a PostgreSQL database behind it. The browser never touches the database — it
 calls `src/lib/api.ts`, which talks HTTP to `server/` when `VITE_API_BASE_URL` is
-set and falls back to browser storage when it is not. See
+set and uses browser storage when it is not. See
 [Data layer](#data-layer) for which mode does what, and
 [`docs/security/SECURITY-REVIEW.md`](docs/security/SECURITY-REVIEW.md)
 for the security boundary.
@@ -75,7 +75,7 @@ instead — the dev server serves modules unbundled and is slower to demonstrate
 | `npm run dev`              | Dev server with hot module replacement               |
 | `npm run build`            | Type-check, build, then prerender every public route  |
 | `npm run preview`          | Serve the production build locally                   |
-| `npm test`                 | Vitest: 71 tests over 10 files, no database needed    |
+| `npm test`                 | Vitest: 81 tests over 11 files, no database needed    |
 | `npm run lint`             | Lint with oxlint                                     |
 | `npm run server`           | The Node API on `API_PORT` (default 8787)            |
 | `npm run db:migrate`       | Apply Prisma migrations                              |
@@ -288,7 +288,7 @@ prisma/                     # schema.prisma, migrations, seed.ts
 scripts/                    # prerender, db-reset, prune-documents,
                             # check-responsive, rehearse-demo
 tests/                      # Vitest: 81 tests over 11 files
-docs/                       # Spec, deployment and security
+docs/                       # Spec, architecture, design, deployment, security
 public/                     # Icons, manifest, _redirects
 ```
 
@@ -493,6 +493,10 @@ The remaining pre-deployment items are recorded in the
 | Document | Read it for |
 | --- | --- |
 | [`docs/README.md`](docs/README.md) | Index of everything below |
-| [`docs/spec/SPEC.md`](docs/spec/SPEC.md) | Product and technical specification |
+| [`docs/spec/SPEC.md`](docs/spec/SPEC.md) | Product scope, routes, data and rules |
+| [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) | System shape, requests, data and workflows |
+| [`docs/architecture/API.md`](docs/architecture/API.md) | Endpoint groups, status codes and uploads |
+| [`docs/architecture/DECISIONS.md`](docs/architecture/DECISIONS.md) | Why the stack and invariants are what they are |
+| [`docs/design/DESIGN.md`](docs/design/DESIGN.md) | Tokens, components, patterns and accessibility |
 | [`docs/deployment/DEPLOY.md`](docs/deployment/DEPLOY.md) | Deploying the three parts |
 | [`docs/security/SECURITY-REVIEW.md`](docs/security/SECURITY-REVIEW.md) | Findings, severities, pre-deployment checklist |
