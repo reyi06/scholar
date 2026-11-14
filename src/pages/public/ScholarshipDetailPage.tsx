@@ -173,7 +173,27 @@ export function ScholarshipDetailPage() {
         <Badge tone="neutral">{scholarship.municipality}</Badge>
         <StatusBadge kind="scholarship" status={scholarship.status} />
         <DeadlineBadge deadline={scholarship.deadline} open={isOpen} />
+        {scholarship.verifiedAt ? (
+          <span className="text-sm text-slate-500 dark:text-slate-400">
+            Last checked {formatDate(scholarship.verifiedAt)}
+          </span>
+        ) : null}
       </div>
+
+      <Alert
+        className="mt-8"
+        tone="info"
+        title="Scholarships never ask you for money"
+      >
+        No legitimate programme asks for a processing fee, a reservation fee, a
+        deposit or your password. This listing reflects what the provider has
+        published — confirm it with them before you submit anything. If a listing
+        here asks for payment, report it to{' '}
+        <a className="font-medium underline" href="mailto:scholarships@example.gov.ph?subject=Suspicious%20listing">
+          the scholarship office
+        </a>
+        .
+      </Alert>
 
       <div className="mt-10 grid gap-12 lg:grid-cols-[1fr_19rem]">
         {/* ------------------------------- Content ------------------------------- */}

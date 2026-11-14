@@ -145,6 +145,7 @@ interface ScholarshipRow {
   instructions: string
   status: string
   featured: boolean
+  verifiedAt: Date | null
   tags: string
   createdAt: Date
   updatedAt: Date
@@ -169,6 +170,7 @@ export function toScholarship(row: ScholarshipRow): Scholarship {
     instructions: parseArray(row.instructions),
     status: row.status as Scholarship['status'],
     featured: row.featured,
+    verifiedAt: row.verifiedAt?.toISOString(),
     tags: parseArray(row.tags),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),

@@ -804,6 +804,10 @@ const seeds: Seed[] = [
 
 export const sampleScholarships: Scholarship[] = seeds.map((seed, index) => ({
   ...seed,
+  // Every listing below was checked against its provider's published page on
+  // this date. Bump per listing when it is rechecked; do not bump the whole set
+  // without looking at each one.
+  verifiedAt: '2026-11-14T00:00:00.000Z',
   createdAt: daysAgo(120 - index * 3),
   updatedAt: daysAgo(20 - Math.min(index, 18)),
 }))

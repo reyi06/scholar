@@ -32,6 +32,7 @@ for (const scholarship of sampleScholarships) {
     instructions: stringifyArray(scholarship.instructions),
     status: scholarship.status,
     featured: scholarship.featured,
+    verifiedAt: scholarship.verifiedAt ? new Date(scholarship.verifiedAt) : null,
     tags: stringifyArray(scholarship.tags),
   }
 

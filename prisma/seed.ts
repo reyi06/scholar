@@ -101,6 +101,7 @@ async function seed(): Promise<void> {
         instructions: stringifyArray(scholarship.instructions),
         status: scholarship.status,
         featured: scholarship.featured,
+        verifiedAt: scholarship.verifiedAt ? new Date(scholarship.verifiedAt) : null,
         tags: stringifyArray(scholarship.tags),
         createdAt: new Date(scholarship.createdAt),
         updatedAt: new Date(scholarship.updatedAt),

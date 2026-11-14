@@ -128,6 +128,12 @@ export interface Scholarship {
   instructions: string[]
   status: ScholarshipStatus
   featured: boolean
+  /**
+   * ISO datetime of the last check against the provider's own published
+   * information. Undefined when the listing has never been checked. The
+   * interface must not present an old check as if it were current.
+   */
+  verifiedAt?: string
   tags: string[]
   createdAt: string
   updatedAt: string

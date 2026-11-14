@@ -122,6 +122,11 @@ model Scholarship {
   instructions      String // JSON array
   status            String // open | closed | draft
   featured          Boolean  @default(false)
+  /// Last date someone confirmed this listing against the provider's own
+  /// published information. Null means nobody has checked it since it was
+  /// created. The interface shows the age of this check rather than calling a
+  /// listing "verified" forever.
+  verifiedAt        DateTime?
   tags              String   @default("[]") // JSON array
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
