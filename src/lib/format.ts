@@ -82,7 +82,7 @@ export function daysUntil(value: string | null | undefined): number | null {
 /** Human phrasing for a deadline, e.g. "Closes in 12 days". */
 export function describeDeadline(value: string | null | undefined): string {
   const days = daysUntil(value)
-  if (days === null) return 'No deadline set'
+  if (days === null) return 'Rolling intake'
   if (days < 0) return `Closed ${Math.abs(days)} day${Math.abs(days) === 1 ? '' : 's'} ago`
   if (days === 0) return 'Closes today'
   if (days === 1) return 'Closes tomorrow'

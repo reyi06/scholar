@@ -24,7 +24,7 @@ import {
 } from './sampleData.ts'
 
 /** Bump when the shape below changes so stale localStorage is discarded. */
-export const DB_VERSION = 4
+export const DB_VERSION = 5
 
 export interface DemoCredential {
   userId: string

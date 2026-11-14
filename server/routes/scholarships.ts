@@ -203,8 +203,8 @@ route('POST', '/api/scholarships', async ({ req, res, user }) => {
   const body = await readJson(req)
   const data = scholarshipData(body)
 
-  if (!data.name || !data.provider || !data.type || !data.deadline) {
-    throw new HttpError(400, 'Name, provider, type and deadline are required.')
+  if (!data.name || !data.provider || !data.type) {
+    throw new HttpError(400, 'Name, provider and type are required.')
   }
   if (data.applicationMode === 'external' && !data.externalUrl) {
     throw new HttpError(400, 'An external application link is required for external listings.')
@@ -222,7 +222,7 @@ route('POST', '/api/scholarships', async ({ req, res, user }) => {
       benefits: data.benefits ?? '[]',
       eligibility: data.eligibility ?? '[]',
       requirements: data.requirements ?? '[]',
-      deadline: data.deadline,
+      deadline: data.deadline ?? '',
       applicationMode: data.applicationMode ?? 'internal',
       externalUrl: data.externalUrl ?? null,
       contact: data.contact ?? '{}',

@@ -15,7 +15,7 @@ Status: 14 November 2026.
 | Purpose | Publish scholarship listings and track applications, requirements, semester registration and confirmed grants |
 | Users | Students, scholarship administrators, public visitors |
 | Surfaces | Public directory, student area, administrator area |
-| Demo data | Placeholder listings, demo accounts, sample applications and grants |
+| Demo data | Fifteen researched Pampanga listings, demo accounts, sample applications and grants |
 
 ### In scope
 
@@ -35,8 +35,9 @@ Status: 14 November 2026.
 - Native mobile apps.
 - Filipino or Kapampangan translation.
 
-**Placeholder listings are not verified provider data.** They must be replaced
-before public use.
+**Listing status and deadlines must be reconfirmed with the provider.** They are
+researched from published programme information, not guaranteed, and most
+Pampanga programmes run a rolling intake rather than a dated window.
 
 ---
 
@@ -165,7 +166,8 @@ server-side rendering.
 
 - Demo accounts still exist and are visible in the demo build. Gate them before
   deployment.
-- Scholarship listings are placeholder records, not verified data.
+- Listing status and deadlines age quickly; several programmes are already marked
+  closed and must be reconfirmed each intake.
 - Email uses a console transport; no real provider is wired.
 - Google sign-in is hidden without an OAuth client id.
 - Browser-storage mode remains as a build-time option; it is not the deployment

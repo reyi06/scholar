@@ -13,6 +13,7 @@
     "server": "node --env-file=.env server/index.ts",
     "db:migrate": "prisma migrate dev",
     "db:seed": "node --env-file=.env prisma/seed.ts",
+    "db:catalogue": "node --env-file=.env scripts/seed-catalogue.ts",
     "db:studio": "prisma studio",
     "db:reset": "node scripts/db-reset.ts",
     "prerender": "node --env-file=.env scripts/prerender.ts",

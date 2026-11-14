@@ -11,9 +11,11 @@ set and uses browser storage when it is not. See
 [`docs/security/SECURITY-REVIEW.md`](docs/security/SECURITY-REVIEW.md)
 for the security boundary.
 
-Scholarship listings currently shipped with the application are placeholder
-records used to populate the interface. Replace them with verified provider
-information before publishing.
+Scholarship listings are drawn from published programme information for Pampanga
+provincial, municipal, university and private scholarships. Each listing records
+where it came from, and several are marked closed because their intake has
+ended. Reconfirm the status and deadline with the provider at the start of every
+intake; nothing here is guaranteed current.
 
 ---
 
@@ -62,7 +64,7 @@ whose output is wrong looks exactly like one that works.
 ```bash
 npm install          # install dependencies
 npm run db:migrate   # apply the migrations (needs PostgreSQL + DATABASE_URL)
-npm run db:seed      # load the placeholder records
+npm run db:seed      # demo accounts, the 15 listings and settings
 npm run server       # API on :8787
 npm run dev          # front end on :5173, proxying /api to the server
 ```
@@ -79,7 +81,8 @@ instead — the dev server serves modules unbundled and is slower to demonstrate
 | `npm run lint`             | Lint with oxlint                                     |
 | `npm run server`           | The Node API on `API_PORT` (default 8787)            |
 | `npm run db:migrate`       | Apply Prisma migrations                              |
-| `npm run db:seed`          | Load the placeholder records                         |
+| `npm run db:catalogue`     | Update the 15 listings, leaving accounts untouched    |
+| `npm run db:seed`          | Reset the database and reload all demo records       |
 | `npm run db:reset`         | Drop, re-migrate and reseed                          |
 | `npm run db:studio`        | Browse the database                                  |
 | `npm run db:prune-documents` | Retention job (dry run by default)                 |
@@ -117,7 +120,7 @@ Requirements: a running PostgreSQL instance and an empty database for the app.
 ```bash
 cp .env.example .env     # DATABASE_URL, API_PORT, VITE_API_BASE_URL
 npm run db:migrate       # apply the migrations
-npm run db:seed          # load the placeholder records
+npm run db:seed          # demo accounts, the 15 listings and settings
 npm run server           # API on :8787
 npm run dev              # front end on :5173, proxying /api to the server
 ```
@@ -248,7 +251,7 @@ src/                        # React application
 ├── styles/index.css        # Tailwind import + @theme design tokens
 ├── types/index.ts          # Every domain model, shared with the server
 ├── data/
-│   ├── sampleData.ts       # Placeholder records
+│   ├── sampleData.ts       # The 15 listings
 │   └── schema.ts           # Browser-store shape + seed builder
 ├── lib/
 │   ├── api.ts              # Data-access seam (picks the implementation)
@@ -358,7 +361,7 @@ rules that matter are re-checked in `server/http/auth.ts` and each route module.
 
 Before a real deployment, in this order:
 
-1. Replace the placeholder listings and the demo accounts (rule 1).
+1. Remove the demo accounts and reconfirm every listing (rule 1).
 2. Set `MAIL_TRANSPORT` to a real transport; the console transport prints
    one-time codes to the server log by design.
 3. Set `COOKIE_SECURE=true` and serve over TLS, so the session cookie is not
@@ -376,7 +379,7 @@ These rules are enforced in code. Treat them as regression risks.
 
 | #   | Rule                                                                                              | Where                                                        |
 | --- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| 1   | Placeholder listings must be replaced with verified provider data before publishing                | `src/data/sampleData.ts`                                     |
+| 1   | Listing status and deadline must be reconfirmed with the provider each intake; a programme is not marked open without a current call | `src/data/sampleData.ts`                                     |
 | 2   | Internal vs externally handled applications are distinguished                                      | `Scholarship.applicationMode`, applications pages             |
 | 3   | External application links are shown when supplied                                                 | `ScholarshipDetailPage`                                      |
 | 4   | A pending/approved application never becomes a grant automatically                                 | `grantsApi.confirmFromApplication` is the only path; `awaitingGrantConfirmation()` surfaces the gap |
@@ -387,12 +390,13 @@ These rules are enforced in code. Treat them as regression risks.
 | 9   | Realistic empty states and validation messages, no fake successes                                  | `EmptyState`, inline form errors, toasts only after real effects |
 | 10  | Nothing is claimed that is not implemented                                                         | No toast or copy asserts an email, upload or server write occurred |
 
-> **Note on labels.** Earlier revisions labelled placeholder listings in the
+> **Note on labels.** Earlier revisions labelled the seeded listings in the
 > interface — a site-wide banner, per-card `Sample data` badges, and a disclaimer
-> block on the About page. That labelling was removed by explicit product
-> decision. The records in `src/data/sampleData.ts` are still placeholders and
-> provider names are generic stand-ins, so replace them with verified
-> information before the listings are published.
+> block on the About page, because they were invented records. That labelling was
+> removed by explicit product decision. The catalogue in
+> `src/data/sampleData.ts` is now built from published programme information, so
+> the badge would be wrong; the obligation it stood for has not gone away. Check
+> every listing against the provider before each intake.
 
 ## Deploying
 
@@ -480,8 +484,10 @@ prerendered, installable front end.
 - **Browser-storage mode is a preview.** With `VITE_API_BASE_URL` unset, demo
   data and demo passwords live in `localStorage`, and authorisation is
   navigation only.
-- **Listings and provider names are placeholders**, and the demo accounts still
-  exist. Both must go before public use.
+- **Listing status is only as fresh as the last check.** Most Pampanga programmes
+  run a rolling intake, so a listing carries no deadline and says so; eight are
+  marked closed because their call has ended. The demo accounts also still exist
+  and must be removed before public use.
 - **No Inter webfont load.** The stack names Inter and falls back to the system
   UI font, so no third-party request is made.
 

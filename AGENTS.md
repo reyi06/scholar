@@ -115,8 +115,9 @@ docs/           spec, architecture, design, deployment, security
   use the uploaded name as a path.
 - **One application per student and listing**, one registration per term, one
   grant per application. These are database constraints, not just checks.
-- **Placeholder listings are not real.** Do not present them as verified data,
-  and keep the README warning.
+- **Listings are researched, not guaranteed.** Each one reflects published
+  programme information on the date it was written; statuses and deadlines change
+  every intake. Reconfirm before publishing a change to a listing.
 - **No secrets in git.** `.env`, uploads, `dist`, `node_modules`, `tmp` are
   ignored.
 - **Public repo only.** No member planning, task lists, contribution forms or

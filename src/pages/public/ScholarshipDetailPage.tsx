@@ -327,7 +327,10 @@ export function ScholarshipDetailPage() {
             <DefinitionList
               columns={1}
               items={[
-                { label: 'Deadline', value: formatDate(scholarship.deadline) },
+                {
+                  label: 'Deadline',
+                  value: scholarship.deadline ? formatDate(scholarship.deadline) : 'Rolling, ask the provider',
+                },
                 { label: 'Provider', value: scholarship.provider },
                 { label: 'Coverage', value: scholarship.municipality },
                 {
