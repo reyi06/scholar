@@ -189,3 +189,30 @@ the Node server on one machine, keep PostgreSQL alongside it, and put it behind
 the office router. No Supabase, no hosting bill, no cross-origin problem — and
 backup is `pg_dump` to a file on a schedule. For a single-office deployment that
 is genuinely the better answer.
+
+## One process behind a tunnel
+
+When the site has to be reachable from the internet but stays on your own
+machine, a tunnel gives you one hostname pointing at one local port. The default
+split — static host for `dist/`, separate Node process for `/api` — does not fit,
+because a tunnel cannot route two ports on one hostname.
+
+Two options:
+
+1. **Let the API serve both.** A ~90-line static handler in front of the router
+   does it: `/api/*` stays with the router, everything else comes from `dist/`
+   with `index.html` as the SPA fallback, and the CSP from `vite.config.ts` is
+   applied to HTML responses. `@prisma/client` still never reaches the browser,
+   and sessions stay same-origin, so the `Secure; SameSite=Lax` cookie works
+   unchanged. This is what the local release does.
+2. **Put a reverse proxy in front** (Caddy, nginx) and point the tunnel at it.
+
+Whatever the tunnel provider, check two things before trusting it:
+
+- **Does it forward the client address?** If every request arrives from
+  `127.0.0.1`, `TRUST_PROXY` is either lying or useless, and the per-address
+  login throttle will lock out every user after 20 wrong passwords. Confirm by
+  logging the value once, not by reading the documentation.
+- **Does it terminate TLS?** If it passes the handshake through, your origin must
+  speak HTTPS with a certificate the browser trusts — which you cannot obtain for
+  a hostname you do not control.
