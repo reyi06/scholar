@@ -23,7 +23,7 @@ honour it.
 
 - [ ] Client wired to the API
 - [ ] Test-account buttons removed from the login screen
-- [ ] Placeholder listings replaced with verified provider data
+- [ ] Every listing reconfirmed with its provider for the current intake
 - [ ] Privacy notice published (student records, Data Privacy Act)
 
 ---

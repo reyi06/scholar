@@ -155,7 +155,7 @@ server-side rendering.
 | Unit/component tests | 81 tests, 11 files |
 | Type-check | `tsc -b` clean |
 | Lint | `oxlint` clean |
-| Build | 22 pages prerendered (14 published listings) |
+| Build | 23 pages prerendered (15 published listings) |
 | Rehearsal | 11/11 steps |
 | Dependency audit | 0 known advisories |
 | CI | `verify` green; `main` protected |

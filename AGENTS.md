@@ -18,7 +18,7 @@ are in `docs/`.
 | Database | 15 Prisma models on PostgreSQL 17 |
 | UI | 26 hand-rolled primitives in `src/components/ui/` |
 | Tests | 81 tests in 11 files; type-check and lint clean |
-| Build | 22 pages prerendered (14 published listings) |
+| Build | 23 pages prerendered (15 published listings) |
 | CI | `.github/workflows/verify.yml`; `main` is protected |
 | Repo | public technical tree; member planning and the paper live outside it |
 
@@ -34,7 +34,8 @@ npm run lint                # oxlint
 npm test                    # vitest run
 npm run test:watch          # vitest
 npm run db:migrate          # prisma migrate dev
-npm run db:seed             # seed demo data
+npm run db:seed             # reset + seed demo data
+npm run db:catalogue        # upsert the 15 listings, keep accounts
 npm run db:reset            # drop + migrate + seed
 npm run db:prune-documents  # remove old document rows/files (dry run by default)
 npm run check:responsive    # Chrome at 390/768/1280; needs site + API
@@ -174,7 +175,7 @@ docs/           spec, architecture, design, deployment, security
 1. `npm test` — 81 tests must pass.
 2. `npx tsc -b` — clean.
 3. `npm run lint` — clean.
-4. `npm run build` — clean; 22 pages.
+4. `npm run build` — clean; 23 pages.
 5. For workflow changes: `npm run rehearse` with the API and production preview.
 6. For layout changes: `npm run check:responsive`, or a manual 390/1280 pass.
 

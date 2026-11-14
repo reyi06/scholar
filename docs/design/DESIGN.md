@@ -231,8 +231,8 @@ account buttons are demo-only and must be gated before deployment.
 - No exclamation marks, no "Welcome to our wonderful...", no fake urgency.
 - Use "scholarship", "listing", "provider", "application", "grant" consistently.
 - Explain a rule behind `(?)`, not in a permanent paragraph.
-- Placeholder listings are labelled as demo data in the README, never presented
-  as verified provider information.
+- A listing is only as current as its last check. A rolling intake reads
+  "Rolling intake"; never invent a date to fill the field.
 
 ---
 

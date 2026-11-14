@@ -26,7 +26,7 @@ Three processes in development and in the demo: the static site, the API and
 PostgreSQL. In production they sit behind one origin, with a reverse proxy
 sending `/api` to the Node process and everything else to the static host.
 
-There is **no server-side rendering**. `scripts/prerender.ts` writes 22 HTML
+There is **no server-side rendering**. `scripts/prerender.ts` writes 23 HTML
 entries with route-specific titles, descriptions and Open Graph tags for
 crawlers and link previews; the page itself still renders in the browser.
 
@@ -179,7 +179,8 @@ identical but means those fields are not directly queryable in SQL.
 `POST /api/applications` requires a student, a complete profile, a listing that
 is `open`, `applicationMode === 'internal'`, a deadline that has not passed, and
 `PlatformSettings.applicationsOpen`. It refuses external listings and expired
-deadlines server-side, not only in the UI.
+deadlines server-side, not only in the UI. An empty deadline means a rolling
+intake and is never treated as expired.
 
 An existing draft is updated in place; a second application for the same listing
 is rejected by the unique pair. Reference numbers are computed from existing
@@ -278,7 +279,7 @@ loudly.
 2. `vite build` → hashed assets in `dist/`;
 3. `node --env-file=.env scripts/prerender.ts`.
 
-The prerender step writes 22 HTML entries (public routes and published
+The prerender step writes 23 HTML entries (public routes and published
 listings) with title, description, canonical and Open Graph tags. It also writes
 `sitemap.xml`, `robots.txt`, the PWA icons, the Open Graph image (with a
 hand-written PNG encoder) and `sw.js`. It is metadata, not SSR.
@@ -334,8 +335,10 @@ rehearsal, not by unit tests.
 - **JSON-in-TEXT** list fields limit SQL queries and reporting.
 - **In-memory throttles** do not survive multiple API instances.
 - **Audit is fire-and-forget**, so a trail can have gaps.
-- **Demo accounts** and **placeholder listings** remain. They must be removed
-  or gated before a real launch.
+- **Demo accounts** remain and must be removed or gated before a real launch.
+- **Listing status is only as fresh as the last check.** The catalogue is built
+  from published programme information, but Pampanga programmes re-open every
+  intake; eight of the fifteen are already marked closed.
 - **Email** is console-only; Google sign-in is hidden without a client id.
 - **`/api/settings` and `/api/grants/total-released` are public.** That is a
   product decision, not an accident.

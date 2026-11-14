@@ -71,6 +71,13 @@ The counters are in memory, so they assume one API process.
 `GET /api/settings` and `GET /api/grants/total-released` are deliberately
 public. `GET /api/scholarships/:id` hides drafts from non-administrators.
 
+**Deadlines are optional.** Most Pampanga programmes run a rolling intake, so
+`POST` and `PATCH` accept an empty `deadline` and the stored value is `""`. An
+empty deadline is never "past": `isPastDeadline` is false for it, the directory
+sorts it with the other non-urgent listings, and the interface renders it as
+"Rolling intake" rather than a date. A non-empty value must still be a real
+`YYYY-MM-DD` date.
+
 ---
 
 ## Auth
