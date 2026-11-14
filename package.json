@@ -18,6 +18,7 @@
     "db:reset": "node scripts/db-reset.ts",
     "prerender": "node --env-file=.env scripts/prerender.ts",
     "check:responsive": "node scripts/check-responsive.ts",
+    "perf:probe": "node scripts/perf-probe.ts",
     "rehearse": "node scripts/rehearse-demo.ts",
     "db:prune-documents": "node --env-file=.env scripts/prune-documents.ts"
   },
