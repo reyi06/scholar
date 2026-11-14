@@ -87,6 +87,8 @@ instead — the dev server serves modules unbundled and is slower to demonstrate
 | `npm run db:studio`        | Browse the database                                  |
 | `npm run db:prune-documents` | Retention job (dry run by default)                 |
 | `npm run check:responsive` | Drive Chrome at 390/768/1280; needs server + preview  |
+| `npm run perf:probe <url>` | Loop TTFB/FCP/LCP and payload on a throttled phone   |
+| `npm run a11y:probe <url>` | axe-core WCAG 2.2 AA scan of the deployed pages      |
 | `npm run rehearse`         | Walk the demonstration script and time each step     |
 
 ## Data layer

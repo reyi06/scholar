@@ -40,6 +40,7 @@ npm run db:reset            # drop + migrate + seed
 npm run db:prune-documents  # remove old document rows/files (dry run by default)
 npm run check:responsive    # Chrome at 390/768/1280; needs site + API
 npm run perf:probe <url>    # LCP/FCP/TTFB and payload on a throttled phone
+npm run a11y:probe <url>    # axe-core WCAG 2.2 AA scan of the deployed pages
 npm run rehearse            # 11-step demo through the production preview
 ```
 
