@@ -184,7 +184,9 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
         </header>
 
         <main id="dashboard-main" className="flex-1 px-5 py-8 sm:px-8">
-          <div className="mx-auto max-w-6xl">
+          {/* Keyed on the path so the entry animation replays per page, while
+              the sidebar and top bar stay put. */}
+          <div key={location.pathname} className="animate-page mx-auto max-w-6xl">
             <RouteErrorBoundary>
               <Outlet />
             </RouteErrorBoundary>

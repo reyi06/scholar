@@ -73,7 +73,7 @@ export function Dropdown({
         <div
           role="menu"
           aria-label={label}
-          className={`absolute z-40 mt-2 w-64 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-float dark:border-ink-800 dark:bg-ink-900 ${
+          className={`animate-dialog absolute z-40 mt-2 w-64 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-float dark:border-ink-800 dark:bg-ink-900 ${
             align === 'right' ? 'right-0' : 'left-0'
           }`}
         >

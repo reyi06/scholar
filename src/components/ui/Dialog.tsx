@@ -96,7 +96,7 @@ export function Dialog({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-slate-900/40 p-0 sm:items-center sm:p-4">
+    <div className="animate-backdrop fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-slate-900/40 p-0 sm:items-center sm:p-4">
       <button
         type="button"
         aria-label="Close Dialog"
@@ -110,7 +110,7 @@ export function Dialog({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
-        className={`relative z-10 w-full ${SIZES[size]} shadow-float max-h-[92vh] overflow-y-auto rounded-t-xl border border-slate-200 bg-white sm:rounded-lg dark:border-ink-800 dark:bg-ink-900`}
+        className={`animate-dialog relative z-10 w-full ${SIZES[size]} shadow-float max-h-[92vh] overflow-y-auto rounded-t-xl border border-slate-200 bg-white sm:rounded-lg dark:border-ink-800 dark:bg-ink-900`}
       >
         <div className="flex items-start justify-between gap-6 border-b border-slate-200 px-5 py-4 dark:border-ink-800">
           <div className="min-w-0">

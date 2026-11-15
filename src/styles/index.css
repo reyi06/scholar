@@ -187,6 +187,26 @@
     transform: rotate(90deg);
   }
 
+  /* Answer body slides in as it is revealed. `display: none` to block restarts
+     the animation on each open, with no JavaScript. */
+  details[open] > .disclosure-body {
+    animation: disclosure-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* A page settles into place after a route change. Short and small on purpose:
+     long or large moves read as a delay, not as polish. */
+  .animate-page {
+    animation: page-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .animate-backdrop {
+    animation: fade-in 150ms ease-out both;
+  }
+
+  .animate-dialog {
+    animation: dialog-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
   /* Hairline gold rule used under the masthead and in the hero. */
   .accent-rule {
     background-image: linear-gradient(
@@ -233,5 +253,56 @@
   }
   to {
     stroke-dashoffset: 0;
+  }
+}
+
+/* ==================================================================
+   Motion.
+
+   Four effects, each doing one job: a page arrives, a dialog opens, an answer
+   unfolds, and a card lifts under the pointer. The distances are small (4 to
+   8px) so they read as the interface settling rather than as travel, and the
+   reduced-motion rule above flattens every one of them to nothing.
+   ================================================================== */
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes disclosure-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }

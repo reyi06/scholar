@@ -34,7 +34,7 @@ export function buttonClasses(
   className = '',
 ): string {
   return [
-    'inline-flex items-center justify-center rounded-md font-medium transition-colors',
+    'inline-flex items-center justify-center rounded-md font-medium transition duration-150 ease-out active:scale-[0.98]',
     'disabled:cursor-not-allowed disabled:opacity-60',
     VARIANTS[variant],
     SIZES[size],

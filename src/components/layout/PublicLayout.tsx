@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { RouteErrorBoundary } from '../ErrorBoundary.tsx'
 import { ThemeToggle } from '../ThemeToggle.tsx'
 import { useAuth } from '../../context/authContext.ts'
@@ -37,6 +37,7 @@ export function PublicLayout() {
   const { user, logout, isAdmin, isStudent } = useAuth()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const { pathname } = useLocation()
 
   const dashboardPath = isAdmin ? '/admin/dashboard' : '/student/dashboard'
 
@@ -186,9 +187,13 @@ export function PublicLayout() {
       </header>
 
       <main id="main" className="flex-1">
-        <RouteErrorBoundary>
-          <Outlet />
-        </RouteErrorBoundary>
+        {/* Keyed on the path so each page arrives, while the header and footer
+            stay still. */}
+        <div key={pathname} className="animate-page">
+          <RouteErrorBoundary>
+            <Outlet />
+          </RouteErrorBoundary>
+        </div>
       </main>
 
       <footer className="border-t border-slate-200 bg-white dark:border-ink-800 dark:bg-ink-950">

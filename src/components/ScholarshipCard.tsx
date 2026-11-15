@@ -27,7 +27,7 @@ export function ScholarshipCard({ scholarship, onToggleSave, saved = false, comp
   const headlineBenefit = scholarship.benefits[0]
 
   return (
-    <article className="group relative flex h-full flex-col rounded-lg border border-slate-200 bg-white transition-colors hover:border-slate-300 dark:border-ink-800 dark:bg-ink-900 dark:hover:border-ink-700">
+    <article className="group relative flex h-full flex-col rounded-lg border border-slate-200 bg-white transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-float dark:border-ink-800 dark:bg-ink-900 dark:hover:border-ink-700">
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 space-y-1.5">
