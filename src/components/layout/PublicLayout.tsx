@@ -120,11 +120,13 @@ export function PublicLayout() {
                 <LinkButton to="/login" variant="ghost" size="sm" className="whitespace-nowrap">
                   Sign In
                 </LinkButton>
-                {/* Hidden on phones: the filled button competed with each page's
-                    own primary action, and it wrapped onto two lines at 390 px.
-                    It moves into the menu below. The wrapper does the hiding so
-                    the button's own display utility cannot win. */}
-                <span className="hidden sm:inline-flex">
+                {/* Hidden on phones and tablets: at 768 the navigation and this
+                    button together overflow the header by a few pixels. The
+                    filled button competed with each page's own primary action
+                    anyway, and the sign-in page offers the same route. The
+                    wrapper does the hiding because the button's own display
+                    utility cannot win. */}
+                <span className="hidden lg:inline-flex">
                   <LinkButton to="/register" size="sm" className="whitespace-nowrap">
                     Create Account
                   </LinkButton>

@@ -34,6 +34,7 @@ const PUBLIC_ROUTES = [
   '/',
   '/scholarships',
   '/announcements',
+  '/support',
   '/about',
   '/faqs',
   '/login',
@@ -50,6 +51,7 @@ const STUDENT_ROUTES = [
   '/student/semester-registration',
   '/student/grants',
   '/student/notifications',
+  '/support',
 ]
 
 const ADMIN_ROUTES = [
@@ -62,6 +64,7 @@ const ADMIN_ROUTES = [
   '/admin/documents',
   '/admin/activity',
   '/admin/announcements',
+  '/admin/support',
   '/admin/reports',
   '/admin/settings',
 ]
