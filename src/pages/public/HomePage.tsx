@@ -191,14 +191,11 @@ export function HomePage() {
           <p className="text-xs font-medium tracking-[0.18em] text-brand-700 uppercase dark:text-brand-300">
             How It Works
           </p>
-          <h2 className="mt-3 text-lg font-semibold tracking-tight text-slate-900 sm:text-xl dark:text-slate-100">
-            Mula sa Paghahanap Hanggang sa Iyong Grant
-          </h2>
 
           {/* Numbered columns with a rule across the top. No rail, no circles:
               the numbers carry the sequence and the rules keep the three on one
               line, which is all the diagram needs to say. */}
-          <ol ref={journeyRef} className="mt-10 grid gap-8 sm:grid-cols-3 sm:gap-10">
+          <ol ref={journeyRef} className="mt-8 grid gap-8 sm:grid-cols-3 sm:gap-10">
             {STEPS.map((step, index) => (
               <li
                 key={step.title}
