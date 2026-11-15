@@ -45,7 +45,7 @@ const STAGES: Stage[] = [
     label: 'Grant Record Confirmed',
     tone: 'gold',
     decisive: true,
-    body: 'An administrator records the amount and term. Only at this point are funds released, and only now does the grant appear under My grants.',
+    body: 'The provider releases the grant. The office records the amount and term here, and the grant then appears under My grants. This platform keeps the record; it does not pay out.',
   },
 ]
 
@@ -62,7 +62,7 @@ export function LifecycleDiagram() {
           />
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{stage.label}</h3>
-            <Badge tone={stage.tone}>{stage.decisive ? 'Releases funds' : 'Review stage'}</Badge>
+            <Badge tone={stage.tone}>{stage.decisive ? 'Recorded grant' : 'Review stage'}</Badge>
           </div>
           <p className="mt-1 max-w-[62ch] text-sm text-slate-600 dark:text-slate-300">{stage.body}</p>
         </li>

@@ -107,8 +107,9 @@ export function AboutPage() {
           <Section title="What Happens to an Application">
             <p className="mb-7 max-w-[62ch] text-sm text-slate-900 dark:text-slate-100">
               Every application follows the same stages. The last one is the step people usually
-              assume has already happened: an approval is a decision, and a grant record has to be
-              confirmed separately before funds are released.
+              assume has already happened: an approval is a decision on the application, not a
+              payment. The grant itself comes from the provider, and the office records it here once
+              it is confirmed.
             </p>
             <LifecycleDiagram />
 

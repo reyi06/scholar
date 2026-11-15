@@ -88,17 +88,17 @@ const GROUPS: FaqGroup[] = [
       {
         question: 'My application was approved. When do I receive the grant?',
         answer:
-          'Approval records the review decision. It does not release funds. An administrator has to confirm a grant record, and only then does it appear under My grants.',
+          'Approval is a decision on the review. The grant itself is released by the provider, not by this platform. Once the office confirms a grant record, it appears under My grants.',
       },
       {
         question: 'Why is My grants empty when I have an approved application?',
         answer:
-          'Because no grant record has been confirmed for it yet. Approved and released are different states, so an approval on its own will not show there.',
+          'Because no grant record has been confirmed for it yet. Approved and confirmed are different states, so an approval on its own will not show there.',
       },
       {
         question: 'What does the amount on a grant record mean?',
         answer:
-          'The amount released for that academic year and semester, as recorded by the office. It is what was released to you, not something you pay.',
+          'The amount the provider released for that academic year and semester, as recorded by the office. It documents the grant; it is not something you pay.',
       },
     ],
   },
