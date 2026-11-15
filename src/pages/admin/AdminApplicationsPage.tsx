@@ -124,11 +124,13 @@ export function AdminApplicationsPage() {
     {
       key: 'referenceNo',
       header: 'Reference no.',
+      className: 'whitespace-nowrap',
       accessor: (row) => <span className="font-medium text-slate-900 dark:text-slate-100">{row.referenceNo}</span>,
     },
     {
       key: 'student',
       header: 'Student',
+      className: 'whitespace-nowrap',
       accessor: (row) => studentNames.get(row.studentId) ?? 'Unknown student',
     },
     {
@@ -144,17 +146,20 @@ export function AdminApplicationsPage() {
     {
       key: 'submittedAt',
       header: 'Submitted',
+      className: 'whitespace-nowrap',
       accessor: (row) => formatDate(row.submittedAt),
     },
     {
       key: 'updatedAt',
       header: 'Updated',
+      className: 'whitespace-nowrap',
       accessor: (row) => formatDate(row.updatedAt),
     },
     {
       key: 'actions',
       header: 'Actions',
       align: 'right',
+      className: 'whitespace-nowrap',
       render: (row) => (
         <Button variant="outline" size="sm" onClick={() => setReviewId(row.id)}>
           Review
@@ -201,7 +206,7 @@ export function AdminApplicationsPage() {
       />
 
       <Alert tone="info">
-        Only applications submitted through this system appear here — applications handled on a
+        Only applications submitted through this system appear here. Applications handled on a
         provider's own website are not tracked.
       </Alert>
 

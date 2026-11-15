@@ -153,7 +153,7 @@ export function AdminDashboardPage() {
   const pending = work.filter((item) => item.count > 0)
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       <PageHeader
         title="Admin Dashboard"
         description={description}
@@ -166,20 +166,23 @@ export function AdminDashboardPage() {
         description="Items waiting on an administrator decision."
       >
         {pending.length === 0 ? (
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-900 dark:text-slate-100">
             Nothing is waiting on a decision right now.
           </p>
         ) : (
-          <ul className="divide-y divide-slate-200 dark:divide-ink-800">
+          <ul className="grid gap-3 sm:grid-cols-3">
             {pending.map((item) => (
               <li
                 key={item.to + item.sentence}
-                className="flex flex-wrap items-center justify-between gap-3 py-4 first:pt-0"
+                className="rounded-lg border border-slate-200 bg-white p-4 dark:border-ink-800 dark:bg-ink-900"
               >
-                <p className="text-sm text-slate-700 dark:text-slate-200">{item.sentence}</p>
+                <p className="font-display text-2xl font-semibold text-brand-800 tabular-nums dark:text-brand-200">
+                  {formatNumber(item.count)}
+                </p>
+                <p className="mt-1 text-sm text-slate-900 dark:text-slate-100">{item.sentence}</p>
                 <Link
                   to={item.to}
-                  className="text-sm font-medium text-brand-800 transition-colors hover:text-brand-900 dark:text-brand-300"
+                  className="mt-3 inline-block text-sm font-medium text-brand-800 transition-colors hover:text-brand-900 dark:text-brand-300"
                 >
                   {item.action}
                 </Link>
@@ -208,7 +211,7 @@ export function AdminDashboardPage() {
         <StatCard
           label="Applications"
           value={formatNumber(overview.totalApplications)}
-          hint={`${formatNumber(overview.pendingApplications)} awaiting a decision`}
+          hint={`${formatNumber(overview.pendingApplications)} awaiting a decision or more information`}
           to="/admin/applications"
         />
         <StatCard
@@ -219,44 +222,78 @@ export function AdminDashboardPage() {
         />
       </section>
 
-      <Section
-        title="Recent Activity"
-        description="The five most recently submitted applications."
-        actions={
-          <Link
-            to="/admin/applications"
-            className="text-sm font-medium text-brand-800 transition-colors hover:text-brand-900 dark:text-brand-300"
-          >
-            View all
-          </Link>
-        }
-      >
-        {recentApplications.items.length === 0 ? (
-          <EmptyState
-            title="No Applications Yet"
-            description="Applications submitted by students will appear here."
-          />
-        ) : (
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-10">
+        <Section
+          title="Recent Applications"
+          description="The five most recently submitted applications."
+          actions={
+            <Link
+              to="/admin/applications"
+              className="text-sm font-medium text-brand-800 transition-colors hover:text-brand-900 dark:text-brand-300"
+            >
+              View all
+            </Link>
+          }
+        >
+          {recentApplications.items.length === 0 ? (
+            <EmptyState
+              title="No Applications Yet"
+              description="Applications submitted by students will appear here."
+            />
+          ) : (
+            <ul className="divide-y divide-slate-200 dark:divide-ink-800">
+              {recentApplications.items.map((application) => (
+                <li
+                  key={application.id}
+                  className="flex flex-wrap items-center justify-between gap-3 py-3.5 first:pt-0"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                      {application.referenceNo}
+                    </p>
+                    <p className="mt-0.5 text-xs text-slate-900 dark:text-slate-100">
+                      Submitted {formatRelative(application.submittedAt)}
+                    </p>
+                  </div>
+                  <StatusBadge kind="application" status={application.status} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </Section>
+
+        {/* The four things an administrator reaches for most often, so the
+            sidebar is not the only route into them. */}
+        <Section title="Quick Actions" description="Common tasks, one click away.">
           <ul className="divide-y divide-slate-200 dark:divide-ink-800">
-            {recentApplications.items.map((application) => (
-              <li
-                key={application.id}
-                className="flex flex-wrap items-center justify-between gap-3 py-3.5 first:pt-0"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                    {application.referenceNo}
-                  </p>
-                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                    Submitted {formatRelative(application.submittedAt)}
-                  </p>
-                </div>
-                <StatusBadge kind="application" status={application.status} />
+            {[
+              { to: '/admin/applications', label: 'Review Applications', hint: 'Decide on submitted applications' },
+              { to: '/admin/registrations', label: 'Verify Registrations', hint: 'Confirm semester enrolment' },
+              { to: '/admin/grants', label: 'Confirm Grants', hint: 'Record an approved grant' },
+              { to: '/admin/support', label: 'Answer Support', hint: 'Reply to student tickets' },
+            ].map((link) => (
+              <li key={link.to}>
+                <Link
+                  to={link.to}
+                  className="flex items-baseline justify-between gap-4 py-3 first:pt-0 transition-colors hover:text-brand-800 dark:hover:text-brand-300"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium text-slate-900 dark:text-slate-100">
+                      {link.label}
+                    </span>
+                    <span className="mt-0.5 block text-xs text-slate-900 dark:text-slate-100">
+                      {link.hint}
+                    </span>
+                  </span>
+                  <span aria-hidden="true" className="text-slate-400">
+                    →
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>
-        )}
-      </Section>
+        </Section>
+      </div>
     </div>
   )
 }

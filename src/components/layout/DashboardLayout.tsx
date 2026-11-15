@@ -65,23 +65,38 @@ export function DashboardLayout({ navItems, areaLabel, notificationsPath }: Dash
       </p>
 
       <nav aria-label={`${areaLabel} navigation`} className="flex flex-1 flex-col gap-0.5">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-md px-2.5 py-1.5 text-sm transition-colors ${
-                isActive
-                  ? 'bg-brand-50 font-medium text-brand-800 dark:bg-brand-950/60 dark:text-brand-200'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-ink-800 dark:hover:text-white'
-              }`
-            }
-          >
-            <Icon name={item.icon} className="size-4 shrink-0 opacity-70" />
-            <span className="truncate">{item.label}</span>
-          </NavLink>
-        ))}
+        {navItems.map((item, index) => {
+          const startsGroup = index === 0 || navItems[index - 1].group !== item.group
+
+          return (
+            <div key={item.to}>
+              {startsGroup ? (
+                <p
+                  className={`px-2.5 text-[0.6875rem] font-medium tracking-[0.12em] text-slate-500 uppercase dark:text-slate-400 ${
+                    index === 0 ? 'pb-1.5' : 'pt-4 pb-1.5'
+                  }`}
+                >
+                  {item.group}
+                </p>
+              ) : null}
+
+              <NavLink
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 rounded-md px-2.5 py-1.5 text-sm transition-colors ${
+                    isActive
+                      ? 'bg-brand-50 font-medium text-brand-800 dark:bg-brand-950/60 dark:text-brand-200'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-ink-800 dark:hover:text-white'
+                  }`
+                }
+              >
+                <Icon name={item.icon} className="size-4 shrink-0 opacity-70" />
+                <span className="truncate">{item.label}</span>
+              </NavLink>
+            </div>
+          )
+        })}
       </nav>
 
       {/* Two links that appear in the same place on every authenticated page:

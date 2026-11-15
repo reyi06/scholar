@@ -39,7 +39,7 @@ export function TH({
   return (
     <th
       scope="col"
-      className={`px-4 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400 ${className}`}
+      className={`px-3 py-2.5 text-xs font-medium text-slate-500 dark:text-slate-400 ${className}`}
       {...rest}
     >
       {children}
@@ -49,7 +49,7 @@ export function TH({
 
 export function TD({ children, className = '' }: { children?: ReactNode; className?: string }) {
   return (
-    <td className={`px-4 py-3 align-middle text-slate-700 dark:text-slate-200 ${className}`}>{children}</td>
+    <td className={`px-3 py-3 align-middle text-slate-700 dark:text-slate-200 ${className}`}>{children}</td>
   )
 }
 
@@ -106,13 +106,13 @@ export function DataTable<T>({
     return (
       <div className="w-full overflow-x-auto" role="status" aria-label="Loading table">
         <div className="min-w-[44rem]">
-          <div className="flex gap-6 border-b border-slate-200 px-4 py-2.5 dark:border-ink-800">
+          <div className="flex gap-6 border-b border-slate-200 px-3 py-2.5 dark:border-ink-800">
             {columns.map((column) => (
               <Skeleton key={column.key} className="h-3 flex-1" />
             ))}
           </div>
           {Array.from({ length: 5 }).map((_, row) => (
-            <div key={row} className="flex gap-6 border-b border-slate-100 px-4 py-3.5 dark:border-ink-800">
+            <div key={row} className="flex gap-6 border-b border-slate-100 px-3 py-3.5 dark:border-ink-800">
               {columns.map((column) => (
                 <Skeleton key={column.key} className="h-4 flex-1" />
               ))}

@@ -371,11 +371,13 @@ export function AdminGrantsPage() {
     {
       key: 'referenceNo',
       header: 'Reference no.',
+      className: 'whitespace-nowrap',
       accessor: (row) => <span className="font-medium text-slate-900 dark:text-slate-100">{row.referenceNo}</span>,
     },
     {
       key: 'student',
       header: 'Student',
+      className: 'whitespace-nowrap',
       accessor: (row) => studentNames.get(row.studentId) ?? 'Unknown student',
     },
     {
@@ -383,25 +385,36 @@ export function AdminGrantsPage() {
       header: 'Scholarship',
       accessor: (row) => scholarshipNames.get(row.scholarshipId) ?? 'Removed listing',
     },
-    { key: 'academicYear', header: 'Academic year', accessor: (row) => row.academicYear },
-    { key: 'semester', header: 'Semester', accessor: (row) => row.semester },
+    { key: 'semester', header: 'Term', className: 'whitespace-nowrap', accessor: (row) => `${row.academicYear} · ${row.semester}` },
     {
       key: 'amount',
       header: 'Amount',
       align: 'right',
+      className: 'whitespace-nowrap',
       accessor: (row) => <span className="tabular-nums">{formatCurrency(row.amount)}</span>,
     },
     {
       key: 'status',
       header: 'Status',
+      className: 'whitespace-nowrap',
       accessor: (row) => <StatusBadge kind="grant" status={row.status} />,
     },
-    { key: 'releasedAt', header: 'Released', accessor: (row) => formatDate(row.releasedAt) },
-    { key: 'confirmedBy', header: 'Confirmed by', accessor: (row) => row.confirmedBy },
+    {
+      key: 'releasedAt',
+      header: 'Released',
+      className: 'whitespace-nowrap',
+      accessor: (row) => (
+        <span className="block">
+          <span className="block">{formatDate(row.releasedAt)}</span>
+          <span className="mt-0.5 block text-xs">by {row.confirmedBy}</span>
+        </span>
+      ),
+    },
     {
       key: 'actions',
       header: 'Actions',
       align: 'right',
+      className: 'whitespace-nowrap',
       render: (row) => (
         <div className="flex items-center justify-end gap-1">
           <Button variant="outline" size="sm" onClick={() => openEdit(row)}>
