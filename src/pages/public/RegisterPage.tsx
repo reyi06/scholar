@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { Alert, Button, Checkbox, Input } from '../../components/ui'
+import { Alert, Button, Checkbox, Input, PasswordInput } from '../../components/ui'
 import { StudentDetailsFields } from '../../components/StudentDetailsFields.tsx'
 import {
   emailFormat,
@@ -204,10 +204,9 @@ export function RegisterPage() {
               onChange={(event) => update('email', event.target.value)}
             />
 
-            <Input
+            <PasswordInput
               id="register-password"
               label="Password"
-              type="password"
               required
               autoComplete="new-password"
               hint="At least 8 characters."
@@ -216,10 +215,9 @@ export function RegisterPage() {
               onChange={(event) => update('password', event.target.value)}
             />
 
-            <Input
+            <PasswordInput
               id="register-confirm-password"
               label="Confirm Password"
-              type="password"
               required
               autoComplete="new-password"
               value={values.confirmPassword}

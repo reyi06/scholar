@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { Alert, Button, Field, Input } from '../../components/ui'
+import { Alert, Button, Field, Input, PasswordInput } from '../../components/ui'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
 import { useAsyncAction } from '../../hooks/useAsync.ts'
 import { authApi } from '../../lib/api.ts'
@@ -123,20 +123,15 @@ export function ForgotPasswordPage() {
               />
             </Field>
 
-            <Field
-              htmlFor="reset-password"
+            <PasswordInput
+              id="reset-password"
               label="New Password"
               hint="At least 8 characters."
-            >
-              <Input
-                id="reset-password"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-              />
-            </Field>
+              autoComplete="new-password"
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
           </>
         )}
 

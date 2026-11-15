@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
-import { Alert, Button, Input } from '../../components/ui'
+import { Alert, Button, Input, PasswordInput } from '../../components/ui'
 import { GoogleSignInButton } from '../../components/GoogleSignInButton.tsx'
 import { demoApi } from '../../lib/api.ts'
 import { emailFormat, hasErrors, required, validateForm, type FormErrors } from '../../lib/validation.ts'
@@ -69,10 +69,9 @@ export function LoginPage() {
           onChange={(event) => setValues((current) => ({ ...current, email: event.target.value }))}
         />
 
-        <Input
+        <PasswordInput
           id="login-password"
           label="Password"
-          type="password"
           autoComplete="current-password"
           required
           value={values.password}
