@@ -78,3 +78,11 @@ export function isUniqueViolation(error: unknown, field?: string): boolean {
   const names = Array.isArray(target) ? target.map(String) : typeof target === 'string' ? [target] : []
   return names.some((name) => name.includes(field))
 }
+
+/**
+ * Who the ticket waits on after a new message. A staff reply puts it in the
+ * student's hands as answered; a student follow-up puts it back in the queue.
+ */
+export function statusAfterReply(authorRole: 'student' | 'admin'): 'open' | 'answered' {
+  return authorRole === 'admin' ? 'answered' : 'open'
+}

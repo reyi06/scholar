@@ -35,6 +35,8 @@ import type {
   StudentDocument,
   StudentProfile,
   StudentRecord,
+  SupportStatus,
+  SupportTicket,
   User,
 } from '../types/index.ts'
 import type {
@@ -45,6 +47,7 @@ import type {
   RegistrationInput,
   ReportOverview,
   ScholarshipInput,
+  SupportTicketInput,
 } from './api.ts'
 
 /**
@@ -599,6 +602,38 @@ const announcementsApi = {
 }
 
 /* ------------------------------------------------------------------ */
+/* Support                                                             */
+/* ------------------------------------------------------------------ */
+
+const supportApi = {
+  /** Administrators see every ticket; a student sees their own. */
+  async list(status?: SupportStatus | 'all'): Promise<SupportTicket[]> {
+    return request<SupportTicket[]>(
+      'GET',
+      `/support/tickets${queryString({
+        status: status && status !== 'all' ? status : undefined,
+      })}`,
+    )
+  },
+
+  async create(input: SupportTicketInput): Promise<SupportTicket> {
+    return request<SupportTicket>('POST', '/support/tickets', input)
+  },
+
+  async reply(id: string, body: string): Promise<SupportTicket> {
+    return request<SupportTicket>('POST', `/support/tickets/${encodeURIComponent(id)}/messages`, {
+      body,
+    })
+  },
+
+  async setStatus(id: string, status: SupportStatus): Promise<SupportTicket> {
+    return request<SupportTicket>('PATCH', `/support/tickets/${encodeURIComponent(id)}`, {
+      status,
+    })
+  },
+}
+
+/* ------------------------------------------------------------------ */
 /* Notifications                                                       */
 /* ------------------------------------------------------------------ */
 
@@ -829,6 +864,7 @@ export const httpApi = {
   grantsApi,
   documentsApi,
   announcementsApi,
+  supportApi,
   notificationsApi,
   studentsApi,
   settingsApi,

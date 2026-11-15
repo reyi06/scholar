@@ -37,6 +37,7 @@ export const ADMIN_NAV: NavItem[] = [
   { to: '/admin/documents', label: 'Documents', icon: 'file' },
   { to: '/admin/activity', label: 'Activity', icon: 'clock' },
   { to: '/admin/announcements', label: 'Announcements', icon: 'megaphone' },
+  { to: '/admin/support', label: 'Support', icon: 'inbox' },
   { to: '/admin/reports', label: 'Reports', icon: 'chart' },
   { to: '/admin/settings', label: 'Settings', icon: 'settings' },
 ]

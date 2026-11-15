@@ -9,6 +9,8 @@ import type {
   RegistrationStatus,
   ScholarshipStatus,
   ScholarshipType,
+  SupportCategory,
+  SupportStatus,
 } from '../types/index.ts'
 
 /** Label + description for an option in a filter or form control. */
@@ -111,6 +113,23 @@ export const ANNOUNCEMENT_CATEGORIES: Option<AnnouncementCategory>[] = [
   { value: 'result', label: 'Result' },
   { value: 'general', label: 'General' },
 ]
+
+export const SUPPORT_STATUSES: Option<SupportStatus>[] = [
+  { value: 'open', label: 'Open' },
+  { value: 'answered', label: 'Answered' },
+  { value: 'closed', label: 'Closed' },
+]
+
+export const SUPPORT_CATEGORIES: Option<SupportCategory>[] = [
+  { value: 'account', label: 'My Account' },
+  { value: 'application', label: 'An Application' },
+  { value: 'documents', label: 'Documents' },
+  { value: 'grants', label: 'Grants' },
+  { value: 'other', label: 'Something Else' },
+]
+
+export const SUPPORT_CATEGORY_LABELS = labelMap(SUPPORT_CATEGORIES)
+export const SUPPORT_STATUS_LABELS = labelMap(SUPPORT_STATUSES)
 
 /* ------------------------------------------------------------------ */
 /* Documents                                                           */

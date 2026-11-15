@@ -12,6 +12,8 @@ import type {
   SemesterRegistration,
   StudentDocument,
   StudentProfile,
+  SupportMessage,
+  SupportTicket,
   User,
 } from '../src/types/index.ts'
 
@@ -448,5 +450,49 @@ export function toSettings(row: SettingsRow): PlatformSettings {
     maintenanceMessage: row.maintenanceMessage,
     contactEmail: row.contactEmail,
     updatedAt: row.updatedAt.toISOString(),
+  }
+}
+
+interface SupportMessageRow {
+  id: string
+  ticketId: string
+  authorRole: string
+  authorName: string
+  body: string
+  createdAt: Date
+}
+
+interface SupportTicketRow {
+  id: string
+  reference: string
+  userId: string
+  category: string
+  subject: string
+  status: string
+  createdAt: Date
+  updatedAt: Date
+  messages: SupportMessageRow[]
+  user: { firstName: string; lastName: string }
+}
+
+export function toSupportTicket(row: SupportTicketRow): SupportTicket {
+  return {
+    id: row.id,
+    reference: row.reference,
+    userId: row.userId,
+    studentName: `${row.user.firstName} ${row.user.lastName}`.trim(),
+    category: row.category as SupportTicket['category'],
+    subject: row.subject,
+    status: row.status as SupportTicket['status'],
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    messages: row.messages.map((message) => ({
+      id: message.id,
+      ticketId: message.ticketId,
+      authorRole: message.authorRole as SupportMessage['authorRole'],
+      authorName: message.authorName,
+      body: message.body,
+      createdAt: message.createdAt.toISOString(),
+    })),
   }
 }

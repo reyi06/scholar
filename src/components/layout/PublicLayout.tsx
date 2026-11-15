@@ -12,6 +12,7 @@ const CURRENT_YEAR = new Date().getFullYear()
 const NAV_LINKS = [
   { to: '/scholarships', label: 'Scholarships', end: false },
   { to: '/announcements', label: 'Announcements', end: false },
+  { to: '/support', label: 'Support', end: false },
   { to: '/faqs', label: 'FAQs', end: false },
   { to: '/about', label: 'About', end: false },
 ]
@@ -19,6 +20,7 @@ const NAV_LINKS = [
 const FOOTER_LINKS = [
   { to: '/scholarships', label: 'Scholarships' },
   { to: '/announcements', label: 'Announcements' },
+  { to: '/support', label: 'Support' },
   { to: '/faqs', label: 'FAQs' },
   { to: '/about', label: 'About' },
   { to: '/privacy', label: 'Privacy' },

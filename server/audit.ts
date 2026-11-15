@@ -33,6 +33,8 @@ export type AuditAction =
   | 'settings.updated'
   | 'announcement.published'
   | 'announcement.deleted'
+  | 'support.ticket_opened'
+  | 'support.ticket_status'
   | 'data.exported'
   | 'data.erasure_requested'
 

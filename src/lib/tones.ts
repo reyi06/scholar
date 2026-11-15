@@ -1,5 +1,5 @@
 import type { BadgeTone } from '../components/ui/Badge.tsx'
-import type { AnnouncementCategory, DocumentStatus } from '../types/index.ts'
+import type { AnnouncementCategory, DocumentStatus, SupportStatus } from '../types/index.ts'
 
 /**
  * Status → colour, in one place.
@@ -21,4 +21,10 @@ export const DOCUMENT_STATUS_TONES: Record<DocumentStatus, BadgeTone> = {
   submitted: 'info',
   verified: 'success',
   rejected: 'danger',
+}
+
+export const SUPPORT_STATUS_TONES: Record<SupportStatus, BadgeTone> = {
+  open: 'warning',
+  answered: 'info',
+  closed: 'neutral',
 }

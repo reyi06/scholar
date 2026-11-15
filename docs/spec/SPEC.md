@@ -64,13 +64,13 @@ and PNG encoder, is in this repository.
 
 ## 3. Routes
 
-**33 routes plus a not-found page.**
+**36 routes plus a not-found page.**
 
 | Area | Count | Routes |
 |---|---:|---|
-| Public | 11 | `/`, `/scholarships`, `/scholarships/:id`, `/about`, `/faqs`, `/announcements`, `/privacy`, `/welcome`, `/login`, `/register`, `/forgot-password` |
+| Public | 12 | `/`, `/scholarships`, `/scholarships/:id`, `/about`, `/faqs`, `/announcements`, `/support`, `/privacy`, `/welcome`, `/login`, `/register`, `/forgot-password` |
 | Student | 9 | dashboard, profile, saved, applications, application detail, semester registration, grants, documents, notifications |
-| Administrator | 13 | dashboard, scholarships, new/edit scholarship, students, applications, registrations, grants, documents, activity, announcements, reports, settings |
+| Administrator | 14 | dashboard, scholarships, new/edit scholarship, students, applications, registrations, grants, documents, activity, announcements, support, reports, settings |
 | Fallback | 1 | `*` → not found |
 
 Every page is lazy-loaded under one `Suspense` boundary. Student and admin
@@ -80,7 +80,7 @@ routes are guarded by role and by an authenticated session.
 
 ## 4. Data
 
-**15 models.** See `prisma/schema.prisma` and `docs/architecture/ARCHITECTURE.md`.
+**17 models.** See `prisma/schema.prisma` and `docs/architecture/ARCHITECTURE.md`.
 
 | Group | Models |
 |---|---|
@@ -103,7 +103,7 @@ server boundary.
 
 ## 5. API
 
-**69 endpoints** in 15 route modules. A grouped map, conventions, status codes
+**73 endpoints** in 16 route modules. A grouped map, conventions, status codes
 and upload rules are in `docs/architecture/API.md`.
 
 The API is same-origin, JSON, session-cookie based, and uses explicit

@@ -1,5 +1,6 @@
 import type {
   Announcement,
+  SupportTicket,
   Application,
   Grant,
   Notification,
@@ -24,7 +25,7 @@ import {
 } from './sampleData.ts'
 
 /** Bump when the shape below changes so stale localStorage is discarded. */
-export const DB_VERSION = 5
+export const DB_VERSION = 6
 
 export interface DemoCredential {
   userId: string
@@ -58,6 +59,7 @@ export interface DemoDatabase {
   registrations: SemesterRegistration[]
   grants: Grant[]
   announcements: Announcement[]
+  supportTickets: SupportTicket[]
   notifications: Notification[]
   saved: SavedEntry[]
   settings: PlatformSettings
@@ -99,6 +101,8 @@ export function createSeedDatabase(): DemoDatabase {
     registrations: structuredClone(sampleRegistrations),
     grants: structuredClone(sampleGrants),
     announcements: structuredClone(sampleAnnouncements),
+    // No seeded tickets: a ticket is a conversation with a real student.
+    supportTickets: [],
     notifications: structuredClone(sampleNotifications),
     saved: structuredClone(sampleSaved),
     settings: seedSettings(),
@@ -108,3 +112,4 @@ export function createSeedDatabase(): DemoDatabase {
     documentData: {},
   }
 }
+

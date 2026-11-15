@@ -32,6 +32,7 @@ import './routes/reports.ts'
 import './routes/scholarships.ts'
 import './routes/settings.ts'
 import './routes/students.ts'
+import './routes/support.ts'
 
 export const __routes = routes
 

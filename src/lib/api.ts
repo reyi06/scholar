@@ -40,6 +40,9 @@ import type {
   StudentDocument,
   StudentProfile,
   StudentRecord,
+  SupportCategory,
+  SupportStatus,
+  SupportTicket,
   User,
 } from '../types/index.ts'
 
@@ -1634,6 +1637,111 @@ const localDemoApi = {
  * site ambiguous. Divergence between them is caught by the end-to-end check
  * against a running server rather than by the compiler.
  */
+export interface SupportTicketInput {
+  category: SupportCategory
+  subject: string
+  body: string
+}
+
+const localSupportApi = {
+  async list(status?: SupportStatus | 'all'): Promise<SupportTicket[]> {
+    await delay()
+    const viewer = localAuthApi.getCurrentUserSync()
+    if (!viewer) return []
+
+    const visible =
+      viewer.role === 'admin'
+        ? [...db.supportTickets]
+        : db.supportTickets.filter((ticket) => ticket.userId === viewer.id)
+
+    const filtered =
+      status && status !== 'all' ? visible.filter((ticket) => ticket.status === status) : visible
+
+    return clone(filtered.sort((left, right) => right.updatedAt.localeCompare(left.updatedAt)))
+  },
+
+  async create(input: SupportTicketInput): Promise<SupportTicket> {
+    await delay()
+    const viewer = localAuthApi.getCurrentUserSync()
+    if (!viewer) throw new Error('Sign in to open a ticket.')
+
+    const now = new Date().toISOString()
+    const name = `${viewer.firstName} ${viewer.lastName}`.trim()
+    const id = createId('tkt')
+
+    const ticket: SupportTicket = {
+      id,
+      reference: createReferenceNumber('SUP'),
+      userId: viewer.id,
+      studentName: name,
+      category: input.category,
+      subject: input.subject.trim(),
+      status: 'open',
+      createdAt: now,
+      updatedAt: now,
+      messages: [
+        {
+          id: createId('msg'),
+          ticketId: id,
+          authorRole: 'student',
+          authorName: name,
+          body: input.body.trim(),
+          createdAt: now,
+        },
+      ],
+    }
+
+    db.supportTickets.unshift(ticket)
+    persist()
+    return clone(ticket)
+  },
+
+  async reply(id: string, body: string): Promise<SupportTicket> {
+    await delay()
+    const viewer = localAuthApi.getCurrentUserSync()
+    if (!viewer) throw new Error('Sign in to reply.')
+    const ticket = db.supportTickets.find((candidate) => candidate.id === id)
+    if (!ticket) throw new Error('That ticket no longer exists.')
+
+    const isStaff = viewer.role === 'admin'
+    if (!isStaff && ticket.userId !== viewer.id) {
+      throw new Error('You can only reply to your own tickets.')
+    }
+    if (ticket.status === 'closed') {
+      throw new Error('This ticket is closed. Open a new one if you need more help.')
+    }
+
+    const now = new Date().toISOString()
+    ticket.messages.push({
+      id: createId('msg'),
+      ticketId: ticket.id,
+      authorRole: isStaff ? 'staff' : 'student',
+      authorName: `${viewer.firstName} ${viewer.lastName}`.trim(),
+      body: body.trim(),
+      createdAt: now,
+    })
+    ticket.status = isStaff ? 'answered' : 'open'
+    ticket.updatedAt = now
+    persist()
+    return clone(ticket)
+  },
+
+  async setStatus(id: string, status: SupportStatus): Promise<SupportTicket> {
+    await delay()
+    const viewer = localAuthApi.getCurrentUserSync()
+    if (viewer?.role !== 'admin') {
+      throw new Error('Only an administrator can change a ticket status.')
+    }
+    const ticket = db.supportTickets.find((candidate) => candidate.id === id)
+    if (!ticket) throw new Error('That ticket no longer exists.')
+
+    ticket.status = status
+    ticket.updatedAt = new Date().toISOString()
+    persist()
+    return clone(ticket)
+  },
+}
+
 export const USING_REMOTE_API = IS_REMOTE
 
 export const authApi = (IS_REMOTE ? httpApi.authApi : localAuthApi) as typeof localAuthApi
@@ -1654,6 +1762,7 @@ export const documentsApi = (IS_REMOTE
 export const announcementsApi = (IS_REMOTE
   ? httpApi.announcementsApi
   : localAnnouncementsApi) as typeof localAnnouncementsApi
+export const supportApi = (IS_REMOTE ? httpApi.supportApi : localSupportApi) as typeof localSupportApi
 export const notificationsApi = (IS_REMOTE
   ? httpApi.notificationsApi
   : localNotificationsApi) as typeof localNotificationsApi

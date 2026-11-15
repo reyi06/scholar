@@ -580,3 +580,36 @@ export interface OtpRequestResult extends OtpChallenge {
    */
   delivery: 'log' | 'email' | 'none'
 }
+
+/* ------------------------------------------------------------------ */
+/* Support                                                             */
+/* ------------------------------------------------------------------ */
+
+export type SupportCategory = 'account' | 'application' | 'documents' | 'grants' | 'other'
+export type SupportStatus = 'open' | 'answered' | 'closed'
+
+export interface SupportMessage {
+  id: string
+  ticketId: string
+  authorRole: 'student' | 'staff'
+  authorName: string
+  body: string
+  createdAt: string
+}
+
+/**
+ * A question and the exchange that follows it. `studentName` is filled by the
+ * server so the office can see who is asking without a second request.
+ */
+export interface SupportTicket {
+  id: string
+  reference: string
+  userId: string
+  studentName: string
+  category: SupportCategory
+  subject: string
+  status: SupportStatus
+  createdAt: string
+  updatedAt: string
+  messages: SupportMessage[]
+}

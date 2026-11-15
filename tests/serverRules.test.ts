@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { nextReference } from '../server/ids.ts'
 import { googleIsAuthoritative } from '../server/googleAuth.ts'
+import { statusAfterReply } from '../server/rules.ts'
 import type { GoogleIdentity } from '../server/googleAuth.ts'
 
 /**
@@ -70,5 +71,21 @@ describe('googleIsAuthoritative', () => {
     expect(
       googleIsAuthoritative(identity({ email: 'a@b.com', emailVerified: false, hostedDomain: 'b.com' })),
     ).toBe(false)
+  })
+})
+
+/**
+ * Support tickets.
+ *
+ * Who a ticket waits on after a reply decides whether it sits in the office
+ * queue or in the student's hands, so it is worth pinning down.
+ */
+describe('statusAfterReply', () => {
+  it('puts the ticket in the student hands after a staff reply', () => {
+    expect(statusAfterReply('admin')).toBe('answered')
+  })
+
+  it('puts it back in the office queue after a student follow up', () => {
+    expect(statusAfterReply('student')).toBe('open')
   })
 })

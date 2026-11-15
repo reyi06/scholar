@@ -59,6 +59,7 @@ The counters are in memory, so they assume one API process.
 | Registrations | 5 | student / admin | `GET`, `GET :id`, `counts`, `POST`, `POST :id/status` |
 | Documents | 6 | student / admin | `GET`, `records`, `POST`, `GET :id/file`, `PATCH :id`, `DELETE :id` |
 | Announcements | 4 | public read, admin write | `GET`, `POST`, `PATCH :id`, `DELETE :id` |
+| Support | 4 | signed-in, admin for status | `GET /support/tickets`, `POST /support/tickets`, `POST :id/messages`, `PATCH :id` |
 | Notifications | 4 | signed-in | `GET`, `unread-count`, `read-all`, `POST :id/read` |
 | Students | 5 | admin | `GET`, `count`, `GET :id`, `PATCH :id`, `DELETE :id` |
 | Profile | 2 | student | `GET`, `PATCH` |
@@ -152,6 +153,23 @@ rejected one may be corrected. Administrators decide with
 Files are stored as `<document-id>.<ext>`; the uploaded name is never used in a
 path. `GET /documents/:id/file` is owner-or-admin, returns an attachment with
 `nosniff`, and is audited for staff access.
+
+---
+
+## Support
+
+| Method | Path | Notes |
+|---|---|---|
+| `GET` | `/support/tickets` | Own tickets for a student, all tickets for an admin; `?status=` filters |
+| `POST` | `/support/tickets` | `category`, `subject`, `body`; the first message is the body |
+| `POST` | `/support/tickets/:id/messages` | Owner or admin; refuses a closed ticket with 409 |
+| `PATCH` | `/support/tickets/:id` | Admin only; `status` is `open`, `answered` or `closed` |
+
+A ticket belongs to the account that opened it, because the answer arrives in
+the app: there is no mail transport, so an anonymous ticket would collect a
+reply nobody could read. The list query is built from the session, never from a
+client-supplied id. A staff reply moves the ticket to `answered`, a student
+follow-up moves it back to `open`, so the status always says whose turn it is.
 
 ---
 

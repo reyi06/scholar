@@ -13,11 +13,11 @@ are in `docs/`.
 
 | | |
 |---|---|
-| Routes | 33 + not-found: 11 public, 9 student, 13 admin |
-| API | 69 endpoints in 15 modules |
-| Database | 15 Prisma models on PostgreSQL 17 |
+| Routes | 36 + not-found: 12 public, 9 student, 14 admin |
+| API | 73 endpoints in 16 modules |
+| Database | 17 Prisma models on PostgreSQL 17 |
 | UI | 26 hand-rolled primitives in `src/components/ui/` |
-| Tests | 81 tests in 11 files; type-check and lint clean |
+| Tests | 83 tests in 11 files; type-check and lint clean |
 | Build | 23 pages prerendered (15 published listings) |
 | CI | `.github/workflows/verify.yml`; `main` is protected |
 | Repo | public technical tree; member planning and the paper live outside it |
@@ -181,7 +181,7 @@ docs/           spec, architecture, design, deployment, security
 
 ## Verification before “done”
 
-1. `npm test` — 81 tests must pass.
+1. `npm test` — 83 tests must pass.
 2. `npx tsc -b` — clean.
 3. `npm run lint` — clean.
 4. `npm run build` — clean; 23 pages.

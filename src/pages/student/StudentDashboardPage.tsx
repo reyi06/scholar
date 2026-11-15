@@ -178,6 +178,17 @@ export function StudentDashboardPage() {
               </ul>
             )}
           </Section>
+          <Section title="Need Help?">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <p className="max-w-[62ch] text-sm text-slate-900 dark:text-slate-100">
+                Something not working, or a question about an application? Open a support ticket
+                and the office reply will appear on the support page.
+              </p>
+              <LinkButton to="/support" variant="outline">
+                Open a Support Ticket
+              </LinkButton>
+            </div>
+          </Section>
         </>
       )}
     </div>
