@@ -17,14 +17,14 @@ export function DeadlineBadge({ deadline, open = true }: DeadlineBadgeProps) {
   const days = daysUntil(deadline)
 
   if (!open || days === null || days < 0) {
-    return <span className="text-sm text-slate-500 dark:text-slate-400">{describeDeadline(deadline)}</span>
+    return <span className="text-sm text-slate-900 dark:text-slate-100">{describeDeadline(deadline)}</span>
   }
 
   const tone = isDeadlineSoon(deadline, 7)
     ? 'font-medium text-rose-700 dark:text-rose-400'
     : isDeadlineSoon(deadline, 21)
       ? 'text-amber-700 dark:text-amber-400'
-      : 'text-slate-500 dark:text-slate-400'
+      : 'text-slate-900 dark:text-slate-100'
 
   return <span className={`text-sm ${tone}`}>{describeDeadline(deadline)}</span>
 }
