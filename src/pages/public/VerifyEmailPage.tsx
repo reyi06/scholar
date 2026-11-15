@@ -50,7 +50,13 @@ export function VerifyEmailPage() {
       </p>
 
       <div className="mt-6 flex flex-wrap gap-3">
-        <LinkButton to="/faqs" variant="outline">
+        {/* Not a trap: whether an unconfirmed address blocks anything is a
+            deployment decision, so the student can always get to their own
+            dashboard and come back here from the profile page. */}
+        <LinkButton to="/student/dashboard" variant="outline">
+          Go to My Dashboard
+        </LinkButton>
+        <LinkButton to="/faqs" variant="ghost">
           Read the FAQs
         </LinkButton>
       </div>

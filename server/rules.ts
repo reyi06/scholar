@@ -86,3 +86,15 @@ export function isUniqueViolation(error: unknown, field?: string): boolean {
 export function statusAfterReply(authorRole: 'student' | 'admin'): 'open' | 'answered' {
   return authorRole === 'admin' ? 'answered' : 'open'
 }
+
+/**
+ * Whether an unconfirmed email blocks applying and saving.
+ *
+ * Off by default, because a deployment that cannot deliver mail to arbitrary
+ * addresses (a testing sender, or the console transport) would otherwise trap
+ * every new student on a screen they can never get past. Turn it on when a
+ * sending domain is verified and delivery actually reaches students.
+ */
+export function verificationRequired(): boolean {
+  return (process.env.REQUIRE_EMAIL_VERIFICATION ?? 'false').trim().toLowerCase() === 'true'
+}

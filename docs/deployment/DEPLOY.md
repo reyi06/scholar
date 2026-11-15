@@ -183,6 +183,14 @@ the server log so a demonstration can read the code off the screen.
 | `SMS_TRANSPORT` | `console` | Text. Any other value must have an adapter in `server/sms.ts` |
 | `RESEND_API_KEY` | empty | Required by `MAIL_TRANSPORT=resend`. Sending-only, restricted to the domain |
 | `MAIL_FROM` | empty | Required by `MAIL_TRANSPORT=resend`. An address on the verified domain |
+| `REQUIRE_EMAIL_VERIFICATION` | `false` | Whether an unconfirmed address blocks applying and saving |
+
+**`REQUIRE_EMAIL_VERIFICATION` is false on purpose until mail can reach anyone.**
+Resend's `onboarding@resend.dev` sender only delivers to the address that owns
+the Resend account, and the console transport delivers nowhere at all. With the
+requirement on, every student who signs up with any other address would sit on
+the confirmation screen forever, since nothing can reach them. Turn it on once a
+sending domain is verified.
 
 A name without an adapter is a loud failure, not a silent one: the request fails
 and the browser is told nothing was sent, because a student waiting for a code

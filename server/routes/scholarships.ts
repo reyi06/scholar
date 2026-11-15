@@ -11,7 +11,7 @@ import { route } from '../http/router.ts'
 import { HttpError } from '../httpError.ts'
 import { createId } from '../ids.ts'
 import { stringifyArray, stringifyObject, toScholarship } from '../mappers.ts'
-import { isIsoDate } from '../rules.ts'
+import { isIsoDate, verificationRequired } from '../rules.ts'
 
 /* ================================================================== */
 /* Scholarships                                                        */
@@ -282,7 +282,7 @@ route('POST', '/api/saved/:scholarshipId/toggle', async ({ res, params, user }) 
   const student = requireRole(user, 'student')
   const key = { studentId: student.id, scholarshipId: params.scholarshipId }
 
-  if (!student.emailVerified) {
+  if (verificationRequired() && !student.emailVerified) {
     throw new HttpError(403, 'Confirm your email address before saving a scholarship.')
   }
 

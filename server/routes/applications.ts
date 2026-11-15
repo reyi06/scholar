@@ -12,7 +12,7 @@ import { route } from '../http/router.ts'
 import { HttpError } from '../httpError.ts'
 import { createId, nextReference } from '../ids.ts'
 import { stringifyArray, stringifyObject, toApplication } from '../mappers.ts'
-import { applicationDecisionAllowed, isPastDeadline, isUniqueViolation } from '../rules.ts'
+import { applicationDecisionAllowed, isPastDeadline, isUniqueViolation, verificationRequired } from '../rules.ts'
 
 /* ================================================================== */
 /* Applications                                                        */
@@ -92,7 +92,7 @@ route('POST', '/api/applications', async ({ req, res, user }) => {
     throw new HttpError(409, 'Complete your student profile before applying.')
   }
 
-  if (!student.emailVerified) {
+  if (verificationRequired() && !student.emailVerified) {
     throw new HttpError(403, 'Confirm your email address before applying for a scholarship.')
   }
 
