@@ -73,14 +73,10 @@ export function HomePage() {
   // The API returns pinned items first, then newest.
   const advisories = (announcements ?? []).slice(0, ADVISORY_LIMIT)
 
-  // Counts for the strip under the hero. Taken from the catalogue itself, so
-  // they can never say something the directory does not contain.
+  // Counts for the provider tiles, taken from the catalogue itself so a tile can
+  // never advertise more than the directory holds.
   const { data: catalogue } = useAsync(() => scholarshipsApi.list({}, 1, 100), [])
   const listings = catalogue?.items ?? []
-  const openCount = listings.filter((listing) => listing.status === 'open').length
-  const municipalityCount = new Set(
-    listings.map((listing) => listing.municipality).filter((name) => name !== 'Province-wide'),
-  ).size
   const countByType = (value: string) => listings.filter((listing) => listing.type === value).length
 
   const handleSearch = (event: FormEvent) => {
@@ -150,22 +146,17 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Counts straight from the catalogue, so they cannot overstate it. */}
-      <section className="border-b border-slate-200 dark:border-ink-800">
-        <dl className="mx-auto grid max-w-6xl grid-cols-3 divide-x divide-slate-200 px-5 dark:divide-ink-800 sm:px-8">
-          {[
-            { label: 'Scholarship Programmes', value: catalogue?.total ?? 0 },
-            { label: 'Open for Applications', value: openCount },
-            { label: 'Municipalities Covered', value: municipalityCount },
-          ].map((stat) => (
-            <div key={stat.label} className="px-3 py-6 text-center first:pl-0 last:pr-0 sm:px-6">
-              <dt className="order-2 mt-1 text-xs text-slate-500 dark:text-slate-400">{stat.label}</dt>
-              <dd className="text-2xl font-semibold tracking-tight text-slate-900 tabular-nums sm:text-3xl dark:text-slate-100">
-                {stat.value}
-              </dd>
-            </div>
-          ))}
-        </dl>
+      {/* A statement rather than a scoreboard. The page is for students who
+          need help finishing school, not for people counting programmes. */}
+      <section className="border-b border-slate-200 bg-brand-50 dark:border-ink-800 dark:bg-ink-900">
+        <div className="mx-auto max-w-3xl px-5 py-10 text-center sm:px-8 sm:py-12">
+          <p className="text-xs font-medium tracking-[0.18em] text-brand-700 uppercase dark:text-brand-300">
+            Para sa mga Iskolar ng Bayan
+          </p>
+          <p className="font-display mt-3 text-xl leading-relaxed text-slate-900 sm:text-2xl dark:text-slate-100">
+            Whether a student finishes school should not depend on what their family can spare.
+          </p>
+        </div>
       </section>
 
       {/* Entry points by provider type, the same five values the filter uses. */}
