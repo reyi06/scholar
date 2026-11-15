@@ -79,15 +79,15 @@ export function HomePage() {
   return (
     <div className="mx-auto max-w-6xl px-5 pb-20 sm:px-8">
       {/* --------------------------------- Search --------------------------------- */}
-      <section className="grid items-center gap-12 pt-16 pb-16 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:pt-24 lg:pb-20">
+      <section className="grid items-center gap-8 pt-8 pb-12 sm:gap-12 sm:pt-16 sm:pb-16 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:pt-24 lg:pb-20">
         <div className="mx-auto max-w-xl text-center lg:mx-0 lg:text-left">
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl dark:text-slate-100">Find a Scholarship That Fits</h1>
-          <p className="mx-auto mt-5 max-w-xl text-base text-slate-600 lg:mx-0 dark:text-slate-300">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl dark:text-slate-100">Find a Scholarship That Fits</h1>
+          <p className="mx-auto mt-3 max-w-xl text-sm text-slate-600 sm:mt-5 sm:text-base lg:mx-0 dark:text-slate-300">
             Listings from provincial, municipal, national, educational and private providers across
             Pampanga, with your applications tracked in one place.
           </p>
 
-          <form onSubmit={handleSearch} className="mt-9 flex flex-col gap-2 sm:flex-row">
+          <form onSubmit={handleSearch} className="mt-6 flex flex-col gap-2 sm:mt-9 sm:flex-row">
             <div className="flex-1">
               <SearchInput
                 id="home-search"
@@ -123,7 +123,7 @@ export function HomePage() {
           </p>
         </div>
 
-        <HeroIllustration className="mx-auto w-full max-w-[15rem] text-brand-700 sm:max-w-xs lg:max-w-none dark:text-brand-300" />
+        <HeroIllustration className="mx-auto w-full max-w-[9rem] text-brand-700 sm:max-w-xs lg:max-w-none dark:text-brand-300" />
       </section>
 
       {/* --------------------------------- Process -------------------------------- */}

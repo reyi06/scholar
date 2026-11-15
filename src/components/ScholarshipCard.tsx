@@ -73,7 +73,7 @@ export function ScholarshipCard({ scholarship, onToggleSave, saved = false, comp
         </div>
 
         {!compact ? (
-          <p className="text-sm text-slate-600 dark:text-slate-300">{truncate(scholarship.description, 140)}</p>
+          <p className="line-clamp-2 text-sm text-slate-600 sm:line-clamp-3 dark:text-slate-300">{truncate(scholarship.description, 140)}</p>
         ) : null}
 
         {headlineBenefit ? (

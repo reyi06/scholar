@@ -185,12 +185,10 @@ export function ScholarshipDetailPage() {
         tone="info"
         title="Scholarships never ask you for money"
       >
-        No legitimate programme asks for a processing fee, a reservation fee, a
-        deposit or your password. This listing reflects what the provider has
-        published — confirm it with them before you submit anything. If a listing
-        here asks for payment, report it to{' '}
+        No legitimate programme asks for a fee, a deposit or your password. This
+        listing reflects what the provider has published — confirm it with them.{' '}
         <a className="font-medium underline" href="mailto:scholarships@example.gov.ph?subject=Suspicious%20listing">
-          the scholarship office
+          Report a listing
         </a>
         .
       </Alert>

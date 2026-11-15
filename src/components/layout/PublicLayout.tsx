@@ -55,7 +55,7 @@ export function PublicLayout() {
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur-sm dark:border-ink-800 dark:bg-ink-950/90">
         <div className="accent-rule h-0.5 w-full" aria-hidden="true" />
 
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-3 sm:px-8">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-3 sm:gap-6 sm:px-8">
           <Link to="/" className="flex items-center gap-2.5">
             <span
               aria-hidden="true"
@@ -115,12 +115,18 @@ export function PublicLayout() {
               </>
             ) : (
               <>
-                <LinkButton to="/login" variant="ghost" size="sm">
+                <LinkButton to="/login" variant="ghost" size="sm" className="whitespace-nowrap">
                   Sign In
                 </LinkButton>
-                <LinkButton to="/register" size="sm">
-                  Create Account
-                </LinkButton>
+                {/* Hidden on phones: the filled button competed with each page's
+                    own primary action, and it wrapped onto two lines at 390 px.
+                    It moves into the menu below. The wrapper does the hiding so
+                    the button's own display utility cannot win. */}
+                <span className="hidden sm:inline-flex">
+                  <LinkButton to="/register" size="sm" className="whitespace-nowrap">
+                    Create Account
+                  </LinkButton>
+                </span>
               </>
             )}
 
@@ -164,6 +170,13 @@ export function PublicLayout() {
                 </li>
               ))}
             </ul>
+            {!user ? (
+              <div className="mt-3 border-t border-slate-200 pt-3 dark:border-ink-800">
+                <LinkButton to="/register" size="sm" className="w-full justify-center" onClick={() => setMenuOpen(false)}>
+                  Create Account
+                </LinkButton>
+              </div>
+            ) : null}
           </nav>
         ) : null}
       </header>

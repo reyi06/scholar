@@ -74,6 +74,13 @@ export function ScholarshipDirectoryPage() {
   )
   const [page, setPage] = useState(() => Number(searchParams.get('page') ?? '1') || 1)
 
+  /**
+   * Phones get the filters behind a disclosure: four selects cost a whole
+   * screen above the first result, and most visitors arrive to search, not to
+   * filter. Desktop shows them inline, where the space is free.
+   */
+  const [filtersOpen, setFiltersOpen] = useState(false)
+
   const debouncedQuery = useDebouncedValue(query, 300)
   const { savedIds, toggle } = useSavedScholarships()
 
@@ -142,20 +149,39 @@ export function ScholarshipDirectoryPage() {
       {/* ------------------------------- Toolbar ------------------------------- */}
       <div className="mt-6 border-y border-slate-200 py-4 dark:border-ink-800">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <div className="lg:flex-1">
-            <SearchInput
-              id="directory-search"
-              label="Search Scholarships"
-              hideLabel
-              placeholder="Search scholarships"
-              value={query}
-              onChange={(value) => updateFilter(() => setQuery(value))}
-            />
+          <div className="flex items-center gap-2 lg:flex-1">
+            <div className="min-w-0 flex-1">
+              <SearchInput
+                id="directory-search"
+                label="Search Scholarships"
+                hideLabel
+                placeholder="Search scholarships"
+                value={query}
+                onChange={(value) => updateFilter(() => setQuery(value))}
+              />
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0 whitespace-nowrap sm:hidden"
+              onClick={() => setFiltersOpen((value) => !value)}
+              aria-expanded={filtersOpen}
+              aria-controls="directory-filters"
+            >
+              {filtersOpen ? 'Hide' : 'Filters'}
+              {activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+            </Button>
           </div>
 
           {/* Fixed widths on large screens keep the selects from crowding the
-              search field out of its own row. */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-[repeat(4,11rem)]">
+              search field out of its own row. On phones they are behind the
+              disclosure, so results start higher. */}
+          <div
+            id="directory-filters"
+            className={`${filtersOpen ? 'grid' : 'hidden sm:grid'} grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-[repeat(4,11rem)]`}
+          >
             <Select
               id="directory-type"
               label="Scholarship Type"
