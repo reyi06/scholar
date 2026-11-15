@@ -22,6 +22,12 @@ export interface MailMessage {
   subject: string
   /** Plain text. A code must survive being read off a phone screen. */
   text: string
+  /**
+   * Optional HTML alternative. Kept beside the text rather than instead of it:
+   * a client that cannot render HTML still gets a readable message, and a
+   * plain-text part is what keeps a code out of a spam filter.
+   */
+  html?: string
 }
 
 /** Reported to the browser so the UI can say where the message actually went. */
@@ -97,6 +103,7 @@ function resendTransport(apiKey: string, from: string): MailTransport {
           to: [message.to],
           subject: message.subject,
           text: message.text,
+          ...(message.html ? { html: message.html } : {}),
         }),
       })
 
@@ -106,6 +113,11 @@ function resendTransport(apiKey: string, from: string): MailTransport {
           `Resend rejected the message (${response.status}): ${detail.slice(0, 300)}`,
         )
       }
+
+      // The id is the only handle for following a message in the dashboard,
+      // so it goes to the log rather than being discarded.
+      const accepted = (await response.json().catch(() => null)) as { id?: string } | null
+      if (accepted?.id) console.log(`[mail] accepted ${accepted.id} for ${message.to}`)
     },
   }
 }
@@ -144,24 +156,80 @@ export function buildOtpMessage(input: {
     input.purpose === 'verify-email'
       ? 'confirm your email address'
       : 'reset your password'
+  const subject =
+    input.purpose === 'verify-email' ? 'Confirm your email address' : 'Reset your password'
+
+  const text = [
+    `Use this code to ${action}:`,
+    '',
+    `    ${input.code}`,
+    '',
+    `The code expires in ${minutes} minutes and can only be used once.`,
+    '',
+    'If you did not request this, you can ignore this message - nothing has',
+    `changed. For anything else, contact ${input.contactEmail}.`,
+  ].join('\n')
 
   return {
     to: input.to,
-    subject:
-      input.purpose === 'verify-email'
-        ? 'Confirm your email address'
-        : 'Reset your password',
-    text: [
-      `Use this code to ${action}:`,
-      '',
-      `    ${input.code}`,
-      '',
-      `The code expires in ${minutes} minutes and can only be used once.`,
-      '',
-      'If you did not request this, you can ignore this message — nothing has',
-      `changed. For anything else, contact ${input.contactEmail}.`,
-    ].join('\n'),
+    subject,
+    text,
+    html: otpHtml({ code: input.code, action, minutes, contactEmail: input.contactEmail }),
   }
+}
+
+/**
+ * The HTML alternative.
+ *
+ * Written as a table and inline styles on purpose: mail clients strip
+ * stylesheets, and Outlook ignores most of what is left. One column, no images,
+ * no web fonts, so it renders the same in Gmail, Outlook and a phone.
+ */
+function otpHtml(input: {
+  code: string
+  action: string
+  minutes: number
+  contactEmail: string
+}): string {
+  const shell = (inner: string) => `<!doctype html>
+<html lang="en">
+  <body style="margin:0;padding:0;background:#f4f1ef;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f1ef;padding:24px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border:1px solid #e5e0dc;border-radius:8px;overflow:hidden;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+            <tr>
+              <td style="background:#4a1216;padding:20px 28px;">
+                <p style="margin:0;color:#e6c98a;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Province of Pampanga</p>
+                <p style="margin:6px 0 0;color:#ffffff;font-size:20px;font-weight:600;">Scholar</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:28px;">
+                ${inner}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:18px 28px;border-top:1px solid #e5e0dc;">
+                <p style="margin:0;color:#57534e;font-size:12px;line-height:18px;">
+                  Scholarship information and grant records for Pampanga.<br />
+                  Questions? Write to ${input.contactEmail}.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`
+
+  return shell(`
+    <p style="margin:0 0 8px;color:#1c1917;font-size:16px;line-height:24px;">Use this code to ${input.action}:</p>
+    <p style="margin:18px 0;padding:18px 0;border-top:1px solid #e5e0dc;border-bottom:1px solid #e5e0dc;text-align:center;color:#4a1216;font-size:34px;font-weight:700;letter-spacing:10px;font-family:Consolas,Menlo,monospace;">${input.code}</p>
+    <p style="margin:0 0 16px;color:#1c1917;font-size:14px;line-height:22px;">The code expires in ${input.minutes} minutes and can only be used once.</p>
+    <p style="margin:0;color:#57534e;font-size:13px;line-height:20px;">If you did not request this, you can ignore this message. Nothing has changed.</p>
+  `)
 }
 
 /**

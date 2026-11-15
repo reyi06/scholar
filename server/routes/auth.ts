@@ -442,6 +442,11 @@ route('POST', '/api/auth/otp/request', async ({ req, res }) => {
   // both stay flat.
   const destination = channel === 'sms' ? phone : account?.email
 
+  // Set only when a transport actually accepted the message. Reporting the
+  // transport's label alone would tell a student a code was sent when the
+  // provider refused it.
+  let delivered = false
+
   if (account && destination && !(purpose === 'verify-email' && account.emailVerified)) {
     try {
       const issued = await issueCode({
@@ -464,6 +469,7 @@ route('POST', '/api/auth/otp/request', async ({ req, res }) => {
               expiresInSeconds: issued.expiresInSeconds,
             }),
           })
+          delivered = true
         }
       } else {
         await transport.send(
@@ -475,6 +481,7 @@ route('POST', '/api/auth/otp/request', async ({ req, res }) => {
             contactEmail: settings?.contactEmail ?? 'the scholarship office',
           }),
         )
+        delivered = true
       }
     } catch (cause: unknown) {
       // A throttle is the caller's business and is reported; a delivery failure
@@ -491,9 +498,8 @@ route('POST', '/api/auth/otp/request', async ({ req, res }) => {
     submitted: true,
     ...OTP_POLICY,
     channel,
-    // Says where the message actually went, so the interface never claims an
-    // email was sent when the console transport handled it.
-    delivery: transport.delivery,
+    // Where the message actually went, and `none` when nothing left the server.
+    delivery: delivered ? transport.delivery : 'none',
   })
 })
 
