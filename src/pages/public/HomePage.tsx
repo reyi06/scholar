@@ -152,55 +152,36 @@ export function HomePage() {
 
       <div className="mx-auto max-w-6xl px-5 pb-20 sm:px-8">
 
-      {/* Who it is for and what to bring. Both belong above the catalogue: an
-          applicant deciding whether it is worth trying needs these first, and
-          research on service start pages is consistent that people do not read
-          anything placed after the action. Wording is drawn from the listings
-          themselves, not invented. */}
+      {/* Mission and vision. Warm, not corporate: these are words a student may
+          read while deciding whether to try at all. */}
       <section className="border-b border-slate-200 dark:border-ink-800">
-        <div className="mx-auto grid max-w-6xl gap-8 px-5 py-10 sm:px-8 sm:py-12 md:grid-cols-2 md:gap-12">
-          <div>
-            <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Who This Is For
-            </h2>
-            <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
-              <li>Students in Pampanga in senior high school, college, or technical and vocational courses.</li>
-              <li>Those already enrolled, and those preparing to enrol.</li>
-              <li>Families who need help with tuition, allowances, or daily school costs.</li>
-            </ul>
-            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
-              Every programme sets its own rules. Some look at grades, some ask for a barangay
-              certificate, and some ask for both.
-            </p>
-            <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
-              If any of this sounds like your situation, you are in the right place.
-            </p>
+        <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-12">
+          <div className="grid gap-8 md:grid-cols-2 md:gap-12">
+            <div>
+              <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-slate-100">
+                Our Mission
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                Kaagapay ninyo kami sa bawat hakbang ng inyong pag-aaral. Nandito kami upang hanapin
+                ang tulong na para sa inyo, ipaliwanag ito sa simpleng paraan, at samahan kayo
+                hanggang makapagtapos.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-slate-100">
+                Our Vision
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                Isang Pampanga kung saan may pag-asa ang bawat mag-aaral na makapagtapos, gaano man
+                kahirap ang pinagdadaanan, at kung saan may pagkakataong matupad ang bawat pangarap.
+              </p>
+            </div>
           </div>
 
-          <div>
-            <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-slate-100">
-              What You Will Need
-            </h2>
-            <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
-              Many programmes ask for some of these. Gathering them early lets you apply with
-              confidence, and saves a second trip.
-            </p>
-            <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
-              <li>Certificate of registration or enrolment for the current semester</li>
-              <li>Barangay certificate of indigency, or proof of household income</li>
-              <li>School identification card and a 2×2 photograph</li>
-            </ul>
-            <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-              Prefer to speak with someone? Every{' '}
-              <Link
-                to="/scholarships"
-                className="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-300"
-              >
-                listing
-              </Link>{' '}
-              names the office that runs it and how to reach them.
-            </p>
-          </div>
+          <p className="mt-8 text-center text-sm text-slate-600 dark:text-slate-300">
+            Hindi ka nag-iisa. Kasama mo kami.
+          </p>
         </div>
       </section>
 
