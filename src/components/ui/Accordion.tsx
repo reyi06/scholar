@@ -43,7 +43,7 @@ export function Accordion({ items, className = '' }: AccordionProps) {
               className="disclosure-marker mt-1 size-4 shrink-0 text-slate-400"
             />
           </summary>
-          <div className="pb-4 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+          <div className="pb-4 text-sm leading-relaxed text-slate-900 dark:text-slate-100">
             {item.content}
           </div>
         </details>

@@ -37,21 +37,23 @@ export function AnnouncementsPage() {
       {/* The channel wears the same band as the home page: gold eyebrow, serif
           title, and the one control that matters sitting on the band itself. */}
       <section className="bg-brand-800 dark:bg-ink-900">
-        <div className="mx-auto max-w-4xl px-5 py-10 sm:px-8 sm:py-12">
+        <div className="mx-auto max-w-3xl px-5 py-10 sm:px-8 sm:py-12">
           <p className="text-xs font-medium tracking-[0.18em] text-gold-300 uppercase">
             Updates
           </p>
           <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
             Announcements
           </h1>
-          <p className="mt-3 max-w-xl text-sm text-brand-100 sm:text-base">
-            Deadlines, advisories and results from the scholarship office, newest first.
-          </p>
         </div>
       </section>
 
-      <div className="mx-auto max-w-4xl px-5 py-8 sm:px-8 sm:py-10">
-        <div className="mb-4 flex justify-end">
+      <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 sm:py-10">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-slate-900 dark:text-slate-100">
+            {state.loading || state.error
+              ? ''
+              : `${announcements.length} ${announcements.length === 1 ? 'notice' : 'notices'}`}
+          </p>
           <Select
             id="announcement-category"
             label="Category"
@@ -61,7 +63,7 @@ export function AnnouncementsPage() {
             onChange={(event) =>
               setCategory(event.target.value as AnnouncementCategory | 'all')
             }
-            className="w-full bg-white sm:w-52 dark:bg-ink-900"
+            className="w-full bg-white sm:w-48 dark:bg-ink-900"
           />
         </div>
 
@@ -95,33 +97,26 @@ export function AnnouncementsPage() {
 
 function AnnouncementItem({ announcement }: { announcement: Announcement }) {
   return (
-    <li className="grid gap-2 py-6 first:pt-0 sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:gap-6">
-      <div className="flex flex-wrap items-center gap-2 sm:block">
+    <li className="py-6 first:pt-0">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <time
           dateTime={announcement.publishedAt}
-          className="text-sm text-slate-900 sm:block dark:text-slate-100"
+          className="text-sm text-slate-900 dark:text-slate-100"
         >
           {formatDate(announcement.publishedAt)}
         </time>
-        <div className="flex flex-wrap gap-1 sm:mt-1.5">
-          <Badge tone={ANNOUNCEMENT_CATEGORY_TONES[announcement.category]}>
-            {ANNOUNCEMENT_CATEGORY_LABELS[announcement.category]}
-          </Badge>
-          {announcement.pinned ? <Badge tone="gold">Pinned</Badge> : null}
-        </div>
+        <Badge tone={ANNOUNCEMENT_CATEGORY_TONES[announcement.category]}>
+          {ANNOUNCEMENT_CATEGORY_LABELS[announcement.category]}
+        </Badge>
+        {announcement.pinned ? <Badge tone="gold">Pinned</Badge> : null}
       </div>
 
-      <div>
-        <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-          {announcement.title}
-        </h2>
-        <p className="mt-1.5 max-w-[68ch] text-sm leading-relaxed whitespace-pre-line text-slate-900 dark:text-slate-100">
-          {announcement.body}
-        </p>
-        <p className="mt-2 text-sm text-slate-900 dark:text-slate-100">
-          Posted by {announcement.author}
-        </p>
-      </div>
+      <h2 className="mt-2 text-base font-semibold tracking-tight text-slate-900 sm:text-lg dark:text-slate-100">
+        {announcement.title}
+      </h2>
+      <p className="mt-1.5 max-w-[70ch] text-sm leading-relaxed whitespace-pre-line text-slate-900 sm:text-base dark:text-slate-100">
+        {announcement.body}
+      </p>
     </li>
   )
 }
