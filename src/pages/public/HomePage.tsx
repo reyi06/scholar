@@ -298,10 +298,6 @@ export function HomePage() {
             <h2 className="font-display text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
               Track your applications in one place
             </h2>
-            <p className="mt-3 text-base text-slate-600 dark:text-slate-300">
-              Create a student account to save listings, submit applications and follow their
-              progress.
-            </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <LinkButton to="/register" size="lg">
                 Create Account
