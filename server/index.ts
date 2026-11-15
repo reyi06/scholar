@@ -2,6 +2,7 @@ import { createServer } from 'node:http'
 import { applySecurityHeaders, send } from './http/responses.ts'
 import { currentUser } from './http/auth.ts'
 import { match, routes, type Route } from './http/router.ts'
+import { serveStatic } from './static.ts'
 import { HttpError } from './httpError.ts'
 
 /**
@@ -49,6 +50,10 @@ const server = createServer((req, res) => {
       const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`)
       const segments = url.pathname.split('/').filter(Boolean)
       const method = req.method ?? 'GET'
+
+      // The release serves the built site from this origin too, so a single
+      // tunnel hostname covers both. /api belongs to the router below.
+      if (!url.pathname.startsWith('/api') && serveStatic(req, res, url.pathname)) return
 
       // Collect every match, then prefer the one with the fewest parameter
       // segments. Without this, registration order decides, and a static path

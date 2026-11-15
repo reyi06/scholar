@@ -63,6 +63,13 @@ The browser **never** touches the database. All data access goes through
 - with `VITE_API_BASE_URL` set, it calls `src/lib/httpApi.ts` → `/api`;
 - with it unset, it uses the browser-storage implementation.
 
+`server/index.ts` also serves `dist/` itself, for any path that is not `/api`
+(`server/static.ts`): SPA fallback, the CSP from `vite.config.ts`, immutable
+caching for `/assets/`. It costs nothing when a host serves the static files
+instead, and it is what lets one tunnel hostname cover the whole site. Nothing
+else about the split changes — every byte of data still comes from `/api`, and
+`@prisma/client` still never reaches the browser.
+
 That is a build-time choice. The deployed and demo builds use HTTP. Do not add
 a `fetch` in a component, and do not let a Prisma import reach the client.
 Do not weaken or bypass the server-side ownership checks.
