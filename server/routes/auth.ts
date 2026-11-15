@@ -376,6 +376,34 @@ route('POST', '/api/auth/register', async ({ req, res }) => {
   }
 
   await startSession(res, id)
+
+  // The account starts unconfirmed, so the first code goes out with the
+  // registration itself: a new student should not have to find a resend button
+  // on a screen they have not been shown yet. Delivery is best effort - a failed
+  // send must not fail the account, which would leave them with nothing at all.
+  try {
+    const issued = await issueCode({
+      userId: id,
+      purpose: 'verify-email',
+      requestedFrom: origin,
+      channel: 'email',
+      destination: created.email,
+    })
+    const settings = await prisma.platformSettings.findUnique({ where: { id: 'singleton' } })
+
+    await mailTransport().send(
+      buildOtpMessage({
+        to: created.email,
+        code: issued.code,
+        purpose: 'verify-email',
+        expiresInSeconds: issued.expiresInSeconds,
+        contactEmail: settings?.contactEmail ?? 'the scholarship office',
+      }),
+    )
+  } catch (cause: unknown) {
+    console.error('[register] verification code failed:', cause instanceof Error ? cause.message : cause)
+  }
+
   send(res, 201, { user: toUser(created) })
 })
 

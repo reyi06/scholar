@@ -32,6 +32,9 @@ const AnnouncementsPage = lazy(async () => ({
 const PrivacyPage = lazy(async () => ({
   default: (await import('../pages/public/PrivacyPage.tsx')).PrivacyPage,
 }))
+const VerifyEmailPage = lazy(async () => ({
+  default: (await import('../pages/public/VerifyEmailPage.tsx')).VerifyEmailPage,
+}))
 const SupportPage = lazy(async () => ({
   default: (await import('../pages/public/SupportPage.tsx')).SupportPage,
 }))
@@ -155,6 +158,7 @@ export function App() {
           <Route path="/faqs" element={<FaqPage />} />
           <Route path="/announcements" element={<AnnouncementsPage />} />
           <Route path="/support" element={<SupportPage />} />
+          <Route path="/verify" element={<VerifyEmailPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
 
             {/* Not inside GuestOnlyRoute: the student is already signed in,

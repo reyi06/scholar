@@ -92,6 +92,10 @@ route('POST', '/api/applications', async ({ req, res, user }) => {
     throw new HttpError(409, 'Complete your student profile before applying.')
   }
 
+  if (!student.emailVerified) {
+    throw new HttpError(403, 'Confirm your email address before applying for a scholarship.')
+  }
+
   const [scholarship, settings] = await Promise.all([
     prisma.scholarship.findUnique({ where: { id: scholarshipId } }),
     prisma.platformSettings.findUnique({ where: { id: 'singleton' } }),

@@ -88,7 +88,7 @@ sorts it with the other non-urgent listings, and the interface renders it as
 | `GET` | `/auth/session` | Current user or `null`; never leaks a password hash |
 | `POST` | `/auth/login` | Email + password; sets the cookie |
 | `POST` | `/auth/logout` | Deletes the session row and clears the cookie |
-| `POST` | `/auth/register` | Creates the user, profile and welcome notification in one transaction |
+| `POST` | `/auth/register` | Creates the user, profile and welcome notification in one transaction, then sends the first verification code |
 | `GET` | `/auth/google/config` | `{ configured, clientId }`; the button is hidden when unset |
 | `POST` | `/auth/google` | Verifies a Google ID token; refuses to link a password account |
 | `POST` | `/auth/google/complete` | Saves the profile details Google does not provide |
@@ -113,8 +113,8 @@ promising a text.
 
 ## Applications
 
-- `POST /applications` requires a complete profile, an `open` internal listing,
-  a deadline that has not passed, and `applicationsOpen`.
+- `POST /applications` requires a verified email, a complete profile, an `open`
+  internal listing, a deadline that has not passed, and `applicationsOpen`.
 - A draft is updated in place; `@@unique([studentId, scholarshipId])` prevents a
   second one.
 - `POST /applications/:id/status` is admin-only, requires a note, and follows an

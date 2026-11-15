@@ -131,9 +131,9 @@ export function RegisterPage() {
 
     toast.success(
       'Account created',
-      'Confirm your email address from My profile so the office can reach you.',
+      'Check your inbox for the six-digit code that confirms your address.',
     )
-    navigate('/student/profile', { replace: true })
+    navigate('/verify', { replace: true })
   }
 
   return (

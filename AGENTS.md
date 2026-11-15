@@ -139,7 +139,8 @@ docs/           spec, architecture, design, deployment, security
 
 | Invariant | Where |
 |---|---|
-| Apply: complete profile, open internal listing, deadline not passed, applications open | `server/routes/applications.ts` |
+| Apply: verified email, complete profile, open internal listing, deadline not passed, applications open | `server/routes/applications.ts` |
+| Save a listing: verified email | `server/routes/scholarships.ts` |
 | Draft is updated, not duplicated; one per student+listing | route + `@@unique` |
 | Decisions follow a transition map; a grant locks them | `server/rules.ts`, applications route |
 | Grant requires an approved application with no grant | `server/routes/grants.ts`, `Grant.applicationId @unique` |

@@ -282,6 +282,10 @@ route('POST', '/api/saved/:scholarshipId/toggle', async ({ res, params, user }) 
   const student = requireRole(user, 'student')
   const key = { studentId: student.id, scholarshipId: params.scholarshipId }
 
+  if (!student.emailVerified) {
+    throw new HttpError(403, 'Confirm your email address before saving a scholarship.')
+  }
+
   const existing = await prisma.savedScholarship.findUnique({
     where: { studentId_scholarshipId: key },
   })

@@ -38,6 +38,13 @@ export function ProtectedRoute({ role }: { role: Role }) {
     return <Navigate to="/welcome" replace />
   }
 
+  // An account that has not confirmed its address cannot use the student area:
+  // applying and saving both refuse it on the server, and dropping the student
+  // here means they meet the reason instead of a 403 on their first action.
+  if (user.role === 'student' && !user.emailVerified && location.pathname !== '/verify') {
+    return <Navigate to="/verify" replace />
+  }
+
   if (user.role !== role) {
     // Signed in, but in the wrong area — send them to their own dashboard.
     return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/student/dashboard'} replace />

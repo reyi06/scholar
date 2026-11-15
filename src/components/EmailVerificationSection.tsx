@@ -13,9 +13,10 @@ import type { OtpRequestResult } from '../types/index.ts'
 /**
  * Confirm the signed-in account's email address with a one-time code.
  *
- * Shown on the profile page. Deliberately not a gate: verification is a
- * signal, not a permission, so a student whose mail is not configured can
- * still apply. The section simply disappears once the address is confirmed.
+ * Shown on the confirmation step after sign-up and on the profile page. It is a
+ * gate for the two actions that create a record the office acts on, applying and
+ * saving a listing; reading and browsing stay open to an unconfirmed account.
+ * The section simply reports "Verified" once the address is confirmed.
  *
  * The wording of the "code sent" state comes from the server, which reports
  * where the message actually went — so a development server says the code is
