@@ -1035,11 +1035,6 @@ const localGrantsApi = {
     db.grants = db.grants.filter((item) => item.id !== id)
     persist()
   },
-
-  async totalReleased(): Promise<number> {
-    await delay()
-    return db.grants.reduce((sum, grant) => sum + grant.amount, 0)
-  },
 }
 
 /* ------------------------------------------------------------------ */

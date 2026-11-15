@@ -131,7 +131,6 @@ export function AdminGrantsPage() {
     [debouncedQuery, status, academicYear, semester, page],
   )
 
-  const totalReleased = useAsync(() => grantsApi.totalReleased(), [])
 
   const scholarshipNames = new Map(
     (scholarships.data ?? []).map((option) => [option.id, option.name]),
@@ -235,7 +234,6 @@ export function AdminGrantsPage() {
     closeConfirm()
     list.reload()
     awaiting.reload()
-    totalReleased.reload()
   }
 
   /* ---------------- Manual create / edit ---------------- */
@@ -347,7 +345,6 @@ export function AdminGrantsPage() {
     )
     closeGrantDialog()
     list.reload()
-    totalReleased.reload()
   }
 
   /* ---------------- Delete ---------------- */
@@ -366,7 +363,6 @@ export function AdminGrantsPage() {
     setDeletingGrant(null)
     list.reload()
     awaiting.reload()
-    totalReleased.reload()
   }
 
   /* ---------------- Table ---------------- */
@@ -485,13 +481,6 @@ export function AdminGrantsPage() {
           </ul>
         )}
       </section>
-
-      <p className="text-sm text-slate-600 dark:text-slate-300">
-        Total released across all confirmed grants:{' '}
-        <span className="font-semibold text-slate-900 tabular-nums dark:text-slate-100">
-          {totalReleased.data === null ? '—' : formatCurrency(totalReleased.data)}
-        </span>
-      </p>
 
       <div className="space-y-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">

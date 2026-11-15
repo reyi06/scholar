@@ -163,9 +163,9 @@ See the follow-up table above. The remaining open items are A, F and G.
 - `recordAudit` remains fire-and-forget by design: an audit write must not fail
   a legitimate action, but a trail can have silent gaps. Grant, decision and
   deletion entries now exist.
-- `GET /api/settings` and `GET /api/grants/total-released` are public. They
-  expose the current term, contact address and an aggregate total. Confirm that
-  is intended.
+- `GET /api/settings` is public. It exposes the current term and contact address.
+  Confirm that is intended. (The public aggregate total was removed: no
+  `total-released` endpoint and no on-screen totals.)
 
 ## What is solid
 

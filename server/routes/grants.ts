@@ -156,13 +156,6 @@ route('GET', '/api/grants', async ({ res, query, user }) => {
   })
 })
 
-route('GET', '/api/grants/total-released', async ({ res }) => {
-  // Summed as integers, divided once: adding peso floats is how a total drifts
-  // from the rows that produced it.
-  const result = await prisma.grant.aggregate({ _sum: { amountCentavos: true } })
-  send(res, 200, (result._sum.amountCentavos ?? 0) / 100)
-})
-
 route('GET', '/api/grants/:id', async ({ res, params, user }) => {
   const signedIn = requireUser(user)
   const row = await prisma.grant.findUnique({ where: { id: params.id } })

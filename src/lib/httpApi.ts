@@ -558,10 +558,6 @@ const grantsApi = {
   async remove(id: string): Promise<void> {
     await request<{ ok: boolean }>('DELETE', `/grants/${encodeURIComponent(id)}`)
   },
-
-  async totalReleased(): Promise<number> {
-    return request<number>('GET', '/grants/total-released')
-  },
 }
 
 /* ------------------------------------------------------------------ */

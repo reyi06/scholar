@@ -14,7 +14,7 @@ Browser
   React SPA (static files)
   │  fetch /api/*  same origin, HttpOnly cookie
   ▼
-Node API (no framework, 70 routes)
+Node API (no framework, 69 routes)
   │  Prisma 7 + @prisma/adapter-pg
   ▼
 PostgreSQL 17
@@ -340,8 +340,9 @@ rehearsal, not by unit tests.
   from published programme information, but Pampanga programmes re-open every
   intake; eight of the fifteen are already marked closed.
 - **Email** is console-only; Google sign-in is hidden without a client id.
-- **`/api/settings` and `/api/grants/total-released` are public.** That is a
-  product decision, not an accident.
+- **`/api/settings` is public.** That is a product decision, not an accident.
+- **No aggregate money figures are published.** The `total-released` endpoint and
+  both on-screen totals were removed; per-grant amounts remain on the grant rows.
 - **The API listens on all interfaces** by default; bind it behind a proxy or
   firewall for deployment.
 

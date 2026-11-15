@@ -54,7 +54,6 @@ export function MyGrantsPage() {
 
   const grants = state.data?.grants ?? []
   const names = state.data?.names ?? new Map<string, string>()
-  const totalReleased = grants.reduce((sum, grant) => sum + grant.amount, 0)
 
   return (
     <div className="space-y-10">
@@ -69,21 +68,9 @@ export function MyGrantsPage() {
         <ErrorState message={state.error} onRetry={state.reload} />
       ) : (
         <div className="space-y-6">
-          <div className="space-y-1">
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              Total released{' '}
-              <span className="font-semibold text-slate-900 dark:text-slate-100">
-                {formatCurrency(totalReleased)}
-              </span>
-              {grants.length > 0
-                ? ` across ${grants.length} confirmed ${grants.length === 1 ? 'grant' : 'grants'}`
-                : ''}
-              .
-            </p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              A grant record appears here only after an administrator confirms it.
-            </p>
-          </div>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            A grant record appears here only after an administrator confirms it.
+          </p>
 
           {grants.length === 0 ? (
             <EmptyState

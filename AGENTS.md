@@ -14,7 +14,7 @@ are in `docs/`.
 | | |
 |---|---|
 | Routes | 33 + not-found: 11 public, 9 student, 13 admin |
-| API | 70 endpoints in 15 modules |
+| API | 69 endpoints in 15 modules |
 | Database | 15 Prisma models on PostgreSQL 17 |
 | UI | 26 hand-rolled primitives in `src/components/ui/` |
 | Tests | 81 tests in 11 files; type-check and lint clean |

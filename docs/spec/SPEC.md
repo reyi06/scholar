@@ -103,7 +103,7 @@ server boundary.
 
 ## 5. API
 
-**70 endpoints** in 15 route modules. A grouped map, conventions, status codes
+**69 endpoints** in 15 route modules. A grouped map, conventions, status codes
 and upload rules are in `docs/architecture/API.md`.
 
 The API is same-origin, JSON, session-cookie based, and uses explicit

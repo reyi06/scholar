@@ -4,7 +4,7 @@ Base path: `/api`. Same origin as the site; the session is an `HttpOnly` cookie,
 so requests use `credentials: 'include'` and there is no CORS layer.
 
 The server is `server/index.ts` with route modules in `server/routes/`. There are
-**70 endpoints**. Every handler returns JSON; errors are
+**69 endpoints**. Every handler returns JSON; errors are
 `{ "error": "message" }`.
 
 ---
@@ -55,7 +55,7 @@ The counters are in memory, so they assume one API process.
 | Scholarships | 7 | public read, admin write | `GET /scholarships`, `GET /scholarships/:id`, `POST`, `PATCH`, `DELETE` |
 | Saved | 3 | student | `GET /saved`, `GET /saved/ids`, `POST /saved/:id/toggle` |
 | Applications | 9 | student / admin | `GET`, `POST`, `PATCH :id`, `POST :id/status`, `POST :id/withdraw`, `DELETE :id`, `awaiting-grant`, `counts` |
-| Grants | 7 | student read, admin write | `GET`, `GET :id`, `total-released`, `POST /confirm`, `POST`, `PATCH`, `DELETE` |
+| Grants | 6 | student read, admin write | `GET`, `GET :id`, `POST /confirm`, `POST`, `PATCH`, `DELETE` |
 | Registrations | 5 | student / admin | `GET`, `GET :id`, `counts`, `POST`, `POST :id/status` |
 | Documents | 6 | student / admin | `GET`, `records`, `POST`, `GET :id/file`, `PATCH :id`, `DELETE :id` |
 | Announcements | 4 | public read, admin write | `GET`, `POST`, `PATCH :id`, `DELETE :id` |
@@ -68,7 +68,7 @@ The counters are in memory, so they assume one API process.
 | Activity | 1 | admin | `GET /audit` |
 | Maintenance | 2 | admin | `POST /reset` (501), `GET /stats` |
 
-`GET /api/settings` and `GET /api/grants/total-released` are deliberately
+`GET /api/settings` is deliberately
 public. `GET /api/scholarships/:id` hides drafts from non-administrators.
 
 **Deadlines are optional.** Most Pampanga programmes run a rolling intake, so
@@ -123,7 +123,9 @@ Password hashing is scrypt in `server/passwords.ts`. The Google verifier is
 - `PATCH /grants/:id` validates amount and status; `PATCH` and `DELETE` are
   audited.
 - `GET /grants` is pinned to the student for students; admins can filter.
-- `GET /grants/total-released` returns an aggregate in pesos.
+- There is deliberately **no aggregate total endpoint**. A "total released" figure
+  is bookkeeping, not something the site should publish, and it is not shown on
+  the student or administrator screens either.
 
 ---
 
