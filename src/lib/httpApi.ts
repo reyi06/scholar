@@ -20,6 +20,7 @@ import type {
   GrantFilters,
   LoginInput,
   Notification,
+  OtpChannel,
   OtpPurpose,
   OtpRequestResult,
   Paginated,
@@ -236,8 +237,12 @@ const authApi = {
   },
 
   /** Ask for a one-time code. Answers identically for unknown addresses. */
-  async requestCode(email: string, purpose: OtpPurpose): Promise<OtpRequestResult> {
-    return request<OtpRequestResult>('POST', '/auth/otp/request', { email, purpose })
+  async requestCode(
+    email: string,
+    purpose: OtpPurpose,
+    channel: OtpChannel = 'email',
+  ): Promise<OtpRequestResult> {
+    return request<OtpRequestResult>('POST', '/auth/otp/request', { email, purpose, channel })
   },
 
   /**

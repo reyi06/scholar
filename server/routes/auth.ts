@@ -5,7 +5,7 @@
  */
 
 import { MUNICIPALITIES_ONLY } from '../../src/lib/constants.ts'
-import type { OtpPurpose } from '../../src/types/index.ts'
+import type { OtpChannel, OtpPurpose } from '../../src/types/index.ts'
 import { prisma } from '../db.ts'
 import { googleIsAuthoritative, verifyGoogleIdToken } from '../googleAuth.ts'
 import {
@@ -21,6 +21,7 @@ import { HttpError } from '../httpError.ts'
 import { isUniqueViolation } from '../rules.ts'
 import { createId } from '../ids.ts'
 import { buildOtpMessage, mailTransport, settleDeliveryDelay } from '../mailer.ts'
+import { buildSmsCode, normalisePhone, smsTransport } from '../sms.ts'
 import { toUser } from '../mappers.ts'
 import { OTP_POLICY, checkAddressAllowance, consumeCode, issueCode, pruneExpiredCodes } from '../otp.ts'
 import { hashPassword, verifyPassword } from '../passwords.ts'
@@ -417,6 +418,7 @@ route('POST', '/api/auth/otp/request', async ({ req, res }) => {
   const body = await readJson(req)
   const email = String(body.email ?? '').trim().toLowerCase()
   const purpose = String(body.purpose ?? 'verify-email') as OtpPurpose
+  const channel: OtpChannel = body.channel === 'sms' ? 'sms' : 'email'
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
     throw new HttpError(400, 'Enter a valid email address.')
@@ -430,26 +432,50 @@ route('POST', '/api/auth/otp/request', async ({ req, res }) => {
     throw new HttpError(429, 'Too many codes requested. Try again later.')
   }
 
-  const account = await prisma.user.findUnique({ where: { email } })
-  const transport = mailTransport()
+  const account = await prisma.user.findUnique({ where: { email }, include: { profile: true } })
+  const transport = channel === 'sms' ? smsTransport() : mailTransport()
+  const phone = account?.profile?.phone ? normalisePhone(account.profile.phone) : null
 
-  // A code is only ever issued to a real account, but the caller cannot tell:
-  // the same work is done and the same reply returned when the address is
-  // unknown, so timing and wording both stay flat.
-  if (account && !(purpose === 'verify-email' && account.emailVerified)) {
+  // A code is only ever issued to a real account with somewhere to send it, but
+  // the caller cannot tell: the same work is done and the same reply returned
+  // when the address is unknown or the number is missing, so timing and wording
+  // both stay flat.
+  const destination = channel === 'sms' ? phone : account?.email
+
+  if (account && destination && !(purpose === 'verify-email' && account.emailVerified)) {
     try {
-      const issued = await issueCode({ userId: account.id, purpose, requestedFrom: origin })
+      const issued = await issueCode({
+        userId: account.id,
+        purpose,
+        requestedFrom: origin,
+        channel,
+        destination,
+      })
       const settings = await prisma.platformSettings.findUnique({ where: { id: 'singleton' } })
 
-      await transport.send(
-        buildOtpMessage({
-          to: account.email,
-          code: issued.code,
-          purpose,
-          expiresInSeconds: issued.expiresInSeconds,
-          contactEmail: settings?.contactEmail ?? 'the scholarship office',
-        }),
-      )
+      if (channel === 'sms') {
+        const sms = smsTransport()
+        if (sms.delivery !== 'none') {
+          await sms.send({
+            to: destination,
+            text: buildSmsCode({
+              code: issued.code,
+              purpose,
+              expiresInSeconds: issued.expiresInSeconds,
+            }),
+          })
+        }
+      } else {
+        await transport.send(
+          buildOtpMessage({
+            to: destination,
+            code: issued.code,
+            purpose,
+            expiresInSeconds: issued.expiresInSeconds,
+            contactEmail: settings?.contactEmail ?? 'the scholarship office',
+          }),
+        )
+      }
     } catch (cause: unknown) {
       // A throttle is the caller's business and is reported; a delivery failure
       // is not, so it is logged and swallowed to keep the reply uniform.
@@ -464,6 +490,7 @@ route('POST', '/api/auth/otp/request', async ({ req, res }) => {
   send(res, 200, {
     submitted: true,
     ...OTP_POLICY,
+    channel,
     // Says where the message actually went, so the interface never claims an
     // email was sent when the console transport handled it.
     delivery: transport.delivery,

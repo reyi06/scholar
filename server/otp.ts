@@ -2,7 +2,7 @@ import { randomInt, scryptSync, timingSafeEqual } from 'node:crypto'
 import { createId } from './ids.ts'
 import { HttpError } from './httpError.ts'
 import { prisma } from './db.ts'
-import type { OtpPurpose } from '../src/types/index.ts'
+import type { OtpChannel, OtpPurpose } from '../src/types/index.ts'
 
 /**
  * One-time codes.
@@ -76,11 +76,17 @@ export interface IssuedCode {
  *
  * Replacing rather than accumulating matters: if older codes stayed valid, the
  * effective attempt cap would multiply by however many were requested.
+ *
+ * The channel and destination are recorded with the challenge so the attempt is
+ * accountable without keeping the message, and so a code requested by text can
+ * never be presented as one that was emailed.
  */
 export async function issueCode(input: {
   userId: string
   purpose: OtpPurpose
   requestedFrom: string | null
+  channel: OtpChannel
+  destination: string
 }): Promise<IssuedCode> {
   const now = Date.now()
 
@@ -118,6 +124,8 @@ export async function issueCode(input: {
       id: createId('otp'),
       userId: input.userId,
       purpose: input.purpose,
+      channel: input.channel,
+      destination: input.destination,
       codeHash: hashCode(code),
       createdAt: new Date(now),
       expiresAt: new Date(now + CODE_TTL_SECONDS * 1000),

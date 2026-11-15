@@ -25,6 +25,7 @@ import type {
   GrantFilters,
   LoginInput,
   Notification,
+  OtpChannel,
   OtpPurpose,
   OtpRequestResult,
   Paginated,
@@ -278,17 +279,20 @@ const localAuthApi = {
   /**
    * No mail exists in the browser-storage build, so a code could be generated
    * but never delivered. Reporting `delivery: 'none'` keeps the interface
-   * honest instead of implying a message was sent.
+   * honest instead of implying a message was sent. Both channels are accepted
+   * so the demo exercises the same call shape as the server.
    */
   async requestCode(
     _email: string,
     _purpose: OtpPurpose,
+    channel: OtpChannel = 'email',
   ): Promise<OtpRequestResult> {
     await delay()
     return {
       submitted: true,
       expiresInSeconds: 600,
       resendAfterSeconds: 60,
+      channel,
       delivery: 'none',
     }
   },

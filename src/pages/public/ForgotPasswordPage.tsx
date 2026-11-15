@@ -5,6 +5,7 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
 import { useAsyncAction } from '../../hooks/useAsync.ts'
 import { authApi } from '../../lib/api.ts'
 import { useToast } from '../../context/toastContext.ts'
+import type { OtpRequestResult } from '../../types/index.ts'
 
 /**
  * Password reset, in two steps.
@@ -24,7 +25,7 @@ export function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [password, setPassword] = useState('')
-  const [sent, setSent] = useState<null | { delivery: 'log' | 'email' | 'none' }>(null)
+  const [sent, setSent] = useState<null | { delivery: OtpRequestResult['delivery'] }>(null)
   const [cooldown, setCooldown] = useState(0)
   const [done, setDone] = useState(false)
 

@@ -92,11 +92,22 @@ sorts it with the other non-urgent listings, and the interface renders it as
 | `GET` | `/auth/google/config` | `{ configured, clientId }`; the button is hidden when unset |
 | `POST` | `/auth/google` | Verifies a Google ID token; refuses to link a password account |
 | `POST` | `/auth/google/complete` | Saves the profile details Google does not provide |
-| `POST` | `/auth/otp/request` | Issues a code; the response is identical for known and unknown addresses |
+| `POST` | `/auth/otp/request` | Issues a code; the response is identical for known and unknown addresses. Body: `email`, `purpose`, `channel` (`email` or `sms`) |
 | `POST` | `/auth/otp/verify` | Confirms the address or resets the password; a reset invalidates every session |
 
 Password hashing is scrypt in `server/passwords.ts`. The Google verifier is
 `server/googleAuth.ts` (RS256, JWKS, `aud`, `iss`, `exp`, `sub`).
+
+One-time codes go through `server/otp.ts`, which stores only a scrypt hash and
+enforces the cooldown, the hourly ceiling and the attempt cap. Delivery is a
+seam: `server/mailer.ts` for email, `server/sms.ts` for text. Both default to a
+console transport that prints the message, and both throw when a deployment
+names a transport that is not wired up, so a missing provider is a loud fault
+rather than a code that silently never arrives. For `channel: "sms"` the
+destination is the mobile number on the student profile, normalised to E.164 by
+`normalisePhone`; an account without one gets the same uniform response and no
+message, which is why the reply reports `channel` and `delivery` rather than
+promising a text.
 
 ---
 

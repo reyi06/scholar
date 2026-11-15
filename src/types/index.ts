@@ -562,6 +562,9 @@ export interface StudentDetailsValues {
  */
 export type OtpPurpose = 'verify-email' | 'reset-password'
 
+/** Where a one-time code is delivered. */
+export type OtpChannel = 'email' | 'sms'
+
 /**
  * What the browser learns when a code is requested. Deliberately carries no
  * information about whether the address exists, and never the code itself.
@@ -578,7 +581,9 @@ export interface OtpRequestResult extends OtpChallenge {
    * assuming an email was sent, which is why a development server can say the
    * code went to the log and mean it.
    */
-  delivery: 'log' | 'email' | 'none'
+  delivery: 'log' | 'email' | 'sms' | 'none'
+  /** Echoed so the interface can say which channel it used. */
+  channel: OtpChannel
 }
 
 /* ------------------------------------------------------------------ */

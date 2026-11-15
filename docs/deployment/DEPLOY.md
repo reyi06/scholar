@@ -171,6 +171,32 @@ curl -s https://your-domain.example/api/scholarships | head -c 200
   point-in-time recovery on paid plans. Student records under the Data Privacy
   Act are not something to leave to chance.
 
+### Verification codes: email and text
+
+One-time codes go out through a seam, not a hard-coded provider. Both are set by
+environment variable and both default to `console`, which prints the message to
+the server log so a demonstration can read the code off the screen.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `MAIL_TRANSPORT` | `console` | Email. Any other value must have an adapter in `server/mailer.ts` |
+| `SMS_TRANSPORT` | `console` | Text. Any other value must have an adapter in `server/sms.ts` |
+
+A name without an adapter is a loud failure, not a silent one: the request fails
+and the browser is told nothing was sent, because a student waiting for a code
+that never arrived is the worst outcome of a half-finished integration.
+
+To wire a provider: implement `MailTransport` or `SmsTransport` (`send` plus a
+`delivery` label), return it from `mailTransport()` / `smsTransport()` for your
+configured name, and set the credentials as environment variables. Nothing in
+the routes or the interface changes, because both read `delivery` back and
+report where the message actually went.
+
+Numbers are stored as the student typed them and normalised to E.164
+(`+639171234567`) at send time. `normalisePhone` accepts `09…`, `+639…` and
+`639…`, and returns null for anything that is not a Philippine mobile number, so
+a landline or a short number is refused before it reaches a gateway.
+
 ---
 
 ## Running it day to day

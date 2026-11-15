@@ -8,6 +8,7 @@ import { useAuth } from '../context/authContext.ts'
 import { useToast } from '../context/toastContext.ts'
 import { useAsyncAction } from '../hooks/useAsync.ts'
 import { authApi } from '../lib/api.ts'
+import type { OtpRequestResult } from '../types/index.ts'
 
 /**
  * Confirm the signed-in account's email address with a one-time code.
@@ -25,7 +26,7 @@ export function EmailVerificationSection() {
   const toast = useToast()
 
   const [code, setCode] = useState('')
-  const [sent, setSent] = useState<null | { delivery: 'log' | 'email' | 'none' }>(null)
+  const [sent, setSent] = useState<null | { delivery: OtpRequestResult['delivery'] }>(null)
   const [cooldown, setCooldown] = useState(0)
   const [error, setError] = useState<string | null>(null)
 

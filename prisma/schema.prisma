@@ -349,12 +349,21 @@ model StudentDocument {
 /// hash alone is not what makes this safe — the short expiry, the attempt cap
 /// and the request throttling do. The hash stops a database read from handing
 /// someone a live code.
+/// A one-time code, for one purpose, sent over one channel.
+///
+/// The model keeps its original name so the migration stays small; `channel`
+/// is what makes it a general challenge rather than an email-only one.
 model EmailVerification {
   id String @id
 
   userId        String
   /// verify-email | reset-password
   purpose       String
+  /// email | sms
+  channel       String   @default("email")
+  /// Where the code was sent: the address, or the number in E.164 form.
+  /// Recorded so the attempt is accountable without reading the message.
+  destination   String   @default("")
   /// scrypt hash of the code. The code itself is never stored or logged in
   /// production; see server/mailer.ts.
   codeHash      String
