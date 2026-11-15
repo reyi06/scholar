@@ -15,8 +15,11 @@ import {
   LoadingList,
   SearchInput,
 } from '../../components/ui'
-import { announcementsApi } from '../../lib/api.ts'
-import { ANNOUNCEMENT_CATEGORY_LABELS } from '../../lib/constants.ts'
+import { announcementsApi, scholarshipsApi } from '../../lib/api.ts'
+import {
+  ANNOUNCEMENT_CATEGORY_LABELS,
+  SCHOLARSHIP_TYPE_LABELS,
+} from '../../lib/constants.ts'
 import { formatDate, truncate } from '../../lib/format.ts'
 import { useAsync } from '../../hooks/useAsync.ts'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts'
@@ -70,6 +73,16 @@ export function HomePage() {
   // The API returns pinned items first, then newest.
   const advisories = (announcements ?? []).slice(0, ADVISORY_LIMIT)
 
+  // Counts for the strip under the hero. Taken from the catalogue itself, so
+  // they can never say something the directory does not contain.
+  const { data: catalogue } = useAsync(() => scholarshipsApi.list({}, 1, 100), [])
+  const listings = catalogue?.items ?? []
+  const openCount = listings.filter((listing) => listing.status === 'open').length
+  const municipalityCount = new Set(
+    listings.map((listing) => listing.municipality).filter((name) => name !== 'Province-wide'),
+  ).size
+  const countByType = (value: string) => listings.filter((listing) => listing.type === value).length
+
   const handleSearch = (event: FormEvent) => {
     event.preventDefault()
     const trimmed = query.trim()
@@ -77,54 +90,109 @@ export function HomePage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-5 pb-20 sm:px-8">
-      {/* --------------------------------- Search --------------------------------- */}
-      <section className="grid items-center gap-8 pt-8 pb-12 sm:gap-12 sm:pt-16 sm:pb-16 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:pt-24 lg:pb-20">
-        <div className="mx-auto max-w-xl text-center lg:mx-0 lg:text-left">
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl dark:text-slate-100">Find a Scholarship That Fits</h1>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-slate-600 sm:mt-5 sm:text-base lg:mx-0 dark:text-slate-300">
-            Listings from provincial, municipal, national, educational and private providers across
-            Pampanga, with your applications tracked in one place.
-          </p>
+    <>
+      {/* Hero. The only coloured block on the site, carrying the province's
+          identity the way a letterhead does. Search stays on the first screen. */}
+      <section className="bg-brand-800 dark:bg-ink-900">
+        <div className="mx-auto grid max-w-6xl items-center gap-8 px-5 pt-10 pb-12 sm:px-8 sm:pt-14 sm:pb-16 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
+          <div>
+            <p className="text-xs font-medium tracking-[0.18em] text-gold-300 uppercase">
+              Province of Pampanga
+            </p>
+            <h1 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
+              Find a Scholarship That Fits
+            </h1>
+            <p className="mt-3 max-w-xl text-sm text-white/80 sm:mt-4 sm:text-base">
+              Listings from provincial, municipal, national, educational and private providers
+              across Pampanga, with your applications tracked in one place.
+            </p>
 
-          <form onSubmit={handleSearch} className="mt-6 flex flex-col gap-2 sm:mt-9 sm:flex-row">
-            <div className="flex-1">
-              <SearchInput
-                id="home-search"
-                label="Search Scholarships"
-                hideLabel
-                placeholder="Search by name, provider or keyword"
-                value={query}
-                onChange={setQuery}
-                className="[&_input]:py-2.5"
-              />
-            </div>
-            <Button type="submit" size="lg" leadingIcon={<Icon name="search" className="size-4" />}>
-              Search
-            </Button>
-          </form>
+            <form
+              onSubmit={handleSearch}
+              className="mt-6 flex flex-col gap-2 rounded-lg bg-white p-2 shadow-sm sm:mt-8 sm:max-w-xl sm:flex-row sm:items-center dark:bg-ink-900"
+            >
+              <div className="flex-1">
+                <SearchInput
+                  id="home-search"
+                  label="Search Scholarships"
+                  hideLabel
+                  placeholder="Search by name, provider or keyword"
+                  value={query}
+                  onChange={setQuery}
+                  className="[&_input]:border-0 [&_input]:bg-transparent [&_input]:py-2.5 dark:[&_input]:bg-transparent"
+                />
+              </div>
+              <Button type="submit" size="lg" leadingIcon={<Icon name="search" className="size-4" />}>
+                Search
+              </Button>
+            </form>
 
-          <p className="mt-5 text-sm text-slate-500 dark:text-slate-400">
-            <Link
-              to="/scholarships"
-              className="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-300"
-            >
-              Browse all scholarships
-            </Link>
-            <span aria-hidden="true" className="mx-2 text-slate-300 dark:text-slate-600">
-              ·
-            </span>
-            <Link
-              to="/faqs"
-              className="font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-300"
-            >
-              Read the FAQs
-            </Link>
-          </p>
+            <p className="mt-4 text-sm text-white/75">
+              <Link
+                to="/scholarships"
+                className="font-medium text-white underline underline-offset-4 hover:no-underline"
+              >
+                Browse all scholarships
+              </Link>
+              <span aria-hidden="true" className="mx-2 text-white/40">
+                ·
+              </span>
+              <Link
+                to="/faqs"
+                className="font-medium text-white underline underline-offset-4 hover:no-underline"
+              >
+                Read the FAQs
+              </Link>
+            </p>
+          </div>
+
+          <HeroIllustration className="mx-auto w-full max-w-[10rem] text-white/85 sm:max-w-xs lg:max-w-none" />
         </div>
-
-        <HeroIllustration className="mx-auto w-full max-w-[9rem] text-brand-700 sm:max-w-xs lg:max-w-none dark:text-brand-300" />
       </section>
+
+      {/* Counts straight from the catalogue, so they cannot overstate it. */}
+      <section className="border-b border-slate-200 dark:border-ink-800">
+        <dl className="mx-auto grid max-w-6xl grid-cols-3 divide-x divide-slate-200 px-5 dark:divide-ink-800 sm:px-8">
+          {[
+            { label: 'Scholarship Programmes', value: catalogue?.total ?? 0 },
+            { label: 'Open for Applications', value: openCount },
+            { label: 'Municipalities Covered', value: municipalityCount },
+          ].map((stat) => (
+            <div key={stat.label} className="px-3 py-6 text-center first:pl-0 last:pr-0 sm:px-6">
+              <dt className="order-2 mt-1 text-xs text-slate-500 dark:text-slate-400">{stat.label}</dt>
+              <dd className="text-2xl font-semibold tracking-tight text-slate-900 tabular-nums sm:text-3xl dark:text-slate-100">
+                {stat.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      {/* Entry points by provider type, the same five values the filter uses. */}
+      <section className="border-b border-slate-200 py-8 dark:border-ink-800">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Browse by Provider</h2>
+          <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+            {(Object.keys(SCHOLARSHIP_TYPE_LABELS) as (keyof typeof SCHOLARSHIP_TYPE_LABELS)[]).map((type) => (
+              <li key={type}>
+                <Link
+                  to={`/scholarships?type=${type}`}
+                  className="flex items-baseline justify-between gap-2 rounded-md border border-slate-200 px-3 py-2.5 text-sm transition-colors hover:border-brand-300 hover:bg-brand-50 dark:border-ink-800 dark:hover:border-brand-700 dark:hover:bg-ink-900"
+                >
+                  <span className="font-medium text-slate-800 dark:text-slate-200">
+                    {SCHOLARSHIP_TYPE_LABELS[type]}
+                  </span>
+                  <span className="text-xs text-slate-500 tabular-nums dark:text-slate-400">
+                    {countByType(type)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-6xl px-5 pb-20 sm:px-8">
 
       {/* --------------------------------- Process -------------------------------- */}
       <section className="border-t border-slate-200 py-16 dark:border-ink-800">
@@ -245,6 +313,7 @@ export function HomePage() {
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   )
 }
