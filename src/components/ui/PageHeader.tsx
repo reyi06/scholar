@@ -56,7 +56,7 @@ export function PageHeader({ title, description, actions, breadcrumbs, className
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-2">
-          <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl dark:text-slate-100">
+          <h1 className="font-display text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl dark:text-slate-100">
             {title}
           </h1>
           {description ? (

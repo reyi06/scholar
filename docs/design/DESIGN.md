@@ -53,8 +53,17 @@ alerts.
 
 ## 3. Typography
 
-- Family: `Inter`, then the system UI stack. No webfont is downloaded, so the
-  page makes no third-party font request.
+- **Body**: `Inter`, then the system UI stack (`--font-sans`). No webfont is
+  downloaded, so the page makes no third-party font request.
+- **Display**: `font-display` for page titles and section titles — Palatino
+  Linotype, then Iowan Old Style, Palatino, Georgia, `ui-serif`. A serif reads as
+  a provincial charter rather than a product page. It ships with Windows and
+  macOS, so it also costs no download. Body text, labels, buttons and tables stay
+  sans: the serif is for titles only.
+- **Text is solid.** No `text-white/80`, no `opacity-*` on readable copy — a
+  translucent text colour is a contrast problem waiting for a different
+  background. On the maroon band, use `text-brand-100` for secondary text and
+  `text-white` for headings.
 - Scale: page title 24 px (`sm:text-2xl`), section title 16 px, body 14 px,
   meta 12 px.
 - Headings and labels: **Title Case**.

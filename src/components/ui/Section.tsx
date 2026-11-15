@@ -38,7 +38,7 @@ export function Section({
           <div className="min-w-0">
             {title ? (
               <div className="flex items-center gap-1.5">
-                <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+                <h2 className="font-display text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">
                   {title}
                 </h2>
                 {description ? (

@@ -99,10 +99,10 @@ export function HomePage() {
             <p className="text-xs font-medium tracking-[0.18em] text-gold-300 uppercase">
               Province of Pampanga
             </p>
-            <h1 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
+            <h1 className="font-display mt-3 text-2xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
               Find a Scholarship That Fits
             </h1>
-            <p className="mt-3 max-w-xl text-sm text-white/80 sm:mt-4 sm:text-base">
+            <p className="mt-3 max-w-xl text-sm text-brand-100 sm:mt-4 sm:text-base">
               Listings from provincial, municipal, national, educational and private providers
               across Pampanga, with your applications tracked in one place.
             </p>
@@ -127,14 +127,14 @@ export function HomePage() {
               </Button>
             </form>
 
-            <p className="mt-4 text-sm text-white/75">
+            <p className="mt-4 text-sm text-brand-100">
               <Link
                 to="/scholarships"
                 className="font-medium text-white underline underline-offset-4 hover:no-underline"
               >
                 Browse all scholarships
               </Link>
-              <span aria-hidden="true" className="mx-2 text-white/40">
+              <span aria-hidden="true" className="mx-2 text-brand-300">
                 ·
               </span>
               <Link
@@ -146,7 +146,7 @@ export function HomePage() {
             </p>
           </div>
 
-          <HeroIllustration className="mx-auto w-full max-w-[10rem] text-white/85 sm:max-w-xs lg:max-w-none" />
+          <HeroIllustration className="mx-auto w-full max-w-[10rem] text-white sm:max-w-xs lg:max-w-none" />
         </div>
       </section>
 

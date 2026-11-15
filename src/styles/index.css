@@ -11,6 +11,10 @@
    ================================================================== */
 @theme {
   --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* Display face for page and section titles. A serif reads as a provincial
+     charter rather than a startup, and this stack ships with Windows and macOS,
+     so it costs no download and no third-party request. */
+  --font-display: 'Palatino Linotype', 'Iowan Old Style', Palatino, Georgia, ui-serif, serif;
 
   /* Page canvas. Very slightly warm so white surfaces lift off it. */
   --color-canvas: oklch(0.988 0.002 80);

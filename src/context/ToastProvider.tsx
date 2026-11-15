@@ -87,12 +87,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold">{toast.title}</p>
-                {toast.description ? <p className="mt-0.5 text-sm opacity-90">{toast.description}</p> : null}
+                {toast.description ? <p className="mt-0.5 text-sm">{toast.description}</p> : null}
               </div>
               <button
                 type="button"
                 onClick={() => dismiss(toast.id)}
-                className="shrink-0 rounded p-1 text-sm leading-none opacity-60 transition hover:opacity-100"
+                className="shrink-0 rounded p-1 text-sm leading-none"
                 aria-label={`Dismiss: ${toast.title}`}
               >
                 ✕
