@@ -179,12 +179,34 @@ the server log so a demonstration can read the code off the screen.
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `MAIL_TRANSPORT` | `console` | Email. Any other value must have an adapter in `server/mailer.ts` |
+| `MAIL_TRANSPORT` | `console` | Email. `resend` sends through Resend; any other value must have an adapter in `server/mailer.ts` |
 | `SMS_TRANSPORT` | `console` | Text. Any other value must have an adapter in `server/sms.ts` |
+| `RESEND_API_KEY` | empty | Required by `MAIL_TRANSPORT=resend`. Sending-only, restricted to the domain |
+| `MAIL_FROM` | empty | Required by `MAIL_TRANSPORT=resend`. An address on the verified domain |
 
 A name without an adapter is a loud failure, not a silent one: the request fails
 and the browser is told nothing was sent, because a student waiting for a code
 that never arrived is the worst outcome of a half-finished integration.
+
+**Resend** is wired and needs only the two variables above. The adapter POSTs to
+`https://api.resend.com/emails` with `from`, `to`, `subject` and `text`, and
+throws on any non-2xx answer so the interface never reports a delivery that did
+not happen. Create the key at `resend.com/api-keys` as a sending-only key
+restricted to the sending domain, then:
+
+1. Add the domain in Resend and copy its DNS records into the domain's DNS host.
+   A subdomain such as `mail.example.com` keeps the site's own records untouched.
+2. Wait for the domain to read **Verified** in Resend. Until it does, set
+   `MAIL_FROM=onboarding@resend.dev`, which only delivers to the account owner's
+   own address.
+3. Set `MAIL_TRANSPORT=resend`, `RESEND_API_KEY` and `MAIL_FROM`, restart the
+   API, and request a code through the real flow. The reply from
+   `/auth/otp/request` reports `delivery: "email"` only when Resend accepted the
+   message.
+
+The playit hostname is not a domain this project controls, so Resend needs a
+domain you own. `runarine.click` is still on registrar `client hold`, so it
+cannot be verified until that is lifted.
 
 To wire a provider: implement `MailTransport` or `SmsTransport` (`send` plus a
 `delivery` label), return it from `mailTransport()` / `smsTransport()` for your

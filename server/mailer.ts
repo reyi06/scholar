@@ -73,9 +73,55 @@ const unconfiguredTransport: MailTransport = {
   },
 }
 
+/**
+ * Resend, over its REST API.
+ *
+ * Called with fetch rather than the SDK: the seam needs one POST, and a
+ * dependency that exists to save three lines is a dependency to keep patched.
+ * Resend answers 200 with the message id, and anything else is a failure that
+ * must surface, because a request that reports success and delivers nothing is
+ * the one outcome this seam exists to prevent.
+ */
+function resendTransport(apiKey: string, from: string): MailTransport {
+  return {
+    delivery: 'email',
+    async send(message) {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from,
+          to: [message.to],
+          subject: message.subject,
+          text: message.text,
+        }),
+      })
+
+      if (!response.ok) {
+        const detail = await response.text().catch(() => '')
+        throw new Error(
+          `Resend rejected the message (${response.status}): ${detail.slice(0, 300)}`,
+        )
+      }
+    },
+  }
+}
+
 export function mailTransport(): MailTransport {
   const configured = (process.env.MAIL_TRANSPORT ?? 'console').trim().toLowerCase()
   if (configured === 'console') return consoleTransport
+
+  if (configured === 'resend') {
+    const apiKey = (process.env.RESEND_API_KEY ?? '').trim()
+    const from = (process.env.MAIL_FROM ?? '').trim()
+    // Both are required. Falling through to the unconfigured transport keeps
+    // the failure at send time, where the caller can report it.
+    if (apiKey && from) return resendTransport(apiKey, from)
+  }
+
   return unconfiguredTransport
 }
 
