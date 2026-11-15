@@ -7,7 +7,9 @@ import { Skeleton } from './Skeleton.tsx'
 
 export function Table({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className="w-full overflow-x-auto">
+    /* Focusable: a scroll container that cannot take focus strands keyboard and
+       screen-reader users at the first visible column. */
+    <div className="w-full overflow-x-auto" tabIndex={0}>
       <table className={`w-full min-w-[44rem] border-collapse text-left text-sm ${className}`}>
         {children}
       </table>

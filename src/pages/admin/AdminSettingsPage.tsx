@@ -14,7 +14,7 @@ import {
   Select,
   Textarea,
 } from '../../components/ui'
-import { demoApi, settingsApi } from '../../lib/api.ts'
+import { demoApi, settingsApi, USING_REMOTE_API } from '../../lib/api.ts'
 import { ACADEMIC_YEARS, SEMESTERS } from '../../lib/constants.ts'
 import { formatDateTime, formatNumber } from '../../lib/format.ts'
 import { emailFormat, oneOf, required, validateValue } from '../../lib/validation.ts'
@@ -217,7 +217,7 @@ export function AdminSettingsPage() {
 
       <Section
         title="Stored Records"
-        description="Records currently held by this deployment. Restoring replaces them with the set the application ships with."
+        description="Records currently held by this deployment."
       >
         <div className="max-w-2xl space-y-5">
           {demoStats.loading && !stats ? (
@@ -236,17 +236,24 @@ export function AdminSettingsPage() {
             />
           )}
 
-          <Alert tone="warning" title="This cannot be undone">
-            Restoring discards everything currently held, including records you have created, and puts
-            back the shipped set. You will not be signed out automatically, so reload afterwards to see
-            the restored data.
-          </Alert>
+          {/* The server owns the data, so there is nothing local to restore: the
+              endpoint answers 501 and the admin would only see an error. The
+              seed script is the real way to reset a deployment. */}
+          {USING_REMOTE_API ? null : (
+            <>
+              <Alert tone="warning" title="This cannot be undone">
+                Restoring discards everything currently held, including records you have created, and
+                puts back the shipped set. You will not be signed out automatically, so reload
+                afterwards to see the restored data.
+              </Alert>
 
-          <div>
-            <Button variant="danger" onClick={() => setResetOpen(true)}>
-              Restore shipped records
-            </Button>
-          </div>
+              <div>
+                <Button variant="danger" onClick={() => setResetOpen(true)}>
+                  Restore shipped records
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </Section>
 

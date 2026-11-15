@@ -184,6 +184,7 @@ the server log so a demonstration can read the code off the screen.
 | `RESEND_API_KEY` | empty | Required by `MAIL_TRANSPORT=resend`. Sending-only, restricted to the domain |
 | `MAIL_FROM` | empty | Required by `MAIL_TRANSPORT=resend`. An address on the verified domain |
 | `REQUIRE_EMAIL_VERIFICATION` | `false` | Whether an unconfirmed address blocks applying and saving |
+| `VITE_SHOW_TEST_ACCOUNTS` | unset | Show the one-click test-account buttons on the sign-in page. Development builds show them anyway; a deployed build hides them unless this is `true`, because the panel fills in working administrator credentials |
 
 **`REQUIRE_EMAIL_VERIFICATION` is false on purpose until mail can reach anyone.**
 Resend's `onboarding@resend.dev` sender only delivers to the address that owns

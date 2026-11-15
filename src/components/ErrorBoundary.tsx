@@ -48,7 +48,7 @@ export class ErrorBoundary extends Component<Props, State> {
         </h1>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
           This page could not be displayed. The rest of the site still works, so you can carry on
-          somewhere else — or reload to try this page again.
+          somewhere else, or reload to try this page again.
         </p>
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">

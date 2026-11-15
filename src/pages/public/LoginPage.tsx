@@ -10,6 +10,14 @@ import { useAuth } from '../../context/authContext.ts'
 import { useToast } from '../../context/toastContext.ts'
 import type { LoginInput } from '../../types/index.ts'
 
+/**
+ * The test-account panel hands out working credentials, including the
+ * administrator. Development builds show it; a deployed build must opt in with
+ * VITE_SHOW_TEST_ACCOUNTS=true, which only a demo host should do.
+ */
+const SHOW_TEST_ACCOUNTS =
+  import.meta.env.DEV || import.meta.env.VITE_SHOW_TEST_ACCOUNTS === 'true'
+
 export function LoginPage() {
   useDocumentTitle('Sign in')
   const { login, googleEnabled } = useAuth()
@@ -120,21 +128,23 @@ export function LoginPage() {
         </Link>
       </p>
 
-      <div className="mt-10 border-t border-slate-200 pt-5 dark:border-ink-800">
-        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Test accounts</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {testAccounts.map((account) => (
-            <Button
-              key={account.role}
-              variant="outline"
-              size="sm"
-              onClick={() => fillTestAccount(account)}
-            >
-              {account.label}
-            </Button>
-          ))}
+      {SHOW_TEST_ACCOUNTS ? (
+        <div className="mt-10 border-t border-slate-200 pt-5 dark:border-ink-800">
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Test accounts</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {testAccounts.map((account) => (
+              <Button
+                key={account.role}
+                variant="outline"
+                size="sm"
+                onClick={() => fillTestAccount(account)}
+              >
+                {account.label}
+              </Button>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   )
 }

@@ -152,7 +152,7 @@ server-side rendering.
 
 | Check | Result |
 |---|---|
-| Unit/component tests | 81 tests, 11 files |
+| Unit/component tests | 93 tests, 13 files |
 | Type-check | `tsc -b` clean |
 | Lint | `oxlint` clean |
 | Build | 23 pages prerendered (15 published listings) |
@@ -164,17 +164,23 @@ server-side rendering.
 
 ## 9. Known gaps
 
-- Demo accounts still exist and are visible in the demo build. Gate them before
-  deployment.
+- Demo accounts are created by the seed with credentials published in this
+  repository. The sign-in panel that filled them in is hidden outside
+  development, but the accounts themselves still exist. Rotate or remove them
+  before treating a deployment as anything other than a demonstration.
 - Listing status and deadlines age quickly; several programmes are already marked
   closed and must be reconfirmed each intake.
-- Email uses a console transport; no real provider is wired.
+- Email goes out through Resend when it is configured, but a sending domain is
+  not verified, so the testing sender only reaches the address that owns the
+  Resend account. Every other recipient is refused and the API reports that no
+  code was sent. The console transport sends nowhere at all.
 - Google sign-in is hidden without an OAuth client id.
 - Browser-storage mode remains as a build-time option; it is not the deployment
   path.
 - Throttles are in memory, so they assume one API process.
 - Audit writes are fire-and-forget.
-- No deployment has been performed yet.
+- The Docker deployment is a demonstration release: it keeps the seeded demo
+  accounts, and the tunnel hostname changes when the tunnel restarts.
 - List fields stored as JSON text are not queryable in SQL.
 
 The pre-deployment checklist is in `docs/security/SECURITY-REVIEW.md`.

@@ -93,7 +93,7 @@ export function AdminActivityPage() {
         {!state.loading && !state.error && entries.length === 0 ? (
           <EmptyState
             title="Nothing Recorded Yet"
-            description="Administrative acts will appear here as they happen — opening a student's document, deciding an application, confirming a grant."
+            description="Administrative acts will appear here as they happen: opening a student's document, deciding an application, confirming a grant."
           />
         ) : null}
 

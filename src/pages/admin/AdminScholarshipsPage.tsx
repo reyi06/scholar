@@ -156,12 +156,17 @@ export function AdminScholarshipsPage() {
     {
       key: 'deadline',
       header: 'Deadline',
-      render: (row) => (
-        <div className="flex flex-col items-start gap-1">
-          <span className="text-slate-700 dark:text-slate-200">{formatDate(row.deadline)}</span>
+      render: (row) =>
+        // A listing with no deadline has nothing to format, so the badge alone
+        // says it; printing the empty-date dash above it read as a stray mark.
+        row.deadline ? (
+          <div className="flex flex-col items-start gap-1">
+            <span className="text-slate-700 dark:text-slate-200">{formatDate(row.deadline)}</span>
+            <DeadlineBadge deadline={row.deadline} open={row.status === 'open'} />
+          </div>
+        ) : (
           <DeadlineBadge deadline={row.deadline} open={row.status === 'open'} />
-        </div>
-      ),
+        ),
     },
     {
       key: 'status',

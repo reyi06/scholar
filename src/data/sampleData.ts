@@ -372,7 +372,7 @@ const seeds: Seed[] = [
     },
     instructions: [
       'Bring the complete set to the Mayor\'s Office; the previous call accepted 2,500 slots on a first come, first served basis.',
-      'Confirm the current call with the Mayor\'s Office — the published announcement was for an earlier academic year.',
+      "Confirm the current call with the Mayor's Office. The published announcement was for an earlier academic year.",
     ],
     status: 'closed',
     featured: false,

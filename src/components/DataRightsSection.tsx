@@ -59,7 +59,7 @@ export function DataRightsSection() {
       <div className="max-w-[70ch] space-y-4">
         <p className="text-sm text-slate-600 dark:text-slate-300">
           Download a copy of your profile, applications, semester registrations, grants and document
-          descriptions. Uploaded files themselves are not bundled — download those from My Documents.
+          descriptions. Uploaded files themselves are not bundled. Download those from My Documents.
         </p>
 
         <div className="flex flex-wrap items-center gap-3">

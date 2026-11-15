@@ -383,9 +383,23 @@ export function AdminGrantsPage() {
     {
       key: 'scholarship',
       header: 'Scholarship',
+      // Without a floor the programme name wraps to five lines and every row
+      // becomes a paragraph; the table scrolls instead.
+      className: 'min-w-44',
       accessor: (row) => scholarshipNames.get(row.scholarshipId) ?? 'Removed listing',
     },
-    { key: 'semester', header: 'Term', className: 'whitespace-nowrap', accessor: (row) => `${row.academicYear} · ${row.semester}` },
+    {
+      // Two lines rather than "2026-2027, 2nd Semester" on one: the term was
+      // the widest cell and pushed the actions column off a 1280 screen.
+      key: 'semester',
+      header: 'Term',
+      accessor: (row) => (
+        <div className="flex flex-col whitespace-nowrap">
+          <span>{row.academicYear}</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">{row.semester}</span>
+        </div>
+      ),
+    },
     {
       key: 'amount',
       header: 'Amount',
@@ -454,7 +468,8 @@ export function AdminGrantsPage() {
             ) : null}
           </h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Confirmed here — and only here — an approved application becomes a grant record.
+            A grant record exists only because of a confirmation here. Approving an application is
+            not the same thing.
           </p>
         </div>
 

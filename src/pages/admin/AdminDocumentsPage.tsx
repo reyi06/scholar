@@ -196,7 +196,7 @@ export function AdminDocumentsPage() {
                 rows={3}
                 value={note}
                 onChange={(event) => setNote(event.target.value)}
-                placeholder="The scan is unreadable below the seal — please upload a clearer copy."
+                placeholder="The scan is unreadable below the seal. Please upload a clearer copy."
               />
             </Field>
 

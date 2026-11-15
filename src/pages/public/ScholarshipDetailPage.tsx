@@ -156,6 +156,10 @@ export function ScholarshipDetailPage() {
   const isOpen = scholarship.status === 'open'
   const isExternal = scholarship.applicationMode === 'external'
   const saved = savedIds.includes(scholarship.id)
+  const headlineBenefit = scholarship.benefits[0]
+  const levels = scholarship.educationLevels
+    .map((level) => EDUCATION_LEVEL_LABELS[level])
+    .join(', ')
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
@@ -171,6 +175,9 @@ export function ScholarshipDetailPage() {
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
         <Badge tone="brand">{SCHOLARSHIP_TYPE_LABELS[scholarship.type]}</Badge>
         <Badge tone="neutral">{scholarship.municipality}</Badge>
+        {/* The same two facts the card advertised, so arriving here confirms
+            the card rather than making the reader hunt for them. */}
+        {levels ? <Badge tone="neutral">{levels}</Badge> : null}
         <StatusBadge kind="scholarship" status={scholarship.status} />
         <DeadlineBadge deadline={scholarship.deadline} open={isOpen} />
         {scholarship.verifiedAt ? (
@@ -180,13 +187,20 @@ export function ScholarshipDetailPage() {
         ) : null}
       </div>
 
+      {headlineBenefit ? (
+        <p className="mt-5 flex gap-2 rounded-md bg-brand-50 px-3 py-2 text-sm text-slate-900 dark:bg-brand-950/40 dark:text-slate-100">
+          <span className="shrink-0 font-medium text-brand-800 dark:text-brand-200">Benefit</span>
+          <span className="min-w-0">{headlineBenefit}</span>
+        </p>
+      ) : null}
+
       <Alert
         className="mt-8"
         tone="info"
         title="Scholarships never ask you for money"
       >
         No legitimate programme asks for a fee, a deposit or your password. This
-        listing reflects what the provider has published — confirm it with them.{' '}
+        listing reflects what the provider has published. Confirm it with them.{' '}
         <a className="font-medium underline" href="mailto:scholarships@example.gov.ph?subject=Suspicious%20listing">
           Report a listing
         </a>
@@ -347,7 +361,7 @@ export function ScholarshipDetailPage() {
               items={[
                 {
                   label: 'Deadline',
-                  value: scholarship.deadline ? formatDate(scholarship.deadline) : 'Rolling, ask the provider',
+                  value: scholarship.deadline ? formatDate(scholarship.deadline) : 'No fixed deadline',
                 },
                 { label: 'Provider', value: scholarship.provider },
                 { label: 'Coverage', value: scholarship.municipality },
