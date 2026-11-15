@@ -255,7 +255,7 @@ export function HomePage() {
 
               {!announcementsLoading && !announcementsError ? (
                 advisories.length === 0 ? (
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                  <p className="text-sm text-slate-900 dark:text-slate-100">
                     There are no announcements at the moment.
                   </p>
                 ) : (
@@ -265,7 +265,7 @@ export function HomePage() {
                         <div className="flex flex-wrap items-center gap-2">
                           <time
                             dateTime={advisory.publishedAt}
-                            className="text-xs text-slate-500 dark:text-slate-400"
+                            className="text-xs text-slate-900 dark:text-slate-100"
                           >
                             {formatDate(advisory.publishedAt)}
                           </time>
@@ -277,7 +277,7 @@ export function HomePage() {
                         <h3 className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">
                           {advisory.title}
                         </h3>
-                        <p className="mt-0.5 max-w-[64ch] text-sm text-slate-600 dark:text-slate-300">
+                        <p className="mt-0.5 max-w-[64ch] text-sm leading-relaxed text-slate-900 dark:text-slate-100">
                           {truncate(advisory.body, 150)}
                         </p>
                       </li>
