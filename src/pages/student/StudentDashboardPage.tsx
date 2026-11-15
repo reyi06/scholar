@@ -147,7 +147,7 @@ export function StudentDashboardPage() {
       ) : (
         <>
           {/* One callout, not a section: it is the answer to "what do I do now". */}
-          <section className="rounded-lg border border-brand-200 bg-brand-50 p-5 sm:p-6 dark:border-brand-900 dark:bg-brand-950/40">
+          <section className="rounded-lg border border-brand-200 bg-brand-50 p-5 sm:p-6 dark:border-brand-800 dark:bg-brand-950/60">
             <p className="text-xs font-medium tracking-[0.18em] text-brand-800 uppercase dark:text-brand-200">
               Needs Your Attention
             </p>

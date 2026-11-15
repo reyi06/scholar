@@ -177,7 +177,7 @@ export function FaqPage() {
 
   return (
     <>
-      <section className="bg-brand-800 dark:bg-ink-900">
+      <section className="bg-brand-800 dark:bg-brand-950">
         <div className="mx-auto max-w-3xl px-5 py-10 sm:px-8 sm:py-12">
           <p className="text-xs font-medium tracking-[0.18em] text-gold-300 uppercase">Questions</p>
           <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">

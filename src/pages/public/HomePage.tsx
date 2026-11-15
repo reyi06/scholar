@@ -80,7 +80,7 @@ export function HomePage() {
     <>
       {/* Hero. The only coloured block on the site, carrying the province's
           identity the way a letterhead does. Search stays on the first screen. */}
-      <section className="bg-brand-800 dark:bg-ink-900">
+      <section className="bg-brand-800 dark:bg-brand-950">
         <div className="mx-auto grid max-w-6xl items-center gap-8 px-5 pt-10 pb-12 sm:px-8 sm:pt-14 sm:pb-16 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
           <div>
             <p className="text-xs font-medium tracking-[0.18em] text-gold-300 uppercase">

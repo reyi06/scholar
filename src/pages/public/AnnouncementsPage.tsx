@@ -36,7 +36,7 @@ export function AnnouncementsPage() {
     <>
       {/* The channel wears the same band as the home page: gold eyebrow, serif
           title, and the one control that matters sitting on the band itself. */}
-      <section className="bg-brand-800 dark:bg-ink-900">
+      <section className="bg-brand-800 dark:bg-brand-950">
         <div className="mx-auto max-w-3xl px-5 py-10 sm:px-8 sm:py-12">
           <p className="text-xs font-medium tracking-[0.18em] text-gold-300 uppercase">
             Updates

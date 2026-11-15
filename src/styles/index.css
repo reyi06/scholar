@@ -73,6 +73,14 @@
    which an inline script in index.html applies before first paint. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* A shadow built for a light page disappears on a dark one. Tailwind inlines
+   the shadow into the utility, so the token cannot be overridden at runtime;
+   this targets the utility itself. Depth in dark mode comes from a darker,
+   tighter shadow plus the border every floating surface already carries. */
+.dark .shadow-float {
+  --tw-shadow: 0 1px 2px rgb(0 0 0 / 0.5), 0 12px 32px -12px rgb(0 0 0 / 0.7);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
