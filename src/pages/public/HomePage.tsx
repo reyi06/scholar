@@ -55,7 +55,7 @@ const ADVISORY_LIMIT = 3
 export function HomePage() {
   useDocumentTitle('Find Scholarships in Pampanga')
   const navigate = useNavigate()
-  const { user, isStudent } = useAuth()
+  const { user } = useAuth()
 
   const [query, setQuery] = useState('')
   const { ref: journeyRef, inView: journeySeen } = useInView<HTMLOListElement>()
@@ -150,159 +150,168 @@ export function HomePage() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-6xl px-5 pb-20 sm:px-8">
+      <div className="pb-14">
 
-      {/* Mission and vision. Warm, not corporate: these are words a student may
-          read while deciding whether to try at all. */}
-      <section className="border-b border-slate-200 dark:border-ink-800">
-        <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-12">
-          <div className="grid gap-8 md:grid-cols-2 md:gap-12">
-            <div>
-              <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-slate-100">
+      {/* Mission and vision, set as a charter rather than body copy: small
+          uppercase labels, serif statements, a rule between them, and one line
+          of encouragement closing it. */}
+      <section className="border-b border-slate-200 py-12 dark:border-ink-800 sm:py-16">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <div className="grid gap-10 md:grid-cols-2 md:gap-0">
+            <div className="md:pr-12">
+              <p className="text-xs font-medium tracking-[0.18em] text-brand-700 uppercase dark:text-brand-300">
                 Our Mission
-              </h2>
-              <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+              </p>
+              <p className="font-display mt-4 text-lg leading-relaxed text-slate-800 sm:text-xl dark:text-slate-200">
                 Kaagapay ninyo kami sa bawat hakbang ng inyong pag-aaral. Nandito kami upang hanapin
                 ang tulong na para sa inyo, ipaliwanag ito sa simpleng paraan, at samahan kayo
                 hanggang makapagtapos.
               </p>
             </div>
 
-            <div>
-              <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-slate-100">
+            <div className="border-t border-slate-200 pt-10 md:border-t-0 md:border-l md:pt-0 md:pl-12 dark:border-ink-800">
+              <p className="text-xs font-medium tracking-[0.18em] text-brand-700 uppercase dark:text-brand-300">
                 Our Vision
-              </h2>
-              <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+              </p>
+              <p className="font-display mt-4 text-lg leading-relaxed text-slate-800 sm:text-xl dark:text-slate-200">
                 Isang Pampanga kung saan may pag-asa ang bawat mag-aaral na makapagtapos, gaano man
                 kahirap ang pinagdadaanan, at kung saan may pagkakataong matupad ang bawat pangarap.
               </p>
             </div>
           </div>
 
-          <p className="mt-8 text-center text-sm text-slate-600 dark:text-slate-300">
+          <p className="font-display mt-10 border-t border-slate-200 pt-6 text-center text-base text-brand-800 sm:mt-12 dark:border-ink-800 dark:text-brand-200">
             Hindi ka nag-iisa. Kasama mo kami.
           </p>
         </div>
       </section>
 
-      <section className="border-t border-slate-200 py-16 dark:border-ink-800">
-        <h2 className="text-center text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">From Searching to a Confirmed Grant</h2>
-        <p className="mx-auto mt-2 max-w-md text-center text-sm text-slate-500 dark:text-slate-400">
-          Three steps, and you can see exactly where you are at each one.
-        </p>
+      <section className="border-b border-slate-200 py-12 dark:border-ink-800 sm:py-16">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <div className="text-center">
+            <p className="text-xs font-medium tracking-[0.18em] text-brand-700 uppercase dark:text-brand-300">
+              How It Works
+            </p>
+            <h2 className="font-display mt-3 text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl dark:text-slate-100">
+              From Searching to a Confirmed Grant
+            </h2>
+            <p className="mx-auto mt-2 max-w-md text-sm text-slate-600 dark:text-slate-300">
+              Three steps, and you can see exactly where you are at each one.
+            </p>
+          </div>
 
-        <ol ref={journeyRef} className="relative mt-12 grid gap-12 sm:grid-cols-3 sm:gap-6">
-          {/* Rail behind the nodes, so the three read as one sequence rather than
-              three standalone blocks. */}
-          <div
-            aria-hidden="true"
-            className="absolute top-10 right-[16.667%] left-[16.667%] hidden border-t border-dashed border-slate-300 sm:block dark:border-ink-700"
-          />
+          <ol ref={journeyRef} className="relative mt-12 grid gap-12 sm:grid-cols-3 sm:gap-6">
+            {/* Rail behind the nodes, so the three read as one sequence rather than
+                three standalone blocks. */}
+            <div
+              aria-hidden="true"
+              className="absolute top-10 right-[16.667%] left-[16.667%] hidden border-t border-dashed border-slate-300 sm:block dark:border-ink-700"
+            />
 
-          {STEPS.map((step) => (
-            <li key={step.title} className="relative flex flex-col items-center gap-4 text-center">
-              <span className="relative z-10 flex size-20 items-center justify-center rounded-full border border-slate-200 bg-canvas dark:border-ink-800 dark:bg-ink-950">
-                <step.Illustration
-                  className="size-11 text-brand-700 dark:text-brand-300"
-                  animated={journeySeen}
-                />
-              </span>
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{step.title}</h3>
-              <p className="max-w-[34ch] text-sm text-slate-600 dark:text-slate-300">{step.body}</p>
-            </li>
-          ))}
-        </ol>
+            {STEPS.map((step) => (
+              <li key={step.title} className="relative flex flex-col items-center gap-4 text-center">
+                <span className="relative z-10 flex size-20 items-center justify-center rounded-full border border-slate-200 bg-canvas dark:border-ink-800 dark:bg-ink-950">
+                  <step.Illustration
+                    className="size-11 text-brand-700 dark:text-brand-300"
+                    animated={journeySeen}
+                  />
+                </span>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{step.title}</h3>
+                <p className="max-w-[34ch] text-sm text-slate-600 dark:text-slate-300">{step.body}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
       </section>
 
       {/* -------------------------------- Advisories ------------------------------- */}
-      <section className="border-t border-slate-200 py-16 dark:border-ink-800">
-        <div className="mx-auto max-w-3xl">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">Announcements and Advisories</h2>
-            <Link
-              to="/announcements"
-              className="text-sm text-brand-800 underline-offset-4 hover:underline dark:text-brand-300"
-            >
-              View All Announcements
-            </Link>
-          </div>
-
-          {announcementsLoading ? (
-            <LoadingList rows={2} className="!py-8" />
-          ) : null}
-
-          {announcementsError ? (
-            <ErrorState
-              className="mt-6"
-              message={announcementsError}
-              onRetry={reloadAnnouncements}
-            />
-          ) : null}
-
-          {!announcementsLoading && !announcementsError ? (
-            advisories.length === 0 ? (
-              <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
-                There are no announcements at the moment.
+      <section className="py-12 sm:py-16">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.9fr)] lg:gap-16">
+            <div>
+              <p className="text-xs font-medium tracking-[0.18em] text-brand-700 uppercase dark:text-brand-300">
+                Updates
               </p>
-            ) : (
-              <ul className="mt-4 divide-y divide-slate-200 dark:divide-ink-800">
-                {advisories.map((advisory) => (
-                  <li key={advisory.id} className="py-4 first:pt-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <time
-                        dateTime={advisory.publishedAt}
-                        className="text-xs text-slate-500 dark:text-slate-400"
-                      >
-                        {formatDate(advisory.publishedAt)}
-                      </time>
-                      <Badge tone={ANNOUNCEMENT_CATEGORY_TONES[advisory.category]}>
-                        {ANNOUNCEMENT_CATEGORY_LABELS[advisory.category]}
-                      </Badge>
-                      {advisory.pinned ? <Badge tone="gold">Pinned</Badge> : null}
-                    </div>
-                    <h3 className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">
-                      {advisory.title}
-                    </h3>
-                    <p className="mt-0.5 max-w-[64ch] text-sm text-slate-600 dark:text-slate-300">
-                      {truncate(advisory.body, 150)}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )
-          ) : null}
-        </div>
-      </section>
+              <h2 className="font-display mt-3 text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl dark:text-slate-100">
+                Announcements and Advisories
+              </h2>
+              <Link
+                to="/announcements"
+                className="mt-4 inline-block text-sm font-medium text-brand-800 underline-offset-4 hover:underline dark:text-brand-300"
+              >
+                View All Announcements
+              </Link>
+            </div>
 
-      {/* ----------------------------------- CTA ----------------------------------- */}
-      <section className="border-t border-slate-200 pt-12 dark:border-ink-800">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-            {isStudent ? 'Continue where you left off' : 'Track your applications in one place'}
-          </h2>
-          <p className="mt-3 text-base text-slate-600 dark:text-slate-300">
-            {isStudent
-              ? 'Check your application status, file your semester registration and review your confirmed grants.'
-              : 'Create a student account to save listings, submit applications and follow their progress.'}
-          </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            {user ? (
-              <LinkButton to={isStudent ? '/student/dashboard' : '/admin/dashboard'} size="lg">
-                Open My Dashboard
-              </LinkButton>
-            ) : (
-              <>
-                <LinkButton to="/register" size="lg">
-                  Create Account
-                </LinkButton>
-                <LinkButton to="/login" variant="outline" size="lg">
-                  Sign In
-                </LinkButton>
-              </>
-            )}
+            <div>
+              {announcementsLoading ? (
+                <LoadingList rows={2} className="!py-8" />
+              ) : null}
+
+              {announcementsError ? (
+                <ErrorState message={announcementsError} onRetry={reloadAnnouncements} />
+              ) : null}
+
+              {!announcementsLoading && !announcementsError ? (
+                advisories.length === 0 ? (
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    There are no announcements at the moment.
+                  </p>
+                ) : (
+                  <ul className="divide-y divide-slate-200 dark:divide-ink-800">
+                    {advisories.map((advisory) => (
+                      <li key={advisory.id} className="py-4 first:pt-0 last:pb-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <time
+                            dateTime={advisory.publishedAt}
+                            className="text-xs text-slate-500 dark:text-slate-400"
+                          >
+                            {formatDate(advisory.publishedAt)}
+                          </time>
+                          <Badge tone={ANNOUNCEMENT_CATEGORY_TONES[advisory.category]}>
+                            {ANNOUNCEMENT_CATEGORY_LABELS[advisory.category]}
+                          </Badge>
+                          {advisory.pinned ? <Badge tone="gold">Pinned</Badge> : null}
+                        </div>
+                        <h3 className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">
+                          {advisory.title}
+                        </h3>
+                        <p className="mt-0.5 max-w-[64ch] text-sm text-slate-600 dark:text-slate-300">
+                          {truncate(advisory.body, 150)}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              ) : null}
+            </div>
           </div>
         </div>
       </section>
+
+      {/* A closing call to action for readers who are not signed in yet. Signed
+          in users already have their dashboard in the header. */}
+      {!user ? (
+        <section className="border-t border-slate-200 py-12 dark:border-ink-800">
+          <div className="mx-auto max-w-2xl px-5 text-center sm:px-8">
+            <h2 className="font-display text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+              Track your applications in one place
+            </h2>
+            <p className="mt-3 text-base text-slate-600 dark:text-slate-300">
+              Create a student account to save listings, submit applications and follow their
+              progress.
+            </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <LinkButton to="/register" size="lg">
+                Create Account
+              </LinkButton>
+              <LinkButton to="/login" variant="outline" size="lg">
+                Sign In
+              </LinkButton>
+            </div>
+          </div>
+        </section>
+      ) : null}
       </div>
     </>
   )
