@@ -188,36 +188,40 @@ export function HomePage() {
 
       <section className="border-b border-slate-200 py-12 dark:border-ink-800 sm:py-16">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
-          <div className="text-center">
-            <p className="text-xs font-medium tracking-[0.18em] text-brand-700 uppercase dark:text-brand-300">
-              How It Works
-            </p>
-            <h2 className="font-display mt-3 text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl dark:text-slate-100">
-              From Searching to a Confirmed Grant
-            </h2>
-            <p className="mx-auto mt-2 max-w-md text-sm text-slate-600 dark:text-slate-300">
-              Three steps, and you can see exactly where you are at each one.
-            </p>
-          </div>
+          <p className="text-xs font-medium tracking-[0.18em] text-brand-700 uppercase dark:text-brand-300">
+            How It Works
+          </p>
+          <h2 className="mt-3 text-lg font-semibold tracking-tight text-slate-900 sm:text-xl dark:text-slate-100">
+            Mula sa Paghahanap Hanggang sa Iyong Grant
+          </h2>
 
-          <ol ref={journeyRef} className="relative mt-12 grid gap-12 sm:grid-cols-3 sm:gap-6">
-            {/* Rail behind the nodes, so the three read as one sequence rather than
-                three standalone blocks. */}
-            <div
-              aria-hidden="true"
-              className="absolute top-10 right-[16.667%] left-[16.667%] hidden border-t border-dashed border-slate-300 sm:block dark:border-ink-700"
-            />
-
-            {STEPS.map((step) => (
-              <li key={step.title} className="relative flex flex-col items-center gap-4 text-center">
-                <span className="relative z-10 flex size-20 items-center justify-center rounded-full border border-slate-200 bg-canvas dark:border-ink-800 dark:bg-ink-950">
+          {/* Numbered columns with a rule across the top. No rail, no circles:
+              the numbers carry the sequence and the rules keep the three on one
+              line, which is all the diagram needs to say. */}
+          <ol ref={journeyRef} className="mt-10 grid gap-8 sm:grid-cols-3 sm:gap-10">
+            {STEPS.map((step, index) => (
+              <li
+                key={step.title}
+                className="border-t-2 border-brand-800 pt-5 dark:border-brand-300"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <span
+                    aria-hidden="true"
+                    className="font-display text-2xl font-semibold text-brand-800 tabular-nums dark:text-brand-200"
+                  >
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
                   <step.Illustration
-                    className="size-11 text-brand-700 dark:text-brand-300"
+                    className="size-10 text-brand-700 dark:text-brand-300"
                     animated={journeySeen}
                   />
-                </span>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{step.title}</h3>
-                <p className="max-w-[34ch] text-sm text-slate-600 dark:text-slate-300">{step.body}</p>
+                </div>
+                <h3 className="font-display mt-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+                  {step.title}
+                </h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-slate-900 dark:text-slate-100">
+                  {step.body}
+                </p>
               </li>
             ))}
           </ol>
