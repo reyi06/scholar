@@ -100,12 +100,12 @@ export function ForgotPasswordPage() {
 
         {sent === null ? null : (
           <>
-            <p className="text-sm text-slate-600 dark:text-slate-300">
+            <p className="text-sm text-slate-900 dark:text-slate-100">
               {sent.delivery === 'email'
                 ? 'If that address has an account, a code is on its way. It expires in ten minutes.'
                 : sent.delivery === 'log'
                   ? 'A code was generated for the account, if one exists. This server has no mail configured, so the code was printed to its log.'
-                  : 'No mail transport is configured on this server, so no code could be delivered.'}
+                  : 'No code was sent to that address. Check it, or contact the scholarship office.'}
             </p>
 
             <Field

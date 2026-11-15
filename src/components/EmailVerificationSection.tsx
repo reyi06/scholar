@@ -103,13 +103,15 @@ export function EmailVerificationSection() {
               void confirm.run()
             }}
           >
-            {/* The server says where the message went; say the same thing. */}
-            <p className="text-sm text-slate-600 dark:text-slate-300">
+            {/* The server says where the message went; say the same thing. A
+                configured provider can still refuse an address, so "none"
+                means nothing left the server, not "no transport". */}
+            <p className="text-sm text-slate-900 dark:text-slate-100">
               {sent.delivery === 'email'
                 ? 'A six-digit code is on its way. It expires in ten minutes.'
                 : sent.delivery === 'log'
                   ? 'A six-digit code was generated. This server has no mail configured, so the code was printed to its log.'
-                  : 'No mail transport is configured on this server, so no code could be delivered.'}
+                  : 'No code was sent. Check the address, or ask the scholarship office for help.'}
             </p>
 
             <Field
