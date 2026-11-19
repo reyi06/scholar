@@ -40,8 +40,8 @@ function daysAgo(days: number): string {
 /* ------------------------------------------------------------------ */
 
 export const DEMO_ACCOUNTS = {
-  student: { email: 'maria.santos@example.com', password: 'student123' },
-  admin: { email: 'admin@example.com', password: 'admin123' },
+  student: { email: 'maria.santos@gmail.com', password: 'student123' },
+  admin: { email: 'admin@gmail.com', password: 'admin123' },
 } as const
 
 export const sampleUsers: User[] = [
@@ -71,7 +71,7 @@ export const sampleUsers: User[] = [
   },
   {
     id: 'usr_student_2',
-    email: 'juan.delacruz@example.com',
+    email: 'juan.delacruz@gmail.com',
     role: 'student',
     firstName: 'Juan',
     lastName: 'Dela Cruz',
@@ -83,7 +83,7 @@ export const sampleUsers: User[] = [
   },
   {
     id: 'usr_student_3',
-    email: 'ana.reyes@example.com',
+    email: 'ana.reyes@gmail.com',
     role: 'student',
     firstName: 'Ana',
     lastName: 'Reyes',
@@ -95,7 +95,7 @@ export const sampleUsers: User[] = [
   },
   {
     id: 'usr_student_4',
-    email: 'paolo.bautista@example.com',
+    email: 'paolo.bautista@gmail.com',
     role: 'student',
     firstName: 'Paolo',
     lastName: 'Bautista',
@@ -117,9 +117,9 @@ export const sampleUsers: User[] = [
 export const sampleCredentials: { userId: string; email: string; password: string }[] = [
   { userId: 'usr_admin_1', email: DEMO_ACCOUNTS.admin.email, password: DEMO_ACCOUNTS.admin.password },
   { userId: 'usr_student_1', email: DEMO_ACCOUNTS.student.email, password: DEMO_ACCOUNTS.student.password },
-  { userId: 'usr_student_2', email: 'juan.delacruz@example.com', password: 'student123' },
-  { userId: 'usr_student_3', email: 'ana.reyes@example.com', password: 'student123' },
-  { userId: 'usr_student_4', email: 'paolo.bautista@example.com', password: 'student123' },
+  { userId: 'usr_student_2', email: 'juan.delacruz@gmail.com', password: 'student123' },
+  { userId: 'usr_student_3', email: 'ana.reyes@gmail.com', password: 'student123' },
+  { userId: 'usr_student_4', email: 'paolo.bautista@gmail.com', password: 'student123' },
 ]
 
 /* ------------------------------------------------------------------ */

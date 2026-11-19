@@ -166,12 +166,14 @@ must not be deployed. Either way, remove the demo accounts before public use.
 
 | Role          | Email                       | Password     |
 | ------------- | --------------------------- | ------------ |
-| Student       | `maria.santos@example.com`  | `student123` |
-| Administrator | `admin@example.com`         | `admin123`   |
+| Student       | `maria.santos@gmail.com`    | `student123` |
+| Administrator | `admin@gmail.com`           | `admin123`   |
 
-The login screen lists both accounts and can fill them in with one click.
+Development builds list both accounts on the sign-in page and can fill them in
+with one click. A deployed build hides that panel unless
+`VITE_SHOW_TEST_ACCOUNTS=true` is set at build time.
 Additional student accounts exist in `src/data/sampleData.ts`
-(`juan.delacruz@`, `ana.reyes@`, `paolo.bautista@` — all `@example.com`, all with
+(`juan.delacruz@`, `ana.reyes@`, `paolo.bautista@` - all `@gmail.com`, all with
 the password `student123`).
 
 ## Environment variables

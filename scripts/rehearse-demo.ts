@@ -72,8 +72,8 @@ async function heading(page: Page, expected?: RegExp): Promise<string> {
 async function signIn(page: Page, role: 'student' | 'admin'): Promise<void> {
   const credentials =
     role === 'admin'
-      ? { email: 'admin@example.com', password: 'admin123' }
-      : { email: 'maria.santos@example.com', password: 'student123' }
+      ? { email: 'admin@gmail.com', password: 'admin123' }
+      : { email: 'maria.santos@gmail.com', password: 'student123' }
 
   const response = await page.request.post(`${API}/api/auth/login`, { data: credentials })
   expect(response.ok(), `sign-in as ${role} returned ${response.status()}`)

@@ -70,8 +70,8 @@ const ADMIN_ROUTES = [
 ]
 
 const ACCOUNTS = {
-  student: { email: 'maria.santos@example.com', password: 'student123' },
-  admin: { email: 'admin@example.com', password: 'admin123' },
+  student: { email: 'maria.santos@gmail.com', password: 'student123' },
+  admin: { email: 'admin@gmail.com', password: 'admin123' },
 } as const
 
 type Role = keyof typeof ACCOUNTS

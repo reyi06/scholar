@@ -16,6 +16,6 @@ export interface TestAccount {
 }
 
 export const TEST_ACCOUNTS: TestAccount[] = [
-  { role: 'student', label: 'Student', email: 'maria.santos@example.com', password: 'student123' },
-  { role: 'admin', label: 'Administrator', email: 'admin@example.com', password: 'admin123' },
+  { role: 'student', label: 'Student', email: 'maria.santos@gmail.com', password: 'student123' },
+  { role: 'admin', label: 'Administrator', email: 'admin@gmail.com', password: 'admin123' },
 ]
